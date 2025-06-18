@@ -1,0 +1,153 @@
+{
+  "temp_actual": {
+    "key": "w_1eommf39k",
+    "type": "sensor"
+  },
+  "ph_actual": {
+    "key": "w_1ekeigkin",
+    "type": "sensor"
+  },
+  "orp_actual": {
+    "key": "w_1eklenb23",
+    "type": "sensor"
+  },
+  "ph_type_dosing": {
+    "key": "w_1eklg44ro",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklg44ro_ALCALYNE|": "alcalyne",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklg44ro_ACID|"    : "acid"
+    }
+  },
+  "peristaltic_ph_dosing": {
+    "key": "w_1eklj6euj",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_OFF|": "off",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_PROPORTIONAL|": "proportional",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_ON_OFF|": "on_off",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_TIMED|": "timed"
+    }
+  },
+  "ofa_ph_value": {
+    "key": "w_1eo1ttmft",
+    "type": "sensor"
+  },
+  "orp_type_dosing": {
+    "key": "w_1eklgnolb",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklgnolb_LOW|": "low",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklgnolb_HIGH|": "high"
+    }
+  },
+  "peristaltic_orp_dosing": {
+    "key": "w_1eo1s18s8",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_OFF|": "off",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_PROPORTIONAL|": "proportional",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_ON_OFF|": "on_off",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_TIMED|": "timed"
+    }
+  },
+  "ofa_orp_value": {
+    "key": "w_1eo1tui1d",
+    "type": "sensor"
+  },
+  "ph_calibration_type": {
+    "key": "w_1eklh8gb7",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_OFF|": "off",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_REFERENCE|": "reference",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_1_POINT|": "1_point",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_2_POINTS|": "2_points"
+    }
+  },
+  "ph_calibration_offset": {
+    "key": "w_1eklhs3b4",
+    "type": "sensor"
+  },
+  "ph_calibration_slope": {
+    "key": "w_1eklhs65u",
+    "type": "sensor"
+  },
+  "orp_calibration_type": {
+    "key": "w_1eklh8i5t",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_OFF|": "off",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_REFERENCE|": "reference",
+        "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_1_POINT|": "1_point"
+    }
+  },
+  "orp_calibration_offset": {
+    "key": "w_1eklhs8r3",
+    "type": "sensor"
+  },
+  "orp_calibration_slope": {
+    "key": "w_1eklhsase",
+    "type": "sensor"
+  },
+  "pump_running": {
+    "key": "w_1ekga097n",
+    "type": "binary_sensor"
+  },
+  "ph_level_ok": {
+    "key": "w_1eklf77pm",
+    "type": "binary_sensor"
+  },
+  "orp_level_ok": {
+    "key": "w_1eo04bcr2",
+    "type": "binary_sensor"
+  },
+  "flow_rate_ok": {
+    "key": "w_1eo04nc5n",
+    "type": "binary_sensor"
+  },
+  "alarm_relay": {
+    "key": "w_1eklffdl0",
+    "type": "binary_sensor"
+  },
+  "relay_aux1_ph": {
+    "key": "w_1eoi2rv4h",
+    "type": "binary_sensor"
+  },
+  "relay_aux2_orpcl": {
+    "key": "w_1eoi2s16b",
+    "type": "binary_sensor"
+  },
+    "ph_target": {
+    "key": "w_1ekeiqfat",
+    "type": "number"
+  },
+    "orp_target": {
+    "key": "w_1eklgnjk2",
+    "type": "number"
+  },
+    "stop_pool_dosing": {
+    "key": "w_1emtltkel",
+    "type": "switch"
+  },
+    "pump_detection": {
+    "key": "w_1eklft47q",
+    "type": "switch"
+  },
+    "frequency_input": {
+    "key": "w_1eklft5qt",
+    "type": "switch"
+  },
+    "water_meter_unit": {
+        "key": "w_1eklinki6",
+        "type": "select",
+        "options": {
+            "0": "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_M_",
+            "1": "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_LITER"
+        },
+        "conversion": {
+            "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_M_": "m³",
+            "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_LITER": "L"
+        }
+    }   
+}

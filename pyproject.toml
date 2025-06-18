@@ -1,0 +1,15 @@
+[project]
+name = "python-pooldose"
+version = "1.0.0"
+description = "Async Python client for SEKO Pooldose devices"
+authors = ["Lukas Maertin"]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "aiohttp>=3.8.0"
+]
+
+[build-system]
+requires = ["setuptools", "wheel", "aiohttp", "pytest"]
+build-backend = "setuptools.build_meta"
