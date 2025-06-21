@@ -4,25 +4,25 @@ import json
 import re
 import socket
 from typing import Any, Optional
-from enum import Enum, auto
+from enum import Enum
 
 _LOGGER = logging.getLogger(__name__)
 
 API_VERSION_SUPPORTED = "v1/"
 
 class RequestStatus(Enum):
-    SUCCESS = auto()
-    HOST_UNREACHABLE = auto()
-    PARAMS_FETCH_FAILED = auto()
-    API_VERSION_UNSUPPORTED = auto()
-    NO_DATA = auto()
-    CLIENT_ERROR_SET = auto()
-    UNKNOWN_ERROR = auto()
+    SUCCESS = "success"
+    HOST_UNREACHABLE = "host unreachable"
+    PARAMS_FETCH_FAILED = "params fetch failed"
+    API_VERSION_UNSUPPORTED = "api version unsupported"
+    NO_DATA = "no data available"
+    CLIENT_ERROR_SET = "client error in set value"
+    UNKNOWN_ERROR = "unknown error"
 
 class RequestHandler:
     """
     Handles all HTTP requests to the Pooldose API.
-    Only softwareVersion, softwareCode, and apiversion are loaded from params.js.
+    Only softwareVersion, and apiversion are loaded from params.js.
     """
 
     def __init__(self, host: str, timeout: int = 10):
@@ -69,7 +69,7 @@ class RequestHandler:
 
     async def _get_core_params(self) -> dict | RequestStatus:
         """
-        Fetch and extract softwareVersion, and apiversion from params.js.
+        Fetch and extract softwareVersion and apiversion from params.js.
 
         Returns:
             dict: Dictionary with the selected parameters, or None on error.
