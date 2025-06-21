@@ -35,7 +35,7 @@ class RequestHandler:
             self.softwareVersion = params.get("softwareVersion")
             self.apiversion = params.get("apiversion")
         else:
-            _LOGGER.warning("Could not fetch core params from params.js")
+            _LOGGER.warning("Could not fetch core params")
             return None
         return self
 
@@ -65,7 +65,7 @@ class RequestHandler:
 
             return result
         except Exception as err:
-            _LOGGER.warning("Error fetching or parsing core params from params.js: %s", err)
+            _LOGGER.warning("Error fetching or parsing core params: %s", err)
             return None
 
     async def get_debug_config(self) -> dict | None:
