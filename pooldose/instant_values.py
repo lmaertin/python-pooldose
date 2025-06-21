@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, Optional
-from pooldose.request_handler import RequestHandler
+from pooldose.request_handler import RequestHandler, RequestStatus
 
 _LOGGER = logging.getLogger(__name__)
 
