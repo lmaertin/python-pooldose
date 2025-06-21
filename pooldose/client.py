@@ -8,12 +8,9 @@ from typing import Any, Optional
 import json
 import logging
 from pathlib import Path
-from pooldose.exceptions import PooldoseFetchError, PooldoseWrongApiVersionError
 from pooldose.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler
 from pooldose.static_values import StaticValues
-
-#API_VERSION_SUPPORTED = "v1/"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,21 +97,6 @@ class PooldoseClient:
                 self.device_info["MODEL_ID"] = device.get("PRODUCT_CODE")
                 self.device_info["FW_VERSION"] = device.get("FW_REL")
                 self.device_info["FW_CODE"] = device.get("FW_CODE")
-            await asyncio.sleep(0.25)
-
-            # info_release = await self._request_handler.get_info_release()
-            # if not info_release:
-            #     _LOGGER.error("Failed to fetch infoRelease data")
-            #     return None
-            # self.device_info["API_VERSION"] = info_release.get("APIVERSION_GATEWAY")
-
-            # if self.device_info["API_VERSION"] != API_VERSION_SUPPORTED:
-            #     _LOGGER.error(
-            #         f"Unsupported API version {self.device_info['API_VERSION']}, "
-            #         f"expected {API_VERSION_SUPPORTED}"
-            #     )
-            #     return None
-
             await asyncio.sleep(0.5)
 
             wifi_station = await self._request_handler.get_wifi_station()

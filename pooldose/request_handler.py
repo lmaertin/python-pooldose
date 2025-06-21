@@ -1,4 +1,3 @@
-import asyncio
 import aiohttp
 import logging
 import json
@@ -11,7 +10,7 @@ API_VERSION_SUPPORTED = "v1/"
 
 class RequestHandler:
     """
-    Handles all HTTP requests to the Pooldose API.
+    Handles all HTTP get/post requests to the Pooldose API.
     """
 
     def __init__(self, host: str, timeout: int = 10):
@@ -82,22 +81,6 @@ class RequestHandler:
         except Exception as err:
             _LOGGER.error("Error fetching debug config: %s", err)
             return None
-
-    # api-version is not derived from info_release in the current implementation, but can be uncommented if needed.
-    # async def get_info_release(self) -> Optional[dict]:
-    #     url = f"http://{self.host}/api/v1/infoRelease"
-    #     payload = {"SOFTWAREVERSION": self.softwareVersion}
-    #     try:
-    #         timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-    #         async with aiohttp.ClientSession() as session:
-    #             async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
-    #                 resp.raise_for_status()
-    #                 return await resp.json()
-    #             _LOGGER.error("No data found for release info: %s", err)
-    #             return None
-    #     except Exception as err:
-    #         _LOGGER.error("Failed to fetch release info: %s", err)
-    #         return None
 
     async def get_wifi_station(self) -> Optional[dict]:
         url = f"http://{self.host}/api/v1/network/wifi/getStation"

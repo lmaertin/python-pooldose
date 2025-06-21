@@ -1,8 +1,7 @@
 .vscode/*
-ha_comp/*
 __pycache__/*
 pooldose/__pycache__/*
 tests/*
+references/*
 demo.py
 .DS_Store
-pooldose/info/*
