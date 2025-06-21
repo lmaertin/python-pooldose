@@ -2,6 +2,7 @@ import aiohttp
 import logging
 import json
 import re
+import socket
 from typing import Any, Optional
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,9 +28,11 @@ class RequestHandler:
         Asynchronous factory method to create and initialize the RequestHandler.
 
         Returns:
-            RequestHandler: An initialized RequestHandler instance.
+            RequestHandler: An initialized RequestHandler instance, or None if host is unreachable.
         """
         self = cls(host, timeout)
+        if not self.check_host_reachable():
+            return None
         params = await self._get_core_params()
         if params:
             self.softwareVersion = params.get("softwareVersion")
@@ -38,6 +41,20 @@ class RequestHandler:
             _LOGGER.warning("Could not fetch core params")
             return None
         return self
+
+    def check_host_reachable(self) -> bool:
+        """
+        Check if the host is reachable on port 80 (HTTP).
+
+        Returns:
+            bool: True if reachable, False otherwise.
+        """
+        try:
+            with socket.create_connection((self.host, 80), timeout=self.timeout):
+                return True
+        except Exception as err:
+            _LOGGER.error("Host %s not reachable: %s", self.host, err)
+            return False
 
     async def _get_core_params(self) -> dict | None:
         """
