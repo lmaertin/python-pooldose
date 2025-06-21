@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, Optional
 import json
 import logging
 from pathlib import Path
@@ -13,16 +13,14 @@ from pooldose.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler
 from pooldose.static_values import StaticValues
 
-API_VERSION_SUPPORTED = "v1"
+#API_VERSION_SUPPORTED = "v1/"
 
 _LOGGER = logging.getLogger(__name__)
 
 class PooldoseClient:
     """
     Async client for SEKO Pooldose API.
-
-    This class manages the connection to a Pooldose device, handles
-    device information, and provides access to static and instant values.
+    All getter methods return None on error and log a warning.
     """
 
     def __init__(self, host: str, timeout: int = 10) -> None:
@@ -72,104 +70,132 @@ class PooldoseClient:
             timeout (int): Timeout for API requests in seconds.
 
         Returns:
-            PooldoseClient: An initialized PooldoseClient instance.
+            PooldoseClient: An initialized PooldoseClient instance, or None on error.
         """
-        self = cls(host, timeout)
-        
-        debug_config = await self._request_handler.get_debug_config()
-        if not debug_config:
-            raise PooldoseFetchError("Failed to fetch debug config")
-        if (gateway := debug_config.get("GATEWAY")) is not None:
-            self.device_info["SERIAL_NUMBER"] = gateway.get("DID")
-            self.device_info["NAME"] = gateway.get("NAME")
-            self.device_info["SW_VERSION"] = gateway.get("FW_REL")
-        if (device := debug_config.get("DEVICES")[0]) is not None:
-            self.device_info["DEVICE_ID"] = device.get("DID")
-            self.device_info["MODEL"] = device.get("NAME")
-            self.device_info["MODEL_ID"] = device.get("PRODUCT_CODE")
-            self.device_info["FW_VERSION"] = device.get("FW_REL")
-            self.device_info["FW_CODE"] = device.get("FW_CODE")
-        await asyncio.sleep(0.25)
+        try:
+            self = cls(host, timeout)
 
-        info_release = await self._request_handler.get_info_release(self.device_info['SW_VERSION'])
-        if not info_release:
-            raise PooldoseFetchError("Failed to fetch infoRelease data")
-        self.device_info["API_VERSION"] = info_release.get("APIVERSION_GATEWAY")
+            self._request_handler = await RequestHandler.create(host, timeout)
+            if not self._request_handler:
+                _LOGGER.error("Failed to create RequestHandler")
+                return None
+            # Fetch core parameters and device info
+            if self._request_handler.check_apiversion_supported():
+                self.device_info["API_VERSION"] = self._request_handler.api_version
+            if not self.device_info["API_VERSION"]:
+                _LOGGER.error("Failed to fetch API version")
+                return None
+            
+            debug_config = await self._request_handler.get_debug_config()
+            if not debug_config:
+                _LOGGER.error("Failed to fetch debug config")
+                return None
+            if (gateway := debug_config.get("GATEWAY")) is not None:
+                self.device_info["SERIAL_NUMBER"] = gateway.get("DID")
+                self.device_info["NAME"] = gateway.get("NAME")
+                self.device_info["SW_VERSION"] = gateway.get("FW_REL")
+            if (device := debug_config.get("DEVICES")[0]) is not None:
+                self.device_info["DEVICE_ID"] = device.get("DID")
+                self.device_info["MODEL"] = device.get("NAME")
+                self.device_info["MODEL_ID"] = device.get("PRODUCT_CODE")
+                self.device_info["FW_VERSION"] = device.get("FW_REL")
+                self.device_info["FW_CODE"] = device.get("FW_CODE")
+            await asyncio.sleep(0.25)
 
-        if self.device_info["API_VERSION"] != API_VERSION_SUPPORTED:
-            raise PooldoseWrongApiVersionError(
-                f"Unsupported API version {self.device_info['API_VERSION']}, "
-                f"expected {API_VERSION_SUPPORTED}"
-            )
+            # info_release = await self._request_handler.get_info_release()
+            # if not info_release:
+            #     _LOGGER.error("Failed to fetch infoRelease data")
+            #     return None
+            # self.device_info["API_VERSION"] = info_release.get("APIVERSION_GATEWAY")
 
-        await asyncio.sleep(0.5)
+            # if self.device_info["API_VERSION"] != API_VERSION_SUPPORTED:
+            #     _LOGGER.error(
+            #         f"Unsupported API version {self.device_info['API_VERSION']}, "
+            #         f"expected {API_VERSION_SUPPORTED}"
+            #     )
+            #     return None
 
-        wifi_station = await self._request_handler.get_wifi_station()
-        if not wifi_station:
-            raise PooldoseFetchError("Failed to fetch WiFi station info")
-        self.device_info["WIFI_SSID"] = wifi_station.get("SSID")
-        self.device_info["WIFI_KEY"] = wifi_station.get("KEY")
-        self.device_info["MAC"] = wifi_station.get("MAC")
-        self.device_info["IP"] = wifi_station.get("IP")
-        await asyncio.sleep(0.5)
+            await asyncio.sleep(0.5)
 
-        access_point = await self._request_handler.get_access_point()
-        if not access_point:
-            raise PooldoseFetchError("Failed to fetch access point info")
-        self.device_info["AP_SSID"] = access_point.get("SSID")
-        self.device_info["AP_KEY"] = access_point.get("KEY")
-        await asyncio.sleep(0.5)
+            wifi_station = await self._request_handler.get_wifi_station()
+            if not wifi_station:
+                _LOGGER.error("Failed to fetch WiFi station info")
+                return None
+            self.device_info["WIFI_SSID"] = wifi_station.get("SSID")
+            self.device_info["WIFI_KEY"] = wifi_station.get("KEY")
+            self.device_info["MAC"] = wifi_station.get("MAC")
+            self.device_info["IP"] = wifi_station.get("IP")
+            await asyncio.sleep(0.5)
 
-        network_info = await self._request_handler.get_network_info()
-        if not network_info:
-            raise PooldoseFetchError("Failed to fetch network info")
-        self.device_info["OWNERID"] = network_info.get("OWNERID")
-        self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
-        
-        _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
-        return self
+            access_point = await self._request_handler.get_access_point()
+            if not access_point:
+                _LOGGER.error("Failed to fetch access point info")
+                return None
+            self.device_info["AP_SSID"] = access_point.get("SSID")
+            self.device_info["AP_KEY"] = access_point.get("KEY")
+            await asyncio.sleep(0.5)
+
+            network_info = await self._request_handler.get_network_info()
+            if not network_info:
+                _LOGGER.error("Failed to fetch network info")
+                return None
+            self.device_info["OWNERID"] = network_info.get("OWNERID")
+            self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
+            
+            _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
+            return self
+        except Exception as err:
+            _LOGGER.warning("Error creating PooldoseClient: %s", err)
+            return None
     
-    def static_values(self) -> StaticValues:
+    def static_values(self) -> Optional[StaticValues]:
         """
         Get the static device values as a StaticValues object.
-
-        Returns:
-            StaticValues: An object providing property-based access to static device info.
+        Returns None and logs a warning on error.
         """
-        return StaticValues(self.device_info)
+        try:
+            return StaticValues(self.device_info)
+        except Exception as err:
+            _LOGGER.warning("Error creating StaticValues: %s", err)
+            return None
 
-    def _get_model_mapping(self) -> dict:
+    def _get_model_mapping(self) -> Optional[dict]:
         """
         Load the model-specific mapping configuration from a JSON file.
-
-        Returns:
-            dict: The mapping dictionary for the current device model and firmware.
-
-        Raises:
-            ValueError: If MODEL_ID or FW_CODE is not set in device_info.
-            FileNotFoundError: If the mapping file does not exist.
+        Returns None and logs a warning on error.
         """
-        model_id = self.device_info.get("MODEL_ID")
-        fw_code = self.device_info.get("FW_CODE")
-        if not model_id or not fw_code:
-            raise ValueError("MODEL_ID or FW_CODE not set!")
-        mapping_path = Path(__file__).parent / "mappings" / f"model_{model_id}_FW{fw_code}.json"
-        with open(mapping_path, encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            model_id = self.device_info.get("MODEL_ID")
+            fw_code = self.device_info.get("FW_CODE")
+            if not model_id or not fw_code:
+                _LOGGER.error("MODEL_ID or FW_CODE not set!")
+                return None
+            mapping_path = Path(__file__).parent / "mappings" / f"model_{model_id}_FW{fw_code}.json"
+            with open(mapping_path, encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as err:
+            _LOGGER.warning("Error loading model mapping: %s", err)
+            return None
 
-    async def instant_values(self) -> InstantValues:
+    async def instant_values(self) -> Optional[InstantValues]:
         """
         Fetch the current instant values from the Pooldose device.
-
-        Returns:
-            InstantValues: An object providing property-based access to instant values.
+        Returns None and logs a warning on error.
         """
-        raw_data = await self._request_handler.get_values_raw()
-        mapping = self._get_model_mapping()
-        device_id = self.device_info["DEVICE_ID"]
-        device_raw_data = raw_data.get("devicedata", {}).get(device_id, {})
-        model_id = self.device_info["MODEL_ID"]
-        fw_code = self.device_info["FW_CODE"]
-        prefix = f"{model_id}_FW{fw_code}_"
-        return InstantValues(device_id, device_raw_data, mapping, prefix, self._request_handler)
+        try:
+            raw_data = await self._request_handler.get_values_raw()
+            if raw_data is None:
+                return None
+            mapping = self._get_model_mapping()
+            if mapping is None:
+                return None
+            device_id = self.device_info["DEVICE_ID"]
+            device_raw_data = raw_data.get("devicedata", {}).get(device_id, {})
+            model_id = self.device_info["MODEL_ID"]
+            fw_code = self.device_info["FW_CODE"]
+            prefix = f"{model_id}_FW{fw_code}_"
+            return InstantValues(device_raw_data, mapping, prefix, device_id, self._request_handler)
+        except Exception as err:
+            _LOGGER.warning("Error creating InstantValues: %s", err)
+            return None
 

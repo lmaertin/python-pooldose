@@ -1,261 +1,285 @@
-from typing import Any, Dict
+import logging
+from typing import Any, Dict, Optional
 from pooldose.request_handler import RequestHandler
+
+_LOGGER = logging.getLogger(__name__)
 
 class InstantValues:
     """
-    Represents instant values from the Pooldose device, providing
-    property-based access to all relevant sensor, binary sensor,
-    switch, number, and select values.
-
-    This class uses a mapping and a prefix to resolve the correct
-    keys in the device data and provides type-safe accessors and
-    setters (where applicable).
-
-    Args:
-        device_data (Dict[str, Any]): Raw data for the device.
-        mapping (Dict[str, Any]): Mapping configuration for the model.
-        prefix (str): Prefix for all keys in the device data.
-        request_handler (RequestHandler): Handler for API requests.
+    Provides property-based access to instant values from the Pooldose device.
+    All getter methods return None on error and log a warning.
+    All setter methods return False on error and log a warning.
     """
 
-    def __init__(self, device_id : str, device_raw_data: Dict[str, Any], mapping: Dict[str, Any], prefix: str, request_handler: RequestHandler):
-        self._device_id = device_id
-        self._device_raw_data = device_raw_data
+    def __init__(self, device_data: Dict[str, Any], mapping: Dict[str, Any], prefix: str, device_id : str, request_handler: RequestHandler):
+        """
+        Initialize InstantValues.
+
+        Args:
+            device_data (Dict[str, Any]): Raw device data.
+            mapping (Dict[str, Any]): Mapping configuration.
+            prefix (str): Key prefix.
+            request_handler (RequestHandler): API request handler.
+        """
+        self._device_data = device_data
         self._mapping = mapping
         self._prefix = prefix
+        self._device_id = device_id
         self._request_handler = request_handler
 
     def _get_value(self, name: str) -> Any:
         """
         Internal helper to retrieve a value from the device data using the mapping.
-
-        Args:
-            name (str): Logical name of the value.
-
-        Returns:
-            Any: The value, or None if not found or type mismatch.
+        Returns None and logs a warning on error.
         """
-        meta = self._mapping.get(name)
-        if not meta:
-            return None
-        key = meta.get("key")
-        if not key:
-            key = name  # fallback if key is not set
-        full_key = f"{self._prefix}{key}"
-        entry = self._device_raw_data.get(full_key)
-        if entry is None:
-            return None
-        type_ = meta.get("type")
-        if not type_:
-            return None
-        # Sensor: return tuple (value, unit)
-        if type_ == "sensor":
-            value = entry.get("current") if isinstance(entry, dict) else entry
-            unit = meta.get("unit", "")
-            return (value, unit)
-        # Binary sensor: return bool
-        if type_ == "binary_sensor":
-            if isinstance(entry, bool):
-                return entry
-            return None
-        # Switch: return bool
-        if type_ == "switch":
-            if isinstance(entry, bool):
-                return entry
-            return None
-        # Number: return float
-        if type_ == "number":
-            value = entry.get("current") if isinstance(entry, dict) else entry
-            try:
-                return float(value)
-            except Exception:
+        try:
+            meta = self._mapping.get(name)
+            if not meta:
                 return None
-        # Select: return str
-        if type_ == "select":
-            value = entry.get("current") if isinstance(entry, dict) else entry
-            return str(value)
-        return entry
+            key = meta.get("key", name)
+            full_key = f"{self._prefix}{key}"
+            entry = self._device_data.get(full_key)
+            if entry is None:
+                return None
+            type = meta.get("type")
+            if not type:
+                return None
+            # Sensor: return tuple (value, unit)
+            if type == "sensor":
+                value = entry.get("current") if isinstance(entry, dict) else None
+                if "conversion" in meta:
+                    conversion = meta["conversion"]
+                    if value in conversion:
+                        value = conversion[value]
+                unit = meta.get("unit", "")
+                return (value, unit)
+
+            # Binary sensor: return bool
+            if type == "binary_sensor":
+                value = entry.get("current")
+                if value is None:
+                    return None
+                return value=="F" # F = True, O = False
+            
+            # Switch: return bool
+            if type == "switch":
+                if isinstance(entry, bool):
+                    return entry
+                return None
+            
+            # Number: return float or int
+            if type == "number":
+                value = entry.get("current") if isinstance(entry, dict) else None
+                min = entry.get("absMin")
+                max = entry.get("absMax")
+                step = entry.get("resolution")
+                unit = entry.get("magnitude")[0]
+                return (value, unit, min, max, step)
+
+            # Select: return str
+            if type == "select":
+                value = entry.get("current") if isinstance(entry, dict) else None
+                options = meta.get("options")
+                if not options:
+                    return None
+                if value in options:
+                    value_text = options.get(value)
+                if "conversion" in meta:
+                    conversion = meta["conversion"]
+                    if value_text in conversion:
+                        return conversion[value_text]
+    
+            return None #no valid type found
+
+        except Exception as err:
+            _LOGGER.warning("Error getting value '%s': %s", name, err)
+            return None
 
     async def _set_value(self, name: str, value: Any) -> bool:
         """
         Internal helper to set a value on the device using the request handler.
-
-        Args:
-            name (str): Logical name of the value.
-            value (Any): Value to set.
-
-        Returns:
-            bool: True if set was successful, False otherwise.
+        Returns False and logs a warning on error.
         """
-        meta = self._mapping.get(name)
-        if not meta:
+        try:
+            meta = self._mapping.get(name)
+            if not meta:
+                return False
+            type = meta.get("type")
+            key = meta.get("key", name)
+            full_key = f"{self._prefix}{key}"
+            # Add further type checks as needed
+            if type == "number":
+                if not isinstance(value, (int, float)):
+                    return False
+                return await self._request_handler.set_value(self._device_id, full_key, value, "NUMBER")
+        
+            if type == "switch":
+                if not isinstance(value, bool):
+                    return False
+                value_str = "O" if value else "F"  # O = True, F = False
+                return await self._request_handler.set_value(self._device_id, full_key, value_str, "STRING")
+            
+            if type == "select":
+                options = meta.get("options")
+                if options and str(value) not in options:
+                    return False
+                return await self._request_handler.set_value(self._device_id, full_key, value, "NUMBER")
+
+            _LOGGER.warning("Unsupported type '%s' for setting value '%s'", type, name)
             return False
-        type_ = meta.get("type")
-        key = meta.get("key")
-        if not key:
-            key = name
-        full_key = f"{self._prefix}{key}"
-        # Add further type checks as needed
-        if type_ == "number":
-            await self._request_handler.set_value(self._device_id, full_key, value, "number")
-            return True
-        if type_ == "switch":
-            await self._request_handler.set_value(self._device_id, full_key, value, "switch")
-            return True
-        if type_ == "select":
-            await self._request_handler.set_value(self._device_id, full_key, value, "select")
-            return True
-        return False
+        except Exception as err:
+            _LOGGER.warning("Error setting value '%s': %s", name, err)
+            return False
 
     ### Sensors ###
     @property
-    def sensor_temperature(self) -> tuple[float, str]:
-        """Current temperature value and unit."""
+    def sensor_temperature(self) -> Optional[tuple[float, str]]:
+        """Current temperature value and unit, or None on error."""
         return self._get_value("temp_actual")
 
     @property
-    def sensor_ph(self) -> tuple[float, str]:
-        """Current pH value and unit."""
+    def sensor_ph(self) -> Optional[tuple[float, str]]:
+        """Current pH value and unit, or None on error."""
         return self._get_value("ph_actual")
 
     @property
-    def sensor_orp(self) -> tuple[float, str]:
-        """Current ORP value and unit."""
+    def sensor_orp(self) -> Optional[tuple[float, str]]:
+        """Current ORP value and unit, or None on error."""
         return self._get_value("orp_actual")
 
     @property
-    def sensor_ph_type_dosing(self) -> str:
-        """Returns the current pH dosing type as a string."""
+    def sensor_ph_type_dosing(self) -> Optional[str]:
+        """Returns the current pH dosing type as a string, or None on error."""
         return self._get_value("ph_type_dosing")[0]
 
     @property
-    def sensor_peristaltic_ph_dosing(self) -> str:
-        """Returns the current peristaltic pH dosing mode as a string."""
+    def sensor_peristaltic_ph_dosing(self) -> Optional[str]:
+        """Returns the current peristaltic pH dosing mode as a string, or None on error."""
         return self._get_value("peristaltic_ph_dosing")[0]
 
     @property
-    def sensor_ofa_ph_value(self) -> tuple[float, str]:
-        """Returns the current OFA pH value and its unit as a tuple."""
+    def sensor_ofa_ph_value(self) -> Optional[tuple[float, str]]:
+        """Returns the current OFA pH value and its unit as a tuple, or None on error."""
         return self._get_value("ofa_ph_value")
 
     @property
-    def sensor_orp_type_dosing(self) -> str:
-        """Returns the current ORP dosing type as a string."""
+    def sensor_orp_type_dosing(self) -> Optional[str]:
+        """Returns the current ORP dosing type as a string, or None on error."""
         return self._get_value("orp_type_dosing")[0]
 
     @property
-    def sensor_peristaltic_orp_dosing(self) -> str:
-        """Returns the current peristaltic ORP dosing mode as a string."""
+    def sensor_peristaltic_orp_dosing(self) -> Optional[str]:
+        """Returns the current peristaltic ORP dosing mode as a string, or None on error."""
         return self._get_value("peristaltic_orp_dosing")[0]
 
     @property
-    def sensor_ofa_orp_value(self) -> tuple[float, str]:
-        """Returns the current OFA ORP value and its unit as a tuple."""
+    def sensor_ofa_orp_value(self) -> Optional[tuple[float, str]]:
+        """Returns the current OFA ORP value and its unit as a tuple, or None on error."""
         return self._get_value("ofa_orp_value")
 
     @property
-    def sensor_ph_calibration_type(self) -> str:
-        """Returns the current pH calibration type as a string."""
+    def sensor_ph_calibration_type(self) -> Optional[str]:
+        """Returns the current pH calibration type as a string, or None on error."""
         return self._get_value("ph_calibration_type")[0]
 
     @property
-    def sensor_ph_calibration_offset(self) -> tuple[float, str]:
-        """Returns the current pH calibration offset and its unit as a tuple."""
+    def sensor_ph_calibration_offset(self) -> Optional[tuple[float, str]]:
+        """Returns the current pH calibration offset and its unit as a tuple, or None on error."""
         return self._get_value("ph_calibration_offset")
 
     @property
-    def sensor_ph_calibration_slope(self) -> tuple[float, str]:
-        """Returns the current pH calibration slope and its unit as a tuple."""
+    def sensor_ph_calibration_slope(self) -> Optional[tuple[float, str]]:
+        """Returns the current pH calibration slope and its unit as a tuple, or None on error."""
         return self._get_value("ph_calibration_slope")
 
     @property
-    def sensor_orp_calibration_type(self) -> str:
-        """Returns the current ORP calibration type as a string."""
+    def sensor_orp_calibration_type(self) -> Optional[str]:
+        """Returns the current ORP calibration type as a string, or None on error."""
         return self._get_value("orp_calibration_type")[0]
 
     @property
-    def sensor_orp_calibration_offset(self) -> tuple[float, str]:
-        """Returns the current ORP calibration offset and its unit as a tuple."""
+    def sensor_orp_calibration_offset(self) -> Optional[tuple[float, str]]:
+        """Returns the current ORP calibration offset and its unit as a tuple, or None on error."""
         return self._get_value("orp_calibration_offset")
 
     @property
-    def sensor_orp_calibration_slope(self) -> tuple[float, str]:
-        """Returns the current ORP calibration slope and its unit as a tuple."""
+    def sensor_orp_calibration_slope(self) -> Optional[tuple[float, str]]:
+        """Returns the current ORP calibration slope and its unit as a tuple, or None on error."""
         return self._get_value("orp_calibration_slope")
 
     ### Binary Sensors ###
     @property
-    def binary_sensor_pump_running(self) -> bool:
-        """Returns True if the pump is running, False otherwise."""
+    def binary_sensor_pump_running(self) -> Optional[bool]:
+        """Returns True if the pump is running, False otherwise, or None on error."""
         return self._get_value("pump_running")
 
     @property
-    def binary_sensor_ph_level_ok(self) -> bool:
-        """Returns True if the pH level is OK, False otherwise."""
+    def binary_sensor_ph_level_ok(self) -> Optional[bool]:
+        """Returns True if the pH level is OK, False otherwise, or None on error."""
         return self._get_value("ph_level_ok")
 
     @property
-    def binary_sensor_orp_level_ok(self) -> bool:
-        """Returns True if the ORP level is OK, False otherwise."""
+    def binary_sensor_orp_level_ok(self) -> Optional[bool]:
+        """Returns True if the ORP level is OK, False otherwise, or None on error."""
         return self._get_value("orp_level_ok")
 
     @property
-    def binary_sensor_flow_rate_ok(self) -> bool:
-        """Returns True if the flow rate is OK, False otherwise."""
+    def binary_sensor_flow_rate_ok(self) -> Optional[bool]:
+        """Returns True if the flow rate is OK, False otherwise, or None on error."""
         return self._get_value("flow_rate_ok")
 
     @property
-    def binary_sensor_alarm_relay(self) -> bool:
-        """Returns True if the alarm relay is active, False otherwise."""
+    def binary_sensor_alarm_relay(self) -> Optional[bool]:
+        """Returns True if the alarm relay is active, False otherwise, or None on error."""
         return self._get_value("alarm_relay")
 
     @property
-    def binary_sensor_relay_aux1_ph(self) -> bool:
-        """Returns True if the auxiliary relay 1 for pH is active, False otherwise."""
+    def binary_sensor_relay_aux1_ph(self) -> Optional[bool]:
+        """Returns True if the auxiliary relay 1 for pH is active, False otherwise, or None on error."""
         return self._get_value("relay_aux1_ph")
 
     @property
-    def binary_sensor_relay_aux2_orpcl(self) -> bool:
-        """Returns True if the auxiliary relay 2 for ORP/CL is active, False otherwise."""
+    def binary_sensor_relay_aux2_orpcl(self) -> Optional[bool]:
+        """Returns True if the auxiliary relay 2 for ORP/CL is active, False otherwise, or None on error."""
         return self._get_value("relay_aux2_orpcl")
 
     ### Numbers ###
     @property
-    def number_orp_target(self) -> tuple[int, str, int, int, int]:
+    def number_orp_target(self) -> Optional[tuple[int, str, int, int, int]]:
         """
-        Returns a tuple with the ORP target value and its metadata.
+        Returns a tuple with the ORP target value and its metadata, or None on error.
         (Adapt the tuple structure to your mapping as needed.)
         """
         return self._get_value("orp_target")
 
     @property
-    def number_ph_target(self) -> tuple[float, str, int, int, float]:
+    def number_ph_target(self) -> Optional[tuple[float, str, int, int, float]]:
         """
-        Returns a tuple with the pH target value and its metadata.
+        Returns a tuple with the pH target value and its metadata, or None on error.
         (Adapt the tuple structure to your mapping as needed.)
         """
         return self._get_value("ph_target")
 
     ### Switches ###
     @property
-    def switch_stop_pool_dosing(self) -> bool:
-        """Returns True if pool dosing is stopped, False otherwise."""
+    def switch_stop_pool_dosing(self) -> Optional[bool]:
+        """Returns True if pool dosing is stopped, False otherwise, or None on error."""
         return self._get_value("stop_pool_dosing")
 
     @property
-    def switch_pump_detection(self) -> bool:
-        """Returns True if pump detection is active, False otherwise."""
+    def switch_pump_detection(self) -> Optional[bool]:
+        """Returns True if pump detection is active, False otherwise, or None on error."""
         return self._get_value("pump_detection")
 
     @property
-    def switch_frequency_input(self) -> bool:
-        """Returns True if frequency input is active, False otherwise."""
+    def switch_frequency_input(self) -> Optional[bool]:
+        """Returns True if frequency input is active, False otherwise, or None on error."""
         return self._get_value("frequency_input")
 
     ### Selects ###
     @property
-    def select_water_meter_unit(self) -> str:
-        """Returns the current water meter unit as a string."""
+    def select_water_meter_unit(self) -> Optional[str]:
+        """Returns the current water meter unit as a string, or None on error."""
         return self._get_value("water_meter_unit")
 
     ### Setters for values ###
@@ -263,45 +287,59 @@ class InstantValues:
     async def number_orp_target_set(self, value: int) -> bool:
         """
         Set the ORP target value after validating range and step.
+        Returns False and logs a warning on error.
 
         Args:
             value (int): The value to set for ORP target.
 
-        Raises:
-            ValueError: If the value is out of range or does not match the allowed step.
-
         Returns:
-            bool: True if the value was set successfully.
+            bool: True if the value was set successfully, False otherwise.
         """
-        min, max, step = self.number_orp_target[2], self.number_orp_target[3], self.number_orp_target[4]
-        if value in range(min, max, step):
-            return await self._set_value("orp_target", value)
-        else:
-            raise ValueError(f"Value {value} is out of range for orp_target. Valid range: {min} - {max}, step: {step}")
+        try:
+            result = self.number_orp_target
+            if result is None:
+                _LOGGER.warning("Cannot set ORP target: mapping or value missing.")
+                return False
+            min, max, step = result[2], result[3], result[4]
+            if value in range(min, max, step):
+                return await self._set_value("orp_target", value)
+            else:
+                _LOGGER.warning(f"Value %s is out of range for orp_target. Valid range: %s - %s, step: %s", value, min, max, step)
+                return False
+        except Exception as err:
+            _LOGGER.warning("Error in number_orp_target_set: %s", err)
+            return False
 
     async def number_ph_target_set(self, value: float) -> bool:
         """
         Set the pH target value after validating range and step.
+        Returns False and logs a warning on error.
 
         Args:
             value (float): The value to set for pH target.
 
-        Raises:
-            ValueError: If the value is out of range or does not match the allowed step.
-
         Returns:
-            bool: True if the value was set successfully.
+            bool: True if the value was set successfully, False otherwise.
         """
-        min, max, step = self.number_ph_target[2], self.number_ph_target[3], self.number_ph_target[4]
-        #python range does not work with floats, so we need to check manually
-        epsilon = 1e-9 # using a very small epsilon to fix rounding issues with float precision
-        if not (min <= value <= max):
-            raise ValueError(f"Value {value} is out of range for ph_target. Valid range: {min} - {max}, step: {step}")
-        n = (value - min) / step
-        if abs(round(n) - n) > epsilon:
-            raise ValueError(f"Value {value} is not a valid step for ph_target. Valid range: {min} - {max}, step: {step}")
-        return await self._set_value("ph_target", value)
-        
+        try:
+            result = self.number_ph_target
+            if result is None:
+                _LOGGER.warning("Cannot set pH target: mapping or value missing.")
+                return False
+            min, max, step = result[2], result[3], result[4]
+            epsilon = 1e-9
+            if not (min <= value <= max):
+                _LOGGER.warning(f"Value %s is out of range for ph_target. Valid range: %s - %s, step: %s", value, min, max, step)
+                return False
+            n = (value - min) / step
+            if abs(round(n) - n) > epsilon:
+                _LOGGER.warning(f"Value %s is not a valid step for ph_target. Valid range: %s - %s, step: %s", value, min, max, step)
+                return False
+            return await self._set_value("ph_target", value)
+        except Exception as err:
+            _LOGGER.warning("Error in number_ph_target_set: %s", err)
+            return False
+
     ### Switches ###
     async def switch_stop_pool_dosing_set(self, value: bool) -> bool:
         """
@@ -311,7 +349,7 @@ class InstantValues:
             value (bool): The value to set.
 
         Returns:
-            bool: True if the value was set successfully.
+            bool: True if the value was set successfully, False otherwise.
         """
         return await self._set_value("stop_pool_dosing", value)
 
@@ -323,7 +361,7 @@ class InstantValues:
             value (bool): The value to set.
 
         Returns:
-            bool: True if the value was set successfully.
+            bool: True if the value was set successfully, False otherwise.
         """
         return await self._set_value("pump_detection", value)
 
@@ -335,7 +373,7 @@ class InstantValues:
             value (bool): The value to set.
 
         Returns:
-            bool: True if the value was set successfully.
+            bool: True if the value was set successfully, False otherwise.
         """
         return await self._set_value("frequency_input", value)
     
@@ -348,6 +386,6 @@ class InstantValues:
             value (int): The value to set.
 
         Returns:
-            bool: True if the value was set successfully.
+            bool: True if the value was set successfully, False otherwise.
         """
         return await self._set_value("water_meter_unit", value)
