@@ -3,8 +3,7 @@
 import logging
 from typing import Any, Dict, Optional
 from pooldose.request_handler import RequestHandler
-
-# pylint: disable=line-too-long
+# pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-return-statements,too-many-branches,no-else-return,too-many-public-methods
 
 _LOGGER = logging.getLogger(__name__)
 

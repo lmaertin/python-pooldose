@@ -9,7 +9,7 @@ from enum import Enum
 import asyncio
 import aiohttp
 
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,no-else-return
 
 _LOGGER = logging.getLogger(__name__)
 
