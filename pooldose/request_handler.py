@@ -226,7 +226,7 @@ class RequestHandler:
                 _LOGGER.error("Failed to fetch WiFi station info: %s", err)
                 return RequestStatus.UNKNOWN_ERROR, None
         if not data:
-            _LOGGER.error("No data found for WiFi station info: %s", err)
+            _LOGGER.error("No data found for WiFi station info")
             return RequestStatus.NO_DATA, None
         return RequestStatus.SUCCESS, data
 
