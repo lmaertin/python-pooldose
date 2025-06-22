@@ -1,4 +1,3 @@
-# instant_values.py
 """Instant values for Async API client for SEKO Pooldose."""
 
 import logging
@@ -56,7 +55,11 @@ class InstantValues:
                     conversion = attributes["conversion"]
                     if value in conversion:
                         value = conversion[value]
-                unit = attributes.get("unit", "")
+                units = entry.get("magnitude")
+                if units:
+                    unit = units[0]
+                else:
+                    unit = "" #no unit
                 return (value, unit)
 
             # Binary sensor: return bool
@@ -76,7 +79,11 @@ class InstantValues:
                 abs_min = entry.get("absMin")
                 abs_max = entry.get("absMax")
                 resolution = entry.get("resolution")
-                unit = entry.get("magnitude")[0]
+                units = entry.get("magnitude")
+                if units:
+                    unit = units[0]
+                else:
+                    unit = "" #no unit
                 return (value, unit, abs_min, abs_max, resolution)
 
             # Select: return str

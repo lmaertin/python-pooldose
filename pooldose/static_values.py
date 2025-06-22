@@ -1,4 +1,3 @@
-# static_values.py
 """Static Values for Async API client for SEKO Pooldose."""
 
 import logging

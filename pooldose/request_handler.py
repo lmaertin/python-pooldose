@@ -1,4 +1,3 @@
-# request_handler.py
 """Request Handler for async API client for SEKO Pooldose."""
 
 import logging

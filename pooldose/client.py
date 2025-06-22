@@ -1,4 +1,3 @@
-# client.py
 """Client for async API client for SEKO Pooldose."""
 
 from __future__ import annotations
