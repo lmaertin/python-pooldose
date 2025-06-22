@@ -1,16 +1,18 @@
 # client.py
-"""Async API client for SEKO Pooldose."""
+"""Client for async API client for SEKO Pooldose."""
 
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Optional
+from typing import Any
 import json
 import logging
 from pathlib import Path
 from pooldose.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler, RequestStatus
 from pooldose.static_values import StaticValues
+
+# pylint: disable=line-too-long
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,7 +54,7 @@ class PooldoseClient:
             "WIFI_KEY": None,       # WiFi key
             "AP_SSID": None,        # Access Point SSID
             "AP_KEY": None,         # Access Point key
-        } 
+        }
 
     @classmethod
     async def create(cls, host: str, timeout: int = 10) -> tuple[RequestStatus, PooldoseClient | None]:
@@ -113,10 +115,9 @@ class PooldoseClient:
             return status, None
         self.device_info["OWNERID"] = network_info.get("OWNERID")
         self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
-        
         _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
         return RequestStatus.SUCCESS, self
-    
+
     def static_values(self) -> tuple[RequestStatus, StaticValues | None]:
         """
         Get the static device values as a StaticValues object.
@@ -124,7 +125,7 @@ class PooldoseClient:
         """
         try:
             return RequestStatus.SUCCESS, StaticValues(self.device_info)
-        except Exception as err:
+        except (ValueError, TypeError, KeyError) as err:
             _LOGGER.warning("Error creating StaticValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
@@ -142,7 +143,7 @@ class PooldoseClient:
             mapping_path = Path(__file__).parent / "mappings" / f"model_{model_id}_FW{fw_code}.json"
             with open(mapping_path, encoding="utf-8") as f:
                 return RequestStatus.SUCCESS, json.load(f)
-        except Exception as err:
+        except (OSError, json.JSONDecodeError) as err:
             _LOGGER.warning("Error loading model mapping: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
@@ -164,7 +165,6 @@ class PooldoseClient:
             fw_code = self.device_info["FW_CODE"]
             prefix = f"{model_id}_FW{fw_code}_"
             return RequestStatus.SUCCESS, InstantValues(device_raw_data, mapping, prefix, device_id, self._request_handler)
-        except Exception as err:
+        except (KeyError, TypeError, ValueError) as err:
             _LOGGER.warning("Error creating InstantValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
-

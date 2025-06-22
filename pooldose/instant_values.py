@@ -1,6 +1,11 @@
+# instant_values.py
+"""Instant values for Async API client for SEKO Pooldose."""
+
 import logging
 from typing import Any, Dict, Optional
-from pooldose.request_handler import RequestHandler, RequestStatus
+from pooldose.request_handler import RequestHandler
+
+# pylint: disable=line-too-long
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,65 +38,62 @@ class InstantValues:
         Returns None and logs a warning on error.
         """
         try:
-            meta = self._mapping.get(name)
-            if not meta:
+            attributes = self._mapping.get(name)
+            if not attributes:
                 return None
-            key = meta.get("key", name)
+            key = attributes.get("key", name)
             full_key = f"{self._prefix}{key}"
             entry = self._device_data.get(full_key)
             if entry is None:
                 return None
-            type = meta.get("type")
-            if not type:
+            entry_type = attributes.get("type")
+            if not entry_type:
                 return None
             # Sensor: return tuple (value, unit)
-            if type == "sensor":
+            if entry_type == "sensor":
                 value = entry.get("current") if isinstance(entry, dict) else None
-                if "conversion" in meta:
-                    conversion = meta["conversion"]
+                if "conversion" in attributes:
+                    conversion = attributes["conversion"]
                     if value in conversion:
                         value = conversion[value]
-                unit = meta.get("unit", "")
+                unit = attributes.get("unit", "")
                 return (value, unit)
 
             # Binary sensor: return bool
-            if type == "binary_sensor":
+            if entry_type == "binary_sensor":
                 value = entry.get("current")
                 if value is None:
                     return None
                 return value=="F" # F = True, O = False
-            
             # Switch: return bool
-            if type == "switch":
+            if entry_type == "switch":
                 if isinstance(entry, bool):
                     return entry
                 return None
-            
             # Number: return float or int
-            if type == "number":
+            if entry_type == "number":
                 value = entry.get("current") if isinstance(entry, dict) else None
-                min = entry.get("absMin")
-                max = entry.get("absMax")
-                step = entry.get("resolution")
+                abs_min = entry.get("absMin")
+                abs_max = entry.get("absMax")
+                resolution = entry.get("resolution")
                 unit = entry.get("magnitude")[0]
-                return (value, unit, min, max, step)
+                return (value, unit, abs_min, abs_max, resolution)
 
             # Select: return str
-            if type == "select":
+            if entry_type == "select":
                 value = entry.get("current") if isinstance(entry, dict) else None
-                options = meta.get("options")
+                options = attributes.get("options")
                 if not options:
                     return None
+                value_text = None
                 if value in options:
                     value_text = options.get(value)
-                if "conversion" in meta:
-                    conversion = meta["conversion"]
+                if "conversion" in attributes:
+                    conversion = attributes["conversion"]
                     if value_text in conversion:
                         return conversion[value_text]
-    
             return None #no valid type found
-
-        except Exception as err:
+        except (KeyError, TypeError, AttributeError) as err:
             _LOGGER.warning("Error getting value '%s': %s", name, err)
             return None
 
@@ -101,33 +103,31 @@ class InstantValues:
         Returns False and logs a warning on error.
         """
         try:
-            meta = self._mapping.get(name)
-            if not meta:
+            attributes = self._mapping.get(name)
+            if not attributes:
                 return False
-            type = meta.get("type")
-            key = meta.get("key", name)
+            entry_type = attributes.get("type")
+            key = attributes.get("key", name)
             full_key = f"{self._prefix}{key}"
             # Add further type checks as needed
-            if type == "number":
+            if entry_type == "number":
                 if not isinstance(value, (int, float)):
                     return False
                 return await self._request_handler.set_value(self._device_id, full_key, value, "NUMBER")
-        
-            if type == "switch":
+            if entry_type == "switch":
                 if not isinstance(value, bool):
                     return False
                 value_str = "O" if value else "F"  # O = True, F = False
                 return await self._request_handler.set_value(self._device_id, full_key, value_str, "STRING")
-            
-            if type == "select":
-                options = meta.get("options")
+            if entry_type == "select":
+                options = attributes.get("options")
                 if options and str(value) not in options:
                     return False
                 return await self._request_handler.set_value(self._device_id, full_key, value, "NUMBER")
 
-            _LOGGER.warning("Unsupported type '%s' for setting value '%s'", type, name)
+            _LOGGER.warning("Unsupported type '%s' for setting value '%s'", entry_type, name)
             return False
-        except Exception as err:
+        except (KeyError, TypeError, AttributeError, ValueError) as err:
             _LOGGER.warning("Error setting value '%s': %s", name, err)
             return False
 
@@ -300,13 +300,13 @@ class InstantValues:
             if result is None:
                 _LOGGER.warning("Cannot set ORP target: mapping or value missing.")
                 return False
-            min, max, step = result[2], result[3], result[4]
-            if value in range(min, max, step):
+            min_val, max_val, step = result[2], result[3], result[4]
+            if value in range(min_val, max_val, step):
                 return await self._set_value("orp_target", value)
             else:
-                _LOGGER.warning(f"Value %s is out of range for orp_target. Valid range: %s - %s, step: %s", value, min, max, step)
+                _LOGGER.warning("Value %s is out of range for orp_target. Valid range: %s - %s, step: %s", value, min_val, max_val, step)
                 return False
-        except Exception as err:
+        except (TypeError, ValueError) as err:
             _LOGGER.warning("Error in number_orp_target_set: %s", err)
             return False
 
@@ -326,17 +326,17 @@ class InstantValues:
             if result is None:
                 _LOGGER.warning("Cannot set pH target: mapping or value missing.")
                 return False
-            min, max, step = result[2], result[3], result[4]
+            min_value, max_value, step = result[2], result[3], result[4]
             epsilon = 1e-9
-            if not (min <= value <= max):
-                _LOGGER.warning(f"Value %s is out of range for ph_target. Valid range: %s - %s, step: %s", value, min, max, step)
+            if not min_value <= value <= max_value:
+                _LOGGER.warning("Value %s is out of range for ph_target. Valid range: %s - %s, step: %s", value, min_value, max_value, step)
                 return False
-            n = (value - min) / step
+            n = (value - min_value) / step
             if abs(round(n) - n) > epsilon:
-                _LOGGER.warning(f"Value %s is not a valid step for ph_target. Valid range: %s - %s, step: %s", value, min, max, step)
+                _LOGGER.warning("Value %s is not a valid step for ph_target. Valid range: %s - %s, step: %s", value, min_value, max_value, step)
                 return False
             return await self._set_value("ph_target", value)
-        except Exception as err:
+        except (TypeError, ValueError) as err:
             _LOGGER.warning("Error in number_ph_target_set: %s", err)
             return False
 
@@ -376,7 +376,6 @@ class InstantValues:
             bool: True if the value was set successfully, False otherwise.
         """
         return await self._set_value("frequency_input", value)
-    
     ### Selects ###
     async def select_water_meter_unit_set(self, value: int) -> bool:
         """

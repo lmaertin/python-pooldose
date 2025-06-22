@@ -1,23 +1,41 @@
-import aiohttp
+# request_handler.py
+"""Request Handler for async API client for SEKO Pooldose."""
+
 import logging
 import json
 import re
 import socket
-from typing import Any, Optional
+from typing import Any
 from enum import Enum
+import asyncio
+import aiohttp
+
+# pylint: disable=line-too-long
 
 _LOGGER = logging.getLogger(__name__)
 
 API_VERSION_SUPPORTED = "v1/"
 
 class RequestStatus(Enum):
+    """
+    Enum for standardized return codes of API and client methods.
+
+    Each status represents a specific result or error case:
+    - SUCCESS: Operation was successful.
+    - HOST_UNREACHABLE: The host could not be reached (e.g. network error).
+    - PARAMS_FETCH_FAILED: params.js could not be fetched or parsed.
+    - API_VERSION_UNSUPPORTED: The API version is not supported.
+    - NO_DATA: No data was returned or found.
+    - CLIENT_ERROR_SET: Error while setting a value on the client/device.
+    - UNKNOWN_ERROR: An unspecified or unexpected error occurred.
+    """
     SUCCESS = "success"
-    HOST_UNREACHABLE = "host unreachable"
-    PARAMS_FETCH_FAILED = "params fetch failed"
-    API_VERSION_UNSUPPORTED = "api version unsupported"
-    NO_DATA = "no data available"
-    CLIENT_ERROR_SET = "client error in set value"
-    UNKNOWN_ERROR = "unknown error"
+    HOST_UNREACHABLE = "host_unreachable"
+    PARAMS_FETCH_FAILED = "params_fetch_failed"
+    API_VERSION_UNSUPPORTED = "api_version_unsupported"
+    NO_DATA = "no_data"
+    CLIENT_ERROR_SET = "client_error_set"
+    UNKNOWN_ERROR = "unknown_error"
 
 class RequestHandler:
     """
@@ -30,8 +48,8 @@ class RequestHandler:
         self.timeout = timeout
         self.last_data = None
         self._headers = {"Content-Type": "application/json"}
-        self.softwareVersion = None
-        self.apiversion = None
+        self.software_version = None
+        self.api_version = None
 
     @classmethod
     async def create(cls, host: str, timeout: int = 10):
@@ -49,8 +67,8 @@ class RequestHandler:
         if not params:
             _LOGGER.warning("Could not fetch core params")
             return RequestStatus.PARAMS_FETCH_FAILED, None
-        self.softwareVersion = params.get("softwareVersion")
-        self.apiversion = params.get("apiversion")
+        self.software_version = params.get("softwareVersion")
+        self.api_version = params.get("apiversion")
         return RequestStatus.SUCCESS, self
 
     def check_host_reachable(self) -> bool:
@@ -63,7 +81,7 @@ class RequestHandler:
         try:
             with socket.create_connection((self.host, 80), timeout=self.timeout):
                 return True
-        except Exception as err:
+        except (socket.error, socket.timeout) as err:
             _LOGGER.error("Host %s not reachable: %s", self.host, err)
             return False
 
@@ -92,7 +110,7 @@ class RequestHandler:
                     result[key] = None
 
             return result
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.warning("Error fetching or parsing core params: %s", err)
             return None
 
@@ -103,26 +121,28 @@ class RequestHandler:
         Returns:
             RequestStatus: SUCCESS if supported, API_VERSION_UNSUPPORTED otherwise.
         """
-        if not self.apiversion:
+        if not self.api_version:
             _LOGGER.warning("API version not set, cannot check support")
             return RequestStatus.NO_DATA
-        if self.apiversion != API_VERSION_SUPPORTED:
-            _LOGGER.warning("Unsupported API version: %s, expected %s", self.apiversion, API_VERSION_SUPPORTED)
+        if self.api_version != API_VERSION_SUPPORTED:
+            _LOGGER.warning("Unsupported API version: %s, expected %s", self.api_version, API_VERSION_SUPPORTED)
             return RequestStatus.API_VERSION_UNSUPPORTED
         else:
             return RequestStatus.SUCCESS
 
-    @property
-    def software_version(self) -> Optional[str]:
-        """Return the software version loaded from params.js."""
-        return self.softwareVersion
-
-    @property
-    def api_version(self) -> Optional[str]:
-        """Return the API version loaded from params.js."""
-        return self.apiversion
-
     async def get_debug_config(self):
+        """
+        Asynchronously fetches the debug configuration from the server.
+
+        Sends a GET request to the /api/v1/debug/config endpoint of the configured host.
+        Handles HTTP errors and timeouts, and returns the request status along with the response data.
+
+        Returns:
+            Tuple[RequestStatus, Optional[dict]]: 
+                - RequestStatus.SUCCESS and the configuration data if the request is successful.
+                - RequestStatus.NO_DATA and None if no data is found in the response.
+                - RequestStatus.UNKNOWN_ERROR and None if an error occurs during the request.
+        """
         url = f"http://{self.host}/api/v1/debug/config"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
@@ -134,11 +154,26 @@ class RequestHandler:
                         _LOGGER.error("No data found for debug config")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Error fetching debug config: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
     async def get_info_release(self, sw_version: str):
+        """
+        Asynchronously fetches release information for a given software version from the API.
+
+        Args:
+            sw_version (str): The software version to query for release information.
+
+        Returns:
+            Tuple[RequestStatus, Optional[dict]]:
+                - RequestStatus.SUCCESS and the response data if the request is successful.
+                - RequestStatus.NO_DATA and None if no data is found in the response.
+                - RequestStatus.UNKNOWN_ERROR and None if a request or timeout error occurs.
+
+        Raises:
+            None. All exceptions are handled internally and logged.
+        """
         url = f"http://{self.host}/api/v1/infoRelease"
         payload = {"SOFTWAREVERSION": sw_version}
         try:
@@ -151,11 +186,25 @@ class RequestHandler:
                         _LOGGER.error("No data found for infoRelease")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Failed to fetch infoRelease: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
     async def get_wifi_station(self):
+        """
+        Asynchronously retrieves WiFi station information from the device.
+
+        Sends a POST request to the device's WiFi station API endpoint and returns the status and data.
+
+        Returns:
+            Tuple[RequestStatus, Optional[dict]]: 
+                - RequestStatus.SUCCESS and the response data if successful.
+                - RequestStatus.NO_DATA and None if no data is found.
+                - RequestStatus.UNKNOWN_ERROR and None if an error occurs.
+
+        Raises:
+            None: All exceptions are handled internally and logged.
+        """
         url = f"http://{self.host}/api/v1/network/wifi/getStation"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
@@ -167,7 +216,7 @@ class RequestHandler:
                         _LOGGER.error("No data found for WiFi station info")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             text = str(err)
             text = text.replace("\\\\n", "").replace("\\\\t", "")
             json_start = text.find("{")
@@ -183,6 +232,19 @@ class RequestHandler:
         return RequestStatus.SUCCESS, data
 
     async def get_access_point(self):
+        """
+        Asynchronously retrieves the WiFi access point information from the device.
+
+        Sends a POST request to the device's `/api/v1/network/wifi/getAccessPoint` endpoint.
+        Handles response parsing, error handling, and timeout management.
+
+        Returns:
+            tuple: A tuple containing a `RequestStatus` enum value and the response data (dict) if successful,
+                   or `None` if no data is found or an error occurs.
+
+        Raises:
+            None: All exceptions are handled internally and logged.
+        """
         url = f"http://{self.host}/api/v1/network/wifi/getAccessPoint"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
@@ -192,17 +254,31 @@ class RequestHandler:
                     text = await resp.text()
                     json_start = text.find("{")
                     json_end = text.rfind("}") + 1
+                    data = None
                     if json_start != -1 and json_end != -1:
                         data = await resp.json()
                     if not data:
                         _LOGGER.error("No data found for access point info")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Failed to fetch access point info: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
     async def get_network_info(self):
+        """
+        Asynchronously fetches network information from the specified host's API endpoint.
+
+        Sends a POST request to the `/api/v1/network/info/getInfo` endpoint using the configured host and headers.
+        Handles request timeouts and client errors gracefully.
+
+        Returns:
+            tuple: A tuple containing a `RequestStatus` enum value and the response data (dict) if successful,
+                   or `None` if no data is found or an error occurs.
+
+        Raises:
+            None: All exceptions are handled internally and logged.
+        """
         url = f"http://{self.host}/api/v1/network/info/getInfo"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
@@ -214,7 +290,7 @@ class RequestHandler:
                         _LOGGER.error("No data found for network info")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Failed to fetch network info: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
@@ -235,13 +311,32 @@ class RequestHandler:
                         _LOGGER.error("No data found for instant values")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.warning("Error fetching instant values: %s", err)
             if self.last_data is not None:
                 return RequestStatus.SUCCESS, self.last_data
             return RequestStatus.UNKNOWN_ERROR, None
 
     async def set_value(self, device_id: dict, path: str, value: Any, value_type: str) -> bool:
+        """
+        Asynchronously sets a value for a specific device and path using the API.
+
+        Args:
+            device_id (dict): The identifier of the device to set the value for.
+            path (str): The path within the device to set the value.
+            value (Any): The value to set.
+            value_type (str): The type of the value (e.g., "int", "float", "str").
+
+        Returns:
+            bool: True if the value was set successfully, False otherwise.
+
+        Raises:
+            aiohttp.ClientError: If there is a client error during the request.
+            asyncio.TimeoutError: If the request times out.
+
+        Logs:
+            Warnings for client errors and errors for timeout issues.
+        """
         url = f"http://{self.host}/api/v1/DWI/setInstantValues"
         payload = {
             device_id: {
@@ -261,8 +356,8 @@ class RequestHandler:
         except aiohttp.ClientError as e:
             _LOGGER.warning("Client error setting value: %s", e)
             return False
-        except Exception as err:
-            _LOGGER.error("Error setting value: %s", err)
+        except asyncio.TimeoutError as err:
+            _LOGGER.error("Timeout error setting value: %s", err)
             return False
 
         return True
@@ -281,6 +376,6 @@ class RequestHandler:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     return RequestStatus.SUCCESS, True
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.warning("Error sending reboot command: %s", err)
             return RequestStatus.UNKNOWN_ERROR, False

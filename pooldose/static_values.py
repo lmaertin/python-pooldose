@@ -1,3 +1,6 @@
+# static_values.py
+"""Static Values for Async API client for SEKO Pooldose."""
+
 import logging
 from typing import Any, Dict, Optional
 
@@ -29,7 +32,7 @@ class StaticValues:
         """The device name, or None on error."""
         try:
             return self._device_info.get("NAME")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'NAME': %s", err)
             return None
 
@@ -38,7 +41,7 @@ class StaticValues:
         """The device serial number, or None on error."""
         try:
             return self._device_info.get("SERIAL_NUMBER")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'SERIAL_NUMBER': %s", err)
             return None
 
@@ -47,7 +50,7 @@ class StaticValues:
         """The device ID, or None on error."""
         try:
             return self._device_info.get("DEVICE_ID")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'DEVICE_ID': %s", err)
             return None
 
@@ -56,7 +59,7 @@ class StaticValues:
         """The device model, or None on error."""
         try:
             return self._device_info.get("MODEL")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'MODEL': %s", err)
             return None
 
@@ -65,7 +68,7 @@ class StaticValues:
         """The device model ID, or None on error."""
         try:
             return self._device_info.get("MODEL_ID")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'MODEL_ID': %s", err)
             return None
 
@@ -74,7 +77,7 @@ class StaticValues:
         """The device owner ID, or None on error."""
         try:
             return self._device_info.get("OWNERID")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'OWNERID': %s", err)
             return None
 
@@ -83,7 +86,7 @@ class StaticValues:
         """The device group name, or None on error."""
         try:
             return self._device_info.get("GROUPNAME")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'GROUPNAME': %s", err)
             return None
 
@@ -92,7 +95,7 @@ class StaticValues:
         """The device firmware version, or None on error."""
         try:
             return self._device_info.get("FW_VERSION")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'FW_VERSION': %s", err)
             return None
 
@@ -101,7 +104,7 @@ class StaticValues:
         """The device software version, or None on error."""
         try:
             return self._device_info.get("SW_VERSION")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'SW_VERSION': %s", err)
             return None
 
@@ -110,7 +113,7 @@ class StaticValues:
         """The device API version, or None on error."""
         try:
             return self._device_info.get("API_VERSION")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'API_VERSION': %s", err)
             return None
 
@@ -119,7 +122,7 @@ class StaticValues:
         """The device firmware code, or None on error."""
         try:
             return self._device_info.get("FW_CODE")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'FW_CODE': %s", err)
             return None
 
@@ -128,7 +131,7 @@ class StaticValues:
         """The device MAC address, or None on error."""
         try:
             return self._device_info.get("MAC")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'MAC': %s", err)
             return None
 
@@ -137,7 +140,7 @@ class StaticValues:
         """The device IP address, or None on error."""
         try:
             return self._device_info.get("IP")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'IP': %s", err)
             return None
 
@@ -146,7 +149,7 @@ class StaticValues:
         """The device WiFi SSID, or None on error."""
         try:
             return self._device_info.get("WIFI_SSID")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'WIFI_SSID': %s", err)
             return None
 
@@ -155,7 +158,7 @@ class StaticValues:
         """The device WiFi key, or None on error."""
         try:
             return self._device_info.get("WIFI_KEY")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'WIFI_KEY': %s", err)
             return None
 
@@ -164,7 +167,7 @@ class StaticValues:
         """The device access point SSID, or None on error."""
         try:
             return self._device_info.get("AP_SSID")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'AP_SSID': %s", err)
             return None
 
@@ -173,6 +176,6 @@ class StaticValues:
         """The device access point key, or None on error."""
         try:
             return self._device_info.get("AP_KEY")
-        except Exception as err:
+        except KeyError as err:
             _LOGGER.warning("Error getting static value 'AP_KEY': %s", err)
             return None
