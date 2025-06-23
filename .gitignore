@@ -1,7 +1,7 @@
 .vscode/*
 __pycache__/*
 pooldose/__pycache__/*
-tests/*
+tests/__pycache__/*
 references/*
 demo.py
 .DS_Store
