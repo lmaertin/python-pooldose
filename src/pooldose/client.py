@@ -128,7 +128,7 @@ class PooldoseClient:
             _LOGGER.warning("Error creating StaticValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    def _get_model_mapping(self) -> tuple[RequestStatus, dict[str, Any] | None]:
+    def get_model_mapping(self) -> tuple[RequestStatus, dict[str, Any] | None]:
         """
         Load the model-specific mapping configuration from a JSON file.
         Returns (RequestStatus, dict|None).
@@ -155,7 +155,7 @@ class PooldoseClient:
             status, raw_data = await self._request_handler.get_values_raw()
             if status != RequestStatus.SUCCESS or raw_data is None:
                 return status, None
-            status, mapping = self._get_model_mapping()
+            status, mapping = self.get_model_mapping()
             if status != RequestStatus.SUCCESS or mapping is None:
                 return status, None
             device_id = self.device_info["DEVICE_ID"]

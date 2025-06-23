@@ -44,7 +44,7 @@ def test_instant_values_missing_keys():
     assert instant.sensor_ph is None
 
 def test_instant_values_missing_mapping():
-    """Test InstantValues gibt None zurück, wenn Mapping fehlt."""
+    """Test that InstantValues returns None when a mapping for a requested attribute is missing."""
     device_raw_data = {
         "sensor_temperature": [25.0, "°C"],
     }
@@ -59,6 +59,7 @@ def test_instant_values_missing_mapping():
     assert instant.sensor_ph is None  # Kein Mapping für ph_actual vorhanden
 
 def test_instant_values_with_suffix_mapping():
+    """Test the InstantValues class for correct mapping of sensor values using suffix-based keys."""
     device_raw_data = {
         "PDPR1H1HAW100_FW539187_w_1eommf39k": {"current": 27.5},
         "PDPR1H1HAW100_FW539187_w_1ekeigkin": {"current": 7},

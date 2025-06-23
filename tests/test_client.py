@@ -5,7 +5,7 @@ from pooldose.client import PooldoseClient
 from pooldose.request_handler import RequestStatus
 
 @pytest.mark.asyncio
-async def test_static_values(monkeypatch):
+async def test_static_values():
     """Test static_values returns correct status and object."""
     client = PooldoseClient("localhost")
     client.device_info = {
@@ -24,13 +24,13 @@ async def test_static_values(monkeypatch):
     assert static.sensor_model == "TestModel"
     assert static.sensor_model_id == "TESTMODELID"
 
-def test_get_model_mapping_file_not_found(tmp_path):
+def test_get_model_mapping_file_not_found():
     """Test _get_model_mapping returns UNKNOWN_ERROR if file not found."""
     client = PooldoseClient("localhost")
     client.device_info = {
         "MODEL_ID": "DOESNOTEXIST",
         "FW_CODE": "000000"
     }
-    status, mapping = client._get_model_mapping()
+    status, mapping = client.get_model_mapping()
     assert status != RequestStatus.SUCCESS
     assert mapping is None

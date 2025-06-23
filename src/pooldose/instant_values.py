@@ -382,7 +382,7 @@ class InstantValues:
             bool: True if the value was set successfully, False otherwise.
         """
         return await self._set_value("frequency_input", value)
-    
+
     # Selects
     async def select_water_meter_unit_set(self, value: int) -> bool:
         """
