@@ -5,11 +5,18 @@ description = "Async Python client for SEKO Pooldose devices"
 authors = ["Lukas Maertin"]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
-    aiohttp
+    "aiohttp"
 ]
 
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio"]
+
 [build-system]
-requires = ["setuptools", "wheel", "aiohttp", "pytest", "pytest-asyncio"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
