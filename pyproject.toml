@@ -2,13 +2,19 @@
 name = "python-pooldose"
 version = "1.0.0"
 description = "Async Python client for SEKO Pooldose devices"
-authors = ["Lukas Maertin"]
+authors = [
+    { name = "Lukas Maertin", email = "lukas@mail.com" }
+]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp"
 ]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-asyncio"]
