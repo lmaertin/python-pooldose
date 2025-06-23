@@ -137,7 +137,7 @@ class InstantValues:
             _LOGGER.warning("Error setting value '%s': %s", name, err)
             return False
 
-    ### Sensors ###
+    # Sensors
     @property
     def sensor_temperature(self) -> Optional[tuple[float, str]]:
         """Current temperature value and unit, or None on error."""
@@ -213,7 +213,7 @@ class InstantValues:
         """Returns the current ORP calibration slope and its unit as a tuple, or None on error."""
         return self._get_value("orp_calibration_slope")
 
-    ### Binary Sensors ###
+    # Binary Sensors
     @property
     def binary_sensor_pump_running(self) -> Optional[bool]:
         """Returns True if the pump is running, False otherwise, or None on error."""
@@ -249,7 +249,7 @@ class InstantValues:
         """Returns True if the auxiliary relay 2 for ORP/CL is active, False otherwise, or None on error."""
         return self._get_value("relay_aux2_orpcl")
 
-    ### Numbers ###
+    # Numbers
     @property
     def number_orp_target(self) -> Optional[tuple[int, str, int, int, int]]:
         """
@@ -266,7 +266,7 @@ class InstantValues:
         """
         return self._get_value("ph_target")
 
-    ### Switches ###
+    # Switches
     @property
     def switch_stop_pool_dosing(self) -> Optional[bool]:
         """Returns True if pool dosing is stopped, False otherwise, or None on error."""
@@ -282,14 +282,14 @@ class InstantValues:
         """Returns True if frequency input is active, False otherwise, or None on error."""
         return self._get_value("frequency_input")
 
-    ### Selects ###
+    # Selects
     @property
     def select_water_meter_unit(self) -> Optional[str]:
         """Returns the current water meter unit as a string, or None on error."""
         return self._get_value("water_meter_unit")
 
-    ### Setters for values ###
-    ### Numbers ###
+    # Setters for values
+    # Numbers
     async def number_orp_target_set(self, value: int) -> bool:
         """
         Set the ORP target value after validating range and step.
@@ -346,7 +346,7 @@ class InstantValues:
             _LOGGER.warning("Error in number_ph_target_set: %s", err)
             return False
 
-    ### Switches ###
+    # Switches
     async def switch_stop_pool_dosing_set(self, value: bool) -> bool:
         """
         Set the stop pool dosing switch.
@@ -382,7 +382,8 @@ class InstantValues:
             bool: True if the value was set successfully, False otherwise.
         """
         return await self._set_value("frequency_input", value)
-    ### Selects ###
+    
+    # Selects
     async def select_water_meter_unit_set(self, value: int) -> bool:
         """
         Set the water meter unit select value.
