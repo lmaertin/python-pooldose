@@ -25,6 +25,7 @@ class RequestStatus(Enum):
     - PARAMS_FETCH_FAILED: params.js could not be fetched or parsed.
     - API_VERSION_UNSUPPORTED: The API version is not supported.
     - NO_DATA: No data was returned or found.
+    - LAST_DATA: No new data was found, last valid data was returned.
     - CLIENT_ERROR_SET: Error while setting a value on the client/device.
     - UNKNOWN_ERROR: An unspecified or unexpected error occurred.
     """
@@ -33,6 +34,7 @@ class RequestStatus(Enum):
     PARAMS_FETCH_FAILED = "params_fetch_failed"
     API_VERSION_UNSUPPORTED = "api_version_unsupported"
     NO_DATA = "no_data"
+    LAST_DATA = "last_data"
     CLIENT_ERROR_SET = "client_error_set"
     UNKNOWN_ERROR = "unknown_error"
 
@@ -313,7 +315,7 @@ class RequestHandler:
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.warning("Error fetching instant values: %s", err)
             if self.last_data is not None:
-                return RequestStatus.SUCCESS, self.last_data
+                return RequestStatus.LAST_DATA, self.last_data
             return RequestStatus.UNKNOWN_ERROR, None
 
     async def set_value(self, device_id: dict, path: str, value: Any, value_type: str) -> bool:
