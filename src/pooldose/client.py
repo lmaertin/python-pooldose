@@ -6,7 +6,8 @@ import asyncio
 from typing import Any
 import json
 import logging
-from pathlib import Path
+import importlib.resources
+import json
 from pooldose.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler, RequestStatus
 from pooldose.static_values import StaticValues
@@ -139,10 +140,11 @@ class PooldoseClient:
             if not model_id or not fw_code:
                 _LOGGER.error("MODEL_ID or FW_CODE not set!")
                 return RequestStatus.NO_DATA, None
-            mapping_path = Path(__file__).parent / "mappings" / f"model_{model_id}_FW{fw_code}.json"
-            with open(mapping_path, encoding="utf-8") as f:
+            filename = f"model_{model_id}_FW{fw_code}.json"
+            # Wichtig: pooldose.mappings ist das Paket!
+            with importlib.resources.files("pooldose.mappings").joinpath(filename).open("r", encoding="utf-8") as f:
                 return RequestStatus.SUCCESS, json.load(f)
-        except (OSError, json.JSONDecodeError) as err:
+        except (OSError, json.JSONDecodeError, ModuleNotFoundError, FileNotFoundError) as err:
             _LOGGER.warning("Error loading model mapping: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 

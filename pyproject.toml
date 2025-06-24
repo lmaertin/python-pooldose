@@ -1,6 +1,6 @@
 [project]
 name = "python-pooldose"
-version = "0.1.1"
+version = "0.1.5"
 description = "Async Python client for SEKO Pooldose devices"
 authors = [
     { name = "Lukas Maertin", email = "lukas@mail.com" }
@@ -25,7 +25,9 @@ dev = ["pytest", "pytest-asyncio"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["pooldose"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 "pooldose.mappings" = ["*.json"]
