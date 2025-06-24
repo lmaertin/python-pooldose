@@ -7,7 +7,6 @@ from typing import Any
 import json
 import logging
 import importlib.resources
-import json
 from pooldose.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler, RequestStatus
 from pooldose.static_values import StaticValues
