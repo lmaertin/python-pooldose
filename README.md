@@ -1,8 +1,17 @@
 # python-pooldose
-Async Python client for SEKO Pooldose devices.
+Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for Pools and Spas.
+This client uses an undocumented local HTTP API. It provides live readings for pool sensors such as temperature, pH, ORP/Redox, as well as status information and control over the dosing logic.
 
-## Example
+## Prerequisites
+1. Install and set-up the PoolDose devices according to the user manual.
+   1. In particular, connect the device to your WiFi network.
+   2. Identify the IP address or hostname of the device.
+2. Browse to the IP address or hostname (default port: 80).
+   1. Try to log in to the web interface with the default password (0000).
+   2. Check availability of data in the web interface.
+3. Optionally: Block the device from internet access to ensure cloudless-only operation.
 
+## Example Usage
 > **Note:** Replace `KOMMSPOT` with your device's hostname or IP address.
 
 ```python
