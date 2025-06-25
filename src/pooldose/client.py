@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
-import json
 import logging
-import importlib.resources
+from typing import Optional
 from pooldose.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler, RequestStatus
 from pooldose.static_values import StaticValues
+from pooldose.mapping_info import (
+    MappingInfo,
+    SensorMapping,
+    BinarySensorMapping,
+    NumberMapping,
+    SwitchMapping,
+    SelectMapping,
+)
 
 # pylint: disable=line-too-long
 
@@ -55,13 +61,17 @@ class PooldoseClient:
             "AP_KEY": None,         # Access Point key
         }
 
+        # Neu: Mapping-Status und Mapping-Cache
+        self._mapping_status = None
+        self._mapping_info: Optional[MappingInfo] = None
+
     @classmethod
-    async def create(cls, host: str, timeout: int = 10) -> tuple[RequestStatus, PooldoseClient | None]:
+    async def create(cls, host: str, timeout: int = 10) -> tuple[RequestStatus, "PooldoseClient" | None]:
         """
         Asynchronous factory method to initialize the Pooldose client.
 
         Returns:
-            (RequestStatus, PooldoseClient|None): Tuple of status and client instance.
+            tuple: (RequestStatus, PooldoseClient|None) - Status and client instance.
         """
         self = cls(host, timeout)
         status, handler = await RequestHandler.create(host, timeout)
@@ -72,7 +82,6 @@ class PooldoseClient:
 
         # Fetch core parameters and device info
         self.device_info["API_VERSION"] = self._request_handler.api_version
-        # API version check is now in the getter, not here
 
         status, debug_config = await self._request_handler.get_debug_config()
         if status != RequestStatus.SUCCESS or not debug_config:
@@ -90,6 +99,11 @@ class PooldoseClient:
             self.device_info["FW_CODE"] = device.get("FW_CODE")
         await asyncio.sleep(0.5)
 
+        # Mapping laden, sobald MODEL_ID und FW_CODE verfügbar sind
+        self._mapping_info = MappingInfo.load(
+            self.device_info.get("MODEL_ID"),
+            self.device_info.get("FW_CODE")
+        )
         status, wifi_station = await self._request_handler.get_wifi_station()
         if status != RequestStatus.SUCCESS or not wifi_station:
             _LOGGER.error("Failed to fetch WiFi station info: %s", status)
@@ -120,7 +134,9 @@ class PooldoseClient:
     def static_values(self) -> tuple[RequestStatus, StaticValues | None]:
         """
         Get the static device values as a StaticValues object.
-        Returns (RequestStatus, StaticValues|None).
+
+        Returns:
+            tuple: (RequestStatus, StaticValues|None) - Status and static values object.
         """
         try:
             return RequestStatus.SUCCESS, StaticValues(self.device_info)
@@ -128,37 +144,62 @@ class PooldoseClient:
             _LOGGER.warning("Error creating StaticValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    def get_model_mapping(self) -> tuple[RequestStatus, dict[str, Any] | None]:
+    def available_types(self) -> dict[str, list[str]]:
         """
-        Load the model-specific mapping configuration from a JSON file.
-        Returns (RequestStatus, dict|None).
+        Returns a dictionary mapping type categories to lists of available type names.
+
+        Returns:
+            dict[str, list[str]]: A dictionary where each key is a type category (as a string),
+            and each value is a list of available type names (as strings). If no mapping information
+            is available, returns an empty dictionary.
         """
-        try:
-            model_id = self.device_info.get("MODEL_ID")
-            fw_code = self.device_info.get("FW_CODE")
-            if not model_id or not fw_code:
-                _LOGGER.error("MODEL_ID or FW_CODE not set!")
-                return RequestStatus.NO_DATA, None
-            filename = f"model_{model_id}_FW{fw_code}.json"
-            # Wichtig: pooldose.mappings ist das Paket!
-            with importlib.resources.files("pooldose.mappings").joinpath(filename).open("r", encoding="utf-8") as f:
-                return RequestStatus.SUCCESS, json.load(f)
-        except (OSError, json.JSONDecodeError, ModuleNotFoundError, FileNotFoundError) as err:
-            _LOGGER.warning("Error loading model mapping: %s", err)
-            return RequestStatus.UNKNOWN_ERROR, None
+        return self._mapping_info.available_types() if self._mapping_info else {}
+
+    def available_sensors(self) -> dict[str, SensorMapping]:
+        """
+        Returns all available sensors from the mapping as SensorMapping objects.
+        """
+        return self._mapping_info.available_sensors() if self._mapping_info else {}
+
+    def available_binary_sensors(self) -> dict[str, BinarySensorMapping]:
+        """
+        Returns all available binary sensors from the mapping as BinarySensorMapping objects.
+        """
+        return self._mapping_info.available_binary_sensors() if self._mapping_info else {}
+
+    def available_numbers(self) -> dict[str, NumberMapping]:
+        """
+        Returns all available numbers from the mapping as NumberMapping objects.
+        """
+        return self._mapping_info.available_numbers() if self._mapping_info else {}
+
+    def available_switches(self) -> dict[str, SwitchMapping]:
+        """
+        Returns all available switches from the mapping as SwitchMapping objects.
+        """
+        return self._mapping_info.available_switches() if self._mapping_info else {}
+
+    def available_selects(self) -> dict[str, SelectMapping]:
+        """
+        Returns all available selects from the mapping as SelectMapping objects.
+        """
+        return self._mapping_info.available_selects() if self._mapping_info else {}
 
     async def instant_values(self) -> tuple[RequestStatus, InstantValues | None]:
         """
         Fetch the current instant values from the Pooldose device.
-        Returns (RequestStatus, InstantValues|None).
+
+        Returns:
+            tuple: (RequestStatus, InstantValues|None) - Status and instant values object.
         """
         try:
             status, raw_data = await self._request_handler.get_values_raw()
             if status != RequestStatus.SUCCESS or raw_data is None:
                 return status, None
-            status, mapping = self.get_model_mapping()
-            if status != RequestStatus.SUCCESS or mapping is None:
-                return status, None
+            # Mapping aus Cache verwenden
+            mapping = self._mapping_info.mapping if self._mapping_info else None
+            if mapping is None:
+                return RequestStatus.UNKNOWN_ERROR, None
             device_id = self.device_info["DEVICE_ID"]
             device_raw_data = raw_data.get("devicedata", {}).get(device_id, {})
             model_id = self.device_info["MODEL_ID"]

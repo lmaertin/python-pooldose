@@ -3,6 +3,7 @@
 import pytest
 from pooldose.client import PooldoseClient
 from pooldose.request_handler import RequestStatus
+from pooldose.mapping_info import MappingInfo
 
 @pytest.mark.asyncio
 async def test_static_values():
@@ -16,6 +17,7 @@ async def test_static_values():
         "MODEL_ID": "TESTMODELID",
         "FW_CODE": "000000",
     }
+    # MappingInfo is not required for static_values
     status, static = client.static_values()
     assert status == RequestStatus.SUCCESS
     assert static.sensor_name == "TestDevice"
@@ -25,12 +27,15 @@ async def test_static_values():
     assert static.sensor_model_id == "TESTMODELID"
 
 def test_get_model_mapping_file_not_found():
-    """Test _get_model_mapping returns UNKNOWN_ERROR if file not found."""
+    """Test get_model_mapping returns UNKNOWN_ERROR if file not found."""
     client = PooldoseClient("localhost")
     client.device_info = {
         "MODEL_ID": "DOESNOTEXIST",
         "FW_CODE": "000000"
     }
-    status, mapping = client.get_model_mapping()
-    assert status != RequestStatus.SUCCESS
-    assert mapping is None
+    # Use MappingInfo directly, as get_model_mapping is deprecated
+    mapping_info = client._mapping_info = None  # Simulate not loaded
+    # Simulate the MappingInfo.load call
+    mapping_info = MappingInfo.load("DOESNOTEXIST", "000000")
+    assert mapping_info.status != RequestStatus.SUCCESS
+    assert mapping_info.mapping is None
