@@ -28,6 +28,36 @@ async def main() -> None:
     # Create the client instance (connects to your Pooldose device)
     client = await PooldoseClient.create(host=HOST, timeout=TIMEOUT)
 
+    # --- Query available types and keys ---
+    print("\nAvailable types and keys:")
+    for typ, keys in client.available_types().items():
+        print(f"  {typ}: {keys}")
+
+    # --- Query available sensors and show their fields (including conversion if present) ---
+    print("\nAvailable sensors:")
+    for name, sensor in client.available_sensors().items():
+        print(f"  {name}: key={sensor.key}, type={sensor.type}")
+        if sensor.conversion is not None:
+            print(f"    conversion: {sensor.conversion}")
+
+    print("\nAvailable binary sensors:")
+    for name, binary_sensor in client.available_binary_sensors().items():
+        print(f"  {name}: key={binary_sensor.key}, type={binary_sensor.type}")
+
+    print("\nAvailable numbers:")
+    for name, number in client.available_numbers().items():
+        print(f"  {name}: key={number.key}, type={number.type}")
+
+    print("\nAvailable switches:")
+    for name, switch in client.available_switches().items():
+        print(f"  {name}: key={switch.key}, type={switch.type}")
+
+    print("\nAvailable selects:")
+    for name, select in client.available_selects().items():
+        print(f"  {name}: key={select.key}, type={select.type}")
+        print(f"    conversion: {select.conversion}")
+        print(f"    options: {select.options}")
+
     # --- Print all device info in a pretty format ---
     print("Device Info:")
     print(json.dumps(client.device_info, indent=2))
@@ -67,3 +97,7 @@ if __name__ == "__main__":
     # Run the demonstration using asyncio
     asyncio.run(main())
 ```
+
+## Changelog
+
+Siehe [CHANGELOG.md](CHANGELOG.md)
