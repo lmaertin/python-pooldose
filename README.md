@@ -100,4 +100,9 @@ if __name__ == "__main__":
 
 ## Changelog
 
-Siehe [CHANGELOG.md](CHANGELOG.md)
+### [0.2.0] - 2024-06-25
+- Added query feature to list all available sensors and actuators
+
+### [0.1.5] - 2024-06-24
+- First working prototype for PoolDose Duble/Dual WiFi supported
+- All sensors and actuators for PoolDose Duble/Dual WiFi supported
