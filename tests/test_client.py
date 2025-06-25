@@ -3,7 +3,7 @@
 import pytest
 from pooldose.client import PooldoseClient
 from pooldose.request_handler import RequestStatus
-from pooldose.mapping_info import MappingInfo
+from pooldose.mappings.mapping_info import MappingInfo
 
 @pytest.mark.asyncio
 async def test_static_values():

@@ -1,6 +1,6 @@
 """Tests for Instant Values for Async API client for SEKO Pooldose."""
 
-from pooldose.instant_values import InstantValues
+from pooldose.values.instant_values import InstantValues
 
 def test_instant_values_properties_and_methods():
     """Test InstantValues properties and basic method signatures."""

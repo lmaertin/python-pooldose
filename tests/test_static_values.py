@@ -1,6 +1,6 @@
 """Tests for Static Values for Async API client for SEKO Pooldose."""
 
-from pooldose.static_values import StaticValues
+from pooldose.values.static_values import StaticValues
 
 def test_static_values_properties():
     """Test all StaticValues properties."""

@@ -1,7 +1,7 @@
 """Tests for MappingInfo for async API client for SEKO Pooldose."""
 
 import pytest
-from pooldose.mapping_info import MappingInfo, SensorMapping, SelectMapping
+from pooldose.mappings.mapping_info import MappingInfo, SensorMapping, SelectMapping
 from pooldose.request_handler import RequestStatus
 
 def test_load_file_not_found():

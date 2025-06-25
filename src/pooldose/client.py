@@ -5,10 +5,10 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import Optional
-from pooldose.instant_values import InstantValues
+from pooldose.values.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler, RequestStatus
-from pooldose.static_values import StaticValues
-from pooldose.mapping_info import (
+from pooldose.values.static_values import StaticValues
+from pooldose.mappings.mapping_info import (
     MappingInfo,
     SensorMapping,
     BinarySensorMapping,
