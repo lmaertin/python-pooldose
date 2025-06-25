@@ -61,7 +61,7 @@ class PooldoseClient:
             "AP_KEY": None,         # Access Point key
         }
 
-        # Neu: Mapping-Status und Mapping-Cache
+        # Mapping-Status und Mapping-Cache
         self._mapping_status = None
         self._mapping_info: Optional[MappingInfo] = None
 
@@ -99,8 +99,8 @@ class PooldoseClient:
             self.device_info["FW_CODE"] = device.get("FW_CODE")
         await asyncio.sleep(0.5)
 
-        # Mapping laden, sobald MODEL_ID und FW_CODE verfügbar sind
-        self._mapping_info = MappingInfo.load(
+        # Mapping laden, sobald MODEL_ID und FW_CODE verfügbar sind (asynchron!)
+        self._mapping_info = await MappingInfo.load(
             self.device_info.get("MODEL_ID"),
             self.device_info.get("FW_CODE")
         )

@@ -115,21 +115,31 @@ class RequestHandler:
             _LOGGER.warning("Error fetching or parsing core params: %s", err)
             return None
 
-    def check_apiversion_supported(self) -> RequestStatus:
+    def check_apiversion_supported(self) -> tuple[RequestStatus, dict]:
         """
         Check if the loaded API version matches the supported version.
 
         Returns:
-            RequestStatus: SUCCESS if supported, API_VERSION_UNSUPPORTED otherwise.
+            tuple: (RequestStatus, dict)
+                - dict contains:
+                    "api_version_is": the current API version (or None if not set)
+                    "api_version_should": the supported API version
+                - RequestStatus.SUCCESS if supported,
+                - RequestStatus.API_VERSION_UNSUPPORTED if not supported,
+                - RequestStatus.NO_DATA if not set.
         """
+        result = {
+            "api_version_is": self.api_version,
+            "api_version_should": API_VERSION_SUPPORTED,
+        }
         if not self.api_version:
             _LOGGER.warning("API version not set, cannot check support")
-            return RequestStatus.NO_DATA
+            return RequestStatus.NO_DATA, result
         if self.api_version != API_VERSION_SUPPORTED:
             _LOGGER.warning("Unsupported API version: %s, expected %s", self.api_version, API_VERSION_SUPPORTED)
-            return RequestStatus.API_VERSION_UNSUPPORTED
+            return RequestStatus.API_VERSION_UNSUPPORTED, result
         else:
-            return RequestStatus.SUCCESS
+            return RequestStatus.SUCCESS, result
 
     async def get_debug_config(self):
         """

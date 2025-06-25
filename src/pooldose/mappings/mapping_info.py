@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 import importlib.resources
 import json
 import logging
+import aiofiles
 from pooldose.request_handler import RequestStatus
 
 # pylint: disable=line-too-long
@@ -85,9 +86,9 @@ class MappingInfo:
     status: Optional[RequestStatus] = None
 
     @classmethod
-    def load(cls, model_id: str, fw_code: str) -> "MappingInfo":
+    async def load(cls, model_id: str, fw_code: str) -> "MappingInfo":
         """
-        Load the model-specific mapping configuration from a JSON file.
+        Asynchronously load the model-specific mapping configuration from a JSON file.
 
         Args:
             model_id (str): The model ID.
@@ -101,8 +102,10 @@ class MappingInfo:
                 _LOGGER.error("MODEL_ID or FW_CODE not set!")
                 return cls(mapping=None, status=RequestStatus.NO_DATA)
             filename = f"model_{model_id}_FW{fw_code}.json"
-            with importlib.resources.files("pooldose.mappings").joinpath(filename).open("r", encoding="utf-8") as f:
-                mapping = json.load(f)
+            path = importlib.resources.files("pooldose.mappings").joinpath(filename)
+            async with aiofiles.open(path, "r", encoding="utf-8") as f:
+                content = await f.read()
+                mapping = json.loads(content)
                 return cls(mapping=mapping, status=RequestStatus.SUCCESS)
         except (OSError, json.JSONDecodeError, ModuleNotFoundError, FileNotFoundError) as err:
             _LOGGER.warning("Error loading model mapping: %s", err)
