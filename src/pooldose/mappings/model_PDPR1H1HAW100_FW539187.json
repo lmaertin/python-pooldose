@@ -1,13 +1,13 @@
 {
-  "temp_actual": {
+  "temperature": {
     "key": "w_1eommf39k",
     "type": "sensor"
   },
-  "ph_actual": {
+  "ph": {
     "key": "w_1ekeigkin",
     "type": "sensor"
   },
-  "orp_actual": {
+  "orp": {
     "key": "w_1eklenb23",
     "type": "sensor"
   },

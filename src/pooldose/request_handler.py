@@ -62,11 +62,10 @@ class RequestHandler:
         """
         self = cls(host, timeout)
         if not self.check_host_reachable():
-            _LOGGER.error("Host %s is not reachable.", host)
             return RequestStatus.HOST_UNREACHABLE, None
         params = await self._get_core_params()
         if not params:
-            _LOGGER.warning("Could not fetch core params")
+            _LOGGER.error("Could not fetch core params")
             return RequestStatus.PARAMS_FETCH_FAILED, None
         self.software_version = params.get("softwareVersion")
         self.api_version = params.get("apiversion")
@@ -86,7 +85,7 @@ class RequestHandler:
             _LOGGER.error("Host %s not reachable: %s", self.host, err)
             return False
 
-    async def _get_core_params(self) -> dict | RequestStatus:
+    async def _get_core_params(self) -> dict | None:
         """
         Fetch and extract softwareVersion and apiversion from params.js.
 
@@ -110,9 +109,13 @@ class RequestHandler:
                 else:
                     result[key] = None
 
+            if len(result) < len(keys):
+                _LOGGER.error("Not all parameters found in params.js: %s", result)
+                return None
+
             return result
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
-            _LOGGER.warning("Error fetching or parsing core params: %s", err)
+            _LOGGER.warning("Error fetching core params: %s", err)
             return None
 
     def check_apiversion_supported(self) -> tuple[RequestStatus, dict]:

@@ -18,8 +18,8 @@ async def test_check_apiversion_supported():
     """Test API version check logic."""
     handler = RequestHandler("localhost")
     handler.api_version = "v1/"
-    assert handler.check_apiversion_supported() == RequestStatus.SUCCESS
+    assert handler.check_apiversion_supported()[0] == RequestStatus.SUCCESS
     handler.api_version = "v2/"
-    assert handler.check_apiversion_supported() == RequestStatus.API_VERSION_UNSUPPORTED
+    assert handler.check_apiversion_supported()[0] == RequestStatus.API_VERSION_UNSUPPORTED
     handler.api_version = None
-    assert handler.check_apiversion_supported() == RequestStatus.NO_DATA
+    assert handler.check_apiversion_supported()[0] == RequestStatus.NO_DATA

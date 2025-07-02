@@ -20,28 +20,26 @@ def test_instant_values_properties_and_methods():
       },
     }
     mapping = {
-        "temp_actual": {"key": "w_1eommf39k", "type": "sensor"},
+        "temperature": {"key": "w_1eommf39k", "type": "sensor"},
     }
 
     prefix = "PDPR1H1HAW100_FW539187_"
     instant = InstantValues(device_raw_data, mapping, prefix, "TESTDEVICE", None)
 
-    assert [instant.sensor_temperature[0],instant.sensor_temperature[1]]  == [27.5, "°C"]
+    assert [instant.get_sensors()["temperature"][0],instant.get_sensors()["temperature"][1]]  == [27.5, "°C"]
 
 def test_instant_values_missing_keys():
     """Test InstantValues with missing keys in device_raw_data."""
     device_raw_data = {}
     mapping = {
-        "sensor_temperature": "sensor_temperature",
-        "sensor_ph": "sensor_ph",
+        "temperature": {"key": "w_1eommf39k", "type": "sensor"},
     }
     prefix = ""
     device_id = "TESTDEVICE"
     request_handler = None
 
     instant = InstantValues(device_raw_data, mapping, prefix, device_id, request_handler)
-    assert instant.sensor_temperature is None
-    assert instant.sensor_ph is None
+    assert "w_1eommf39k" not in instant.get_sensors()
 
 def test_instant_values_missing_mapping():
     """Test that InstantValues returns None when a mapping for a requested attribute is missing."""
@@ -49,14 +47,14 @@ def test_instant_values_missing_mapping():
         "sensor_temperature": [25.0, "°C"],
     }
     mapping = {
-        "temp_actual": {"key": "sensor_temperature", "type": "sensor"},
+        "temperature": {"key": "sensor_temperature", "type": "sensor"},
     }
     prefix = ""
     device_id = "TESTDEVICE"
     request_handler = None
 
     instant = InstantValues(device_raw_data, mapping, prefix, device_id, request_handler)
-    assert instant.sensor_ph is None  # Kein Mapping für ph_actual vorhanden
+    assert "ph" not in instant.get_sensors() # Kein Mapping für ph_actual vorhanden
 
 def test_instant_values_with_suffix_mapping():
     """Test the InstantValues class for correct mapping of sensor values using suffix-based keys."""
@@ -66,12 +64,12 @@ def test_instant_values_with_suffix_mapping():
         "PDPR1H1HAW100_FW539187_w_1eklenb23": {"current": 597},
     }
     mapping = {
-        "temp_actual": {"key": "w_1eommf39k", "type": "sensor"},
-        "ph_actual": {"key": "w_1ekeigkin", "type": "sensor"},
-        "orp_actual": {"key": "w_1eklenb23", "type": "sensor"},
+        "temperature": {"key": "w_1eommf39k", "type": "sensor"},
+        "ph": {"key": "w_1ekeigkin", "type": "sensor"},
+        "orp": {"key": "w_1eklenb23", "type": "sensor"},
     }
     prefix = "PDPR1H1HAW100_FW539187_"
     instant = InstantValues(device_raw_data, mapping, prefix, "TESTDEVICE", None)
-    assert instant.sensor_temperature[0] == 27.5
-    assert instant.sensor_ph[0] == 7
-    assert instant.sensor_orp[0] == 597
+    assert instant.get_sensors()["temperature"][0] == 27.5
+    assert instant.get_sensors()["ph"][0] == 7
+    assert instant.get_sensors()["orp"][0] == 597

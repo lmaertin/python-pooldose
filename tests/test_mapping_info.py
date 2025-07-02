@@ -4,9 +4,9 @@ import pytest
 from pooldose.mappings.mapping_info import MappingInfo, SensorMapping, SelectMapping
 from pooldose.request_handler import RequestStatus
 
-def test_load_file_not_found():
+async def test_load_file_not_found():
     """Test MappingInfo.load returns UNKNOWN_ERROR if file not found."""
-    mapping_info = MappingInfo.load("DOESNOTEXIST", "000000")
+    mapping_info = await MappingInfo.load("DOESNOTEXIST", "000000")
     assert mapping_info.status != RequestStatus.SUCCESS
     assert mapping_info.mapping is None
 

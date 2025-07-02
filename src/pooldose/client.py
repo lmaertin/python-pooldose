@@ -66,9 +66,14 @@ class PooldoseClient:
         self._mapping_info: Optional[MappingInfo] = None
 
     @classmethod
-    async def create(cls, host: str, timeout: int = 10) -> tuple[RequestStatus, "PooldoseClient" | None]:
+    async def create(cls, host: str, timeout: int = 10, include_sensitive_data: bool = False) -> tuple[RequestStatus, "PooldoseClient" | None]:
         """
         Asynchronous factory method to initialize the Pooldose client.
+
+        Args:
+            host (str): The host address of the Pooldose device.
+            timeout (int): Timeout for API requests in seconds.
+            include_sensitive_data (bool): If True, fetch WiFi and AP keys.
 
         Returns:
             tuple: (RequestStatus, PooldoseClient|None) - Status and client instance.
@@ -104,30 +109,42 @@ class PooldoseClient:
             self.device_info.get("MODEL_ID"),
             self.device_info.get("FW_CODE")
         )
+
+        # WiFi station info
         status, wifi_station = await self._request_handler.get_wifi_station()
         if status != RequestStatus.SUCCESS or not wifi_station:
-            _LOGGER.error("Failed to fetch WiFi station info: %s", status)
-            return status, None
-        self.device_info["WIFI_SSID"] = wifi_station.get("SSID")
-        self.device_info["WIFI_KEY"] = wifi_station.get("KEY")
-        self.device_info["MAC"] = wifi_station.get("MAC")
-        self.device_info["IP"] = wifi_station.get("IP")
+            _LOGGER.warning("Failed to fetch WiFi station info: %s", status)
+        else:
+            self.device_info["WIFI_SSID"] = wifi_station.get("SSID")
+            self.device_info["MAC"] = wifi_station.get("MAC")
+            self.device_info["IP"] = wifi_station.get("IP")
+            # Only include WiFi key if explicitly requested
+            if include_sensitive_data:
+                self.device_info["WIFI_KEY"] = wifi_station.get("KEY")
         await asyncio.sleep(0.5)
 
+        # Access point info
         status, access_point = await self._request_handler.get_access_point()
         if status != RequestStatus.SUCCESS or not access_point:
-            _LOGGER.error("Failed to fetch access point info: %s", status)
-            return status, None
-        self.device_info["AP_SSID"] = access_point.get("SSID")
-        self.device_info["AP_KEY"] = access_point.get("KEY")
+            _LOGGER.warning("Failed to fetch access point info: %s", status)
+        else:
+            self.device_info["AP_SSID"] = access_point.get("SSID")
+            # Only include AP key if explicitly requested
+            if include_sensitive_data:
+                self.device_info["AP_KEY"] = access_point.get("KEY")
         await asyncio.sleep(0.5)
 
+        # Network info
         status, network_info = await self._request_handler.get_network_info()
         if status != RequestStatus.SUCCESS or not network_info:
             _LOGGER.error("Failed to fetch network info: %s", status)
             return status, None
         self.device_info["OWNERID"] = network_info.get("OWNERID")
         self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
+        
+        if not include_sensitive_data:
+            _LOGGER.info("Excluded WiFi and AP keys (use include_sensitive_data=True to include)")
+        
         _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
         return RequestStatus.SUCCESS, self
 

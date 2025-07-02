@@ -2,6 +2,89 @@
 Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for Pools and Spas.
 This client uses an undocumented local HTTP API. It provides live readings for pool sensors such as temperature, pH, ORP/Redox, as well as status information and control over the dosing logic.
 
+## Features
+- **Async/await support** for non-blocking operations
+- **Dynamic sensor discovery** based on device model and firmware
+- **Dictionary-style access** to instant values
+- **Type-specific getters** for sensors, switches, numbers, selects
+- **Secure by default** - WiFi passwords excluded unless explicitly requested
+- **Comprehensive error handling** with detailed logging
+
+## API Overview
+
+### Program Flow
+
+```
+1. Create PooldoseClient
+   ├── Fetch Device Info
+   │   ├── Debug Config
+   │   ├── WiFi Station Info (optional)
+   │   ├── Access Point Info (optional)
+   │   └── Network Info
+   ├── Load Mapping JSON (based on MODEL_ID + FW_CODE)
+   └── Query Available Types
+       ├── Sensors
+       ├── Binary Sensors
+       ├── Numbers
+       ├── Switches
+       └── Selects
+
+2. Get Instant Values
+   └── Access Values via Dictionary Interface
+       ├── instant_values['temperature']
+       ├── instant_values.get('ph', default)
+       └── 'sensor_name' in instant_values
+
+3. Set Values via Type Methods
+   ├── set_number()
+   ├── set_switch()
+   └── set_select()
+```
+
+### API Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  PooldoseClient │────│ RequestHandler  │────│   HTTP Device   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │
+         │                       ▼
+         │              ┌─────────────────┐
+         │              │ API Endpoints   │
+         │              │ • get_debug     │
+         │              │ • get_wifi      │
+         │              │ • get_values    │
+         │              │ • set_value     │
+         │              └─────────────────┘
+         │
+         ▼
+┌─────────────────┐    ┌─────────────────┐
+│   MappingInfo   │────│  JSON Files     │
+└─────────────────┘    └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Type Discovery  │
+│ • Sensors       │
+│ • Switches      │
+│ • Numbers       │
+│ • Selects       │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐    ┌─────────────────┐
+│  InstantValues  │────│ Dictionary API  │
+└─────────────────┘    └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Type Methods    │
+│ • set_number()  │
+│ • set_switch()  │
+│ • set_select()  │
+└─────────────────┘
+```
+
 ## Prerequisites
 1. Install and set-up the PoolDose devices according to the user manual.
    1. In particular, connect the device to your WiFi network.
@@ -11,98 +94,207 @@ This client uses an undocumented local HTTP API. It provides live readings for p
    2. Check availability of data in the web interface.
 3. Optionally: Block the device from internet access to ensure cloudless-only operation.
 
-## Example Usage
-> **Note:** Replace `KOMMSPOT` with your device's hostname or IP address.
+## Installation
 
+```bash
+pip install python-pooldose
+```
+
+## Example Usage
+
+### Basic Example
 ```python
 import asyncio
 import json
 from pooldose.client import PooldoseClient
+from pooldose.request_handler import RequestStatus
 
-HOST = "KOMMSPOT"  # Change this to your device's host or IP address
+HOST = "192.168.1.100"  # Change this to your device's host or IP address
 TIMEOUT = 30
 
 async def main() -> None:
-    """Demonstrate all PooldoseClient calls."""
+    """Demonstrate PooldoseClient usage with new dictionary-based API."""
+    
+    # Create client (excludes WiFi passwords by default)
+    status, client = await PooldoseClient.create(host=HOST, timeout=TIMEOUT)
+    
+    # Optional: Include sensitive data like WiFi passwords
+    # status, client = await PooldoseClient.create(host=HOST, timeout=TIMEOUT, include_sensitive_data=True)
+    
+    if status != RequestStatus.SUCCESS:
+        print(f"Error creating client: {status}")
+        return
+    
+    print(f"Connected to {HOST}")
+    print("Device Info:", json.dumps(client.device_info, indent=2))
 
-    # Create the client instance (connects to your Pooldose device)
-    client = await PooldoseClient.create(host=HOST, timeout=TIMEOUT)
-
-    # --- Query available types and keys ---
-    print("\nAvailable types and keys:")
+    # --- Query available types dynamically ---
+    print("\nAvailable types:")
     for typ, keys in client.available_types().items():
         print(f"  {typ}: {keys}")
 
-    # --- Query available sensors and show their fields (including conversion if present) ---
+    # --- Query available sensors ---
     print("\nAvailable sensors:")
     for name, sensor in client.available_sensors().items():
         print(f"  {name}: key={sensor.key}, type={sensor.type}")
         if sensor.conversion is not None:
             print(f"    conversion: {sensor.conversion}")
 
-    print("\nAvailable binary sensors:")
-    for name, binary_sensor in client.available_binary_sensors().items():
-        print(f"  {name}: key={binary_sensor.key}, type={binary_sensor.type}")
+    # --- Get static values ---
+    status, static_values = client.static_values()
+    if status == RequestStatus.SUCCESS:
+        print(f"Device Name: {static_values.sensor_name}")
+        print(f"Serial Number: {static_values.sensor_serial_number}")
+        print(f"Firmware Version: {static_values.sensor_fw_version}")
 
-    print("\nAvailable numbers:")
-    for name, number in client.available_numbers().items():
-        print(f"  {name}: key={number.key}, type={number.type}")
+    # --- Get instant values ---
+    status, instant_values = await client.instant_values()
+    if status != RequestStatus.SUCCESS:
+        print(f"Error getting instant values: {status}")
+        return
 
-    print("\nAvailable switches:")
-    for name, switch in client.available_switches().items():
-        print(f"  {name}: key={switch.key}, type={switch.type}")
+    # --- Dictionary-style access ---
+    
+    # Get all sensors at once
+    print("\nAll sensor values:")
+    sensors = instant_values.get_sensors()
+    for key, value in sensors.items():
+        if isinstance(value, tuple) and len(value) >= 2:
+            print(f"  {key}: {value[0]} {value[1]}")
 
-    print("\nAvailable selects:")
-    for name, select in client.available_selects().items():
-        print(f"  {name}: key={select.key}, type={select.type}")
-        print(f"    conversion: {select.conversion}")
-        print(f"    options: {select.options}")
+    # Dictionary-style individual access
+    if "temperature" in instant_values:
+        temp = instant_values["temperature"]
+        print(f"Temperature: {temp[0]} {temp[1]}")
 
-    # --- Print all device info in a pretty format ---
-    print("Device Info:")
-    print(json.dumps(client.device_info, indent=2))
+    # Get with default
+    ph_value = instant_values.get("ph", "Not available")
+    print(f"pH: {ph_value}")
 
-    # --- Static values example ---
-    # Retrieve and print static device information
-    static_values = client.static_values()
-    print(f"Device Name: {static_values.sensor_name}")
-    print(f"Serial Number: {static_values.sensor_serial_number}")
-    print(f"Firmware Version: {static_values.sensor_fw_version}")
+    # --- Setting values ---
+    
+    # Set number values
+    if "ph_target" in instant_values.get_numbers():
+        result = await instant_values.set_number("ph_target", 7.2)
+        print(f"Set pH target to 7.2: {result}")
 
-    # --- Instant values example ---
-    # Retrieve and print current sensor and binary sensor values
-    instant_values = await client.instant_values()
-    print(f"Temperature: {instant_values.sensor_temperature[0]} {instant_values.sensor_temperature[1]}")
-    print(f"pH: {instant_values.sensor_ph[0]} {instant_values.sensor_ph[1]}")
-    print(f"ORP: {instant_values.sensor_orp[0]} {instant_values.sensor_orp[1]}")
-    print(f"Pump Running: {instant_values.binary_sensor_pump_running}")
-
-    # --- Set switch example ---
-    # Set the stop pool dosing switch to True and print the result
-    result = await instant_values.switch_stop_pool_dosing_set(True)
-    print(f"Stop pool dosing set: {result}")
-
-    # --- Set number example ---
-    # Set the pH target value to 7.2 and print the result
-    result = await instant_values.number_ph_target_set(7.2)
-    print(f"pH target set: {result}")
-
-    # --- Set select example ---
-    # Set the water meter unit (example value: 1) and print the result if successful
-    result = await instant_values.select_water_meter_unit_set(1)
-    if result:
-        print("Water meter unit set to 1.")
+    # Set switch values
+    if "stop_pool_dosing" in instant_values.get_switches():
+        result = await instant_values.set_switch("stop_pool_dosing", True)
+        print(f"Set stop pool dosing: {result}")
 
 if __name__ == "__main__":
-    # Run the demonstration using asyncio
     asyncio.run(main())
 ```
 
+### Advanced Usage
+
+#### Type-specific Access
+```python
+# Get all values by type
+sensors = instant_values.get_sensors()          # All sensor readings
+binary_sensors = instant_values.get_binary_sensors()  # All boolean states
+numbers = instant_values.get_numbers()          # All configurable numbers
+switches = instant_values.get_switches()        # All switch states
+selects = instant_values.get_selects()          # All select options
+
+# Check available types dynamically
+available_types = instant_values.available_types()
+print("Available types:", list(available_types.keys()))
+```
+
+#### Error Handling
+```python
+from pooldose.request_handler import RequestStatus
+
+status, client = await PooldoseClient.create("192.168.1.100")
+if status == RequestStatus.SUCCESS:
+    print("Connected successfully")
+elif status == RequestStatus.CONNECTION_ERROR:
+    print("Could not connect to device")
+elif status == RequestStatus.API_VERSION_UNSUPPORTED:
+    print("Unsupported API version")
+else:
+    print(f"Other error: {status}")
+```
+
+## API Reference
+
+### PooldoseClient
+
+#### Methods
+- `create(host, timeout=10, include_sensitive_data=False)` - Factory method to create and initialize client
+- `static_values()` - Get static device information
+- `instant_values()` - Get current sensor readings and device state
+- `available_types()` - Get all available entity types
+- `available_sensors()` - Get available sensor configurations
+- `available_binary_sensors()` - Get available binary sensor configurations
+- `available_numbers()` - Get available number configurations
+- `available_switches()` - Get available switch configurations  
+- `available_selects()` - Get available select configurations
+
+### InstantValues
+
+#### Dictionary Interface
+```python
+# Reading
+value = instant_values["sensor_name"]
+value = instant_values.get("sensor_name", default)
+exists = "sensor_name" in instant_values
+
+# Writing (async)
+await instant_values.__setitem__("switch_name", True)
+```
+
+#### Type-specific Methods
+```python
+# Getters
+sensors = instant_values.get_sensors()
+binary_sensors = instant_values.get_binary_sensors()
+numbers = instant_values.get_numbers()
+switches = instant_values.get_switches()
+selects = instant_values.get_selects()
+
+# Setters (async, with validation)
+await instant_values.set_number("ph_target", 7.2)
+await instant_values.set_switch("stop_dosing", True)
+await instant_values.set_select("water_meter_unit", 1)
+```
+
+## Supported Devices
+
+This client has been tested with:
+- **PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: 539187)
+
+Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions.
+
+## Security
+
+By default, the client excludes sensitive information like WiFi passwords from device info. To include sensitive data:
+
+```python
+status, client = await PooldoseClient.create(
+    host="192.168.1.100", 
+    include_sensitive_data=True
+)
+```
+
 ## Changelog
+
+### [0.3.0] - 2025-01-02
+- **BREAKING**: Changed from dataclass properties to dictionary-based access for instant values
+- Added dynamic sensor discovery based on device mapping files
+- Added type-specific getter methods (get_sensors, get_switches, etc.)
+- Added type-specific setter methods with validation (set_number, set_switch, etc.)
+- Added dictionary-style access (__getitem__, __setitem__, get, __contains__)
+- Added configurable sensitive data handling (excludes WiFi passwords by default)
+- Improved async file loading to prevent event loop blocking
+- Enhanced error handling and logging
+- Added comprehensive type annotations
 
 ### [0.2.0] - 2024-06-25
 - Added query feature to list all available sensors and actuators
 
 ### [0.1.5] - 2024-06-24
-- First working prototype for PoolDose Duble/Dual WiFi supported
-- All sensors and actuators for PoolDose Duble/Dual WiFi supported
+- First working prototype for PoolDose Double/Dual WiFi supported
+- All sensors and actuators for PoolDose Double/Dual WiFi supported

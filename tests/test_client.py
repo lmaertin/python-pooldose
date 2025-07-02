@@ -26,7 +26,7 @@ async def test_static_values():
     assert static.sensor_model == "TestModel"
     assert static.sensor_model_id == "TESTMODELID"
 
-def test_get_model_mapping_file_not_found():
+async def test_get_model_mapping_file_not_found():
     """Test get_model_mapping returns UNKNOWN_ERROR if file not found."""
     client = PooldoseClient("localhost")
     client.device_info = {
@@ -36,6 +36,6 @@ def test_get_model_mapping_file_not_found():
     # Use MappingInfo directly, as get_model_mapping is deprecated
     mapping_info = client._mapping_info = None  # Simulate not loaded
     # Simulate the MappingInfo.load call
-    mapping_info = MappingInfo.load("DOESNOTEXIST", "000000")
+    mapping_info = await MappingInfo.load("DOESNOTEXIST", "000000")
     assert mapping_info.status != RequestStatus.SUCCESS
     assert mapping_info.mapping is None
