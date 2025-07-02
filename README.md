@@ -281,7 +281,7 @@ status, client = await PooldoseClient.create(
 
 ## Changelog
 
-### [0.3.0] - 2025-01-02
+### [0.3.0] - 2025-07-02
 - **BREAKING**: Changed from dataclass properties to dictionary-based access for instant values
 - Added dynamic sensor discovery based on device mapping files
 - Added type-specific getter methods (get_sensors, get_switches, etc.)
