@@ -141,10 +141,10 @@ class PooldoseClient:
             return status, None
         self.device_info["OWNERID"] = network_info.get("OWNERID")
         self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
-        
+
         if not include_sensitive_data:
             _LOGGER.info("Excluded WiFi and AP keys (use include_sensitive_data=True to include)")
-        
+
         _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
         return RequestStatus.SUCCESS, self
 

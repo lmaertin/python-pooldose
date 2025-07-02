@@ -2,6 +2,8 @@
 
 from pooldose.values.instant_values import InstantValues
 
+# pylint: disable=line-too-long
+
 def test_instant_values_properties_and_methods():
     """Test InstantValues properties and basic method signatures."""
     # Beispielhafte Testdaten (minimal)

@@ -93,21 +93,21 @@ class InstantValues:
         if key not in self._mapping or self._mapping[key].get("type") != "number":
             _LOGGER.warning("Key '%s' is not a valid number", key)
             return False
-        
+
         # Get current number info for validation
         current_info = self[key]
         if current_info is None:
             _LOGGER.warning("Cannot get current info for number '%s'", key)
             return False
-        
+
         try:
             _, _, min_val, max_val, step = current_info
-            
+
             # Validate range
             if not min_val <= value <= max_val:
                 _LOGGER.warning("Value %s is out of range for %s. Valid range: %s - %s", value, key, min_val, max_val)
                 return False
-            
+
             # Validate step (for float values)
             if isinstance(value, float) and step:
                 epsilon = 1e-9
@@ -115,7 +115,7 @@ class InstantValues:
                 if abs(round(n) - n) > epsilon:
                     _LOGGER.warning("Value %s is not a valid step for %s. Step: %s", value, key, step)
                     return False
-            
+
             return await self._set_value(key, value)
         except (TypeError, ValueError, IndexError) as err:
             _LOGGER.warning("Error validating number '%s': %s", key, err)
@@ -133,14 +133,14 @@ class InstantValues:
         if key not in self._mapping or self._mapping[key].get("type") != "select":
             _LOGGER.warning("Key '%s' is not a valid select", key)
             return False
-        
+
         # Validate against available options
         mapping_entry = self._mapping[key]
         options = mapping_entry.get("options", {})
         if str(value) not in options:
             _LOGGER.warning("Value '%s' is not a valid option for %s. Valid options: %s", value, key, list(options.keys()))
             return False
-        
+
         return await self._set_value(key, value)
 
     def _get_value(self, name: str) -> Any:
@@ -153,14 +153,14 @@ class InstantValues:
             if not attributes:
                 _LOGGER.warning("Key '%s' not found in mapping", name)
                 return None
-            
+
             key = attributes.get("key", name)
             full_key = f"{self._prefix}{key}"
             entry = self._device_data.get(full_key)
             if entry is None:
                 _LOGGER.warning("No data found for key '%s'", full_key)
                 return None
-            
+
             entry_type = attributes.get("type")
             if not entry_type:
                 _LOGGER.warning("No type found for key '%s'", name)
@@ -204,7 +204,7 @@ class InstantValues:
             if entry_type == "select":
                 value = entry.get("current") if isinstance(entry, dict) else None
                 options = attributes.get("options", {})
-                
+
                 if value in options:
                     value_text = options.get(value)
                     if "conversion" in attributes:
@@ -268,4 +268,3 @@ class InstantValues:
         except (KeyError, TypeError, AttributeError, ValueError) as err:
             _LOGGER.warning("Error setting value '%s': %s", name, err)
             return False
-
