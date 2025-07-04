@@ -283,6 +283,10 @@ status, client = await PooldoseClient.create(
 
 ## Changelog
 
+### [0.3.1] - 2025-07-04
+- First official release, published on PyPi
+- Install with ```pip install python-pooldose```
+
 ### [0.3.0] - 2025-07-02
 - **BREAKING**: Changed from dataclass properties to dictionary-based access for instant values
 - Added dynamic sensor discovery based on device mapping files
