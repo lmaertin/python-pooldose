@@ -266,7 +266,9 @@ await instant_values.set_select("water_meter_unit", 1)
 This client has been tested with:
 - **PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: 539187)
 
-Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions.
+Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
+
+> **Note:** The other JSON files in the `docs/` directory define the default English names for the data keys of the PoolDose devices. These mappings are used for display and documentation purposes.
 
 ## Security
 
