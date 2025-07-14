@@ -81,7 +81,7 @@ class PooldoseClient:
         if status != RequestStatus.SUCCESS:
             _LOGGER.error("Failed to create RequestHandler: %s", status)
             return status
-        
+
         # Load device information
         status = await self._load_device_info()
         if status != RequestStatus.SUCCESS:
@@ -99,7 +99,7 @@ class PooldoseClient:
         """
         if not self._request_handler:
             raise RuntimeError("RequestHandler is not initialized. Call async_connect first.")
-        
+
         # Fetch core parameters and device info
         self.device_info["API_VERSION"] = self._request_handler.api_version
 

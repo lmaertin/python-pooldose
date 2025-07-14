@@ -9,9 +9,9 @@ from pooldose.request_handler import RequestHandler, RequestStatus
 async def test_host_unreachable(monkeypatch):
     """Test that unreachable host returns HOST_UNREACHABLE."""
     monkeypatch.setattr("socket.create_connection", lambda *a, **kw: (_ for _ in ()).throw(OSError("unreachable")))
-    status, handler = await RequestHandler.create("256.256.256.256", timeout=1)
+    handler = RequestHandler("256.256.256.256", timeout=1)
+    status = await handler.connect()
     assert status == RequestStatus.HOST_UNREACHABLE
-    assert handler is None
 
 @pytest.mark.asyncio
 async def test_check_apiversion_supported():

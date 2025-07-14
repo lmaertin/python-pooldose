@@ -62,16 +62,16 @@ class RequestHandler:
         """
         if not self.check_host_reachable():
             return RequestStatus.HOST_UNREACHABLE
-            
+
         params = await self._get_core_params()
         if not params:
             _LOGGER.error("Could not fetch core params")
             return RequestStatus.PARAMS_FETCH_FAILED
-            
+
         self.software_version = params.get("softwareVersion")
         self.api_version = params.get("apiversion")
         self._connected = True
-        
+
         return RequestStatus.SUCCESS
 
     @property
