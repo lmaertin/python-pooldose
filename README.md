@@ -122,7 +122,7 @@ async def main() -> None:
     # client = PooldoseClient(host=HOST, timeout=TIMEOUT, include_sensitive_data=True)
     
     # Connect to device
-    status = await client.async_connect()
+    status = await client.connect()
     if status != RequestStatus.SUCCESS:
         print(f"Error connecting to device: {status}")
         return
@@ -195,7 +195,7 @@ if __name__ == "__main__":
 ```python
 # Recommended: Separate initialization and connection
 client = PooldoseClient("192.168.1.100", timeout=30)
-status = await client.async_connect()
+status = await client.connect()
 
 # Check connection status
 if client.is_connected:
@@ -209,7 +209,7 @@ else:
 from pooldose.request_handler import RequestStatus
 
 client = PooldoseClient("192.168.1.100")
-status = await client.async_connect()
+status = await client.connect()
 
 if status == RequestStatus.SUCCESS:
     print("Connected successfully")
@@ -238,7 +238,7 @@ PooldoseClient(host, timeout=10, include_sensitive_data=False)
 - `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
 
 #### Methods
-- `async_connect()` - Connect to device and initialize all components
+- `connect()` - Connect to device and initialize all components
 - `static_values()` - Get static device information
 - `instant_values()` - Get current sensor readings and device state
 - `available_types()` - Get all available entity types
@@ -300,14 +300,14 @@ client = PooldoseClient(
     host="192.168.1.100", 
     include_sensitive_data=True
 )
-status = await client.async_connect()
+status = await client.connect()
 ```
 
 ## Changelog
 
 ### [0.4.0] - 2025-07-11
 - **BREAKING**: Removed `create()` factory method
-- **BREAKING**: Changed client initialization pattern to separate `__init__` and `async_connect()` methods
+- **BREAKING**: Changed client initialization pattern to separate `__init__` and async `connect()` methods
 - Added `is_connected` property to check connection status
 - Improved flexibility for testing and connection management
 - Simplified RequestHandler by removing factory method pattern

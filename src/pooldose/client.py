@@ -17,7 +17,7 @@ from pooldose.mappings.mapping_info import (
     SelectMapping,
 )
 
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,too-many-instance-attributes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class PooldoseClient:
         self._mapping_info: Optional[MappingInfo] = None
         self._connected = False
 
-    async def async_connect(self) -> RequestStatus:
+    async def connect(self) -> RequestStatus:
         """
         Asynchronously connect to the device and initialize all components.
         

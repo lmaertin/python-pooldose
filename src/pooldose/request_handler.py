@@ -55,7 +55,7 @@ class RequestHandler:
 
     async def connect(self) -> RequestStatus:
         """
-        Connect to the device and initialize connection parameters.
+        Asynchronously connect to the device and initialize connection parameters.
         
         Returns:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
