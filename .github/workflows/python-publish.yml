@@ -1,4 +1,4 @@
-name: Upload Python Package python-pooldose to TestPyPI
+name: Upload Python Package python-pooldose to PyPI
 
 on:
   release:

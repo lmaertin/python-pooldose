@@ -115,14 +115,16 @@ TIMEOUT = 30
 async def main() -> None:
     """Demonstrate PooldoseClient usage with new dictionary-based API."""
     
-    # Create client (excludes WiFi passwords by default)
-    status, client = await PooldoseClient.create(host=HOST, timeout=TIMEOUT)
+    # Create client instance (excludes WiFi passwords by default)
+    client = PooldoseClient(host=HOST, timeout=TIMEOUT)
     
     # Optional: Include sensitive data like WiFi passwords
-    # status, client = await PooldoseClient.create(host=HOST, timeout=TIMEOUT, include_sensitive_data=True)
+    # client = PooldoseClient(host=HOST, timeout=TIMEOUT, include_sensitive_data=True)
     
+    # Connect to device
+    status = await client.async_connect()
     if status != RequestStatus.SUCCESS:
-        print(f"Error creating client: {status}")
+        print(f"Error connecting to device: {status}")
         return
     
     print(f"Connected to {HOST}")
@@ -189,29 +191,32 @@ if __name__ == "__main__":
 
 ### Advanced Usage
 
-#### Type-specific Access
+#### Connection Management
 ```python
-# Get all values by type
-sensors = instant_values.get_sensors()          # All sensor readings
-binary_sensors = instant_values.get_binary_sensors()  # All boolean states
-numbers = instant_values.get_numbers()          # All configurable numbers
-switches = instant_values.get_switches()        # All switch states
-selects = instant_values.get_selects()          # All select options
+# Recommended: Separate initialization and connection
+client = PooldoseClient("192.168.1.100", timeout=30)
+status = await client.async_connect()
 
-# Check available types dynamically
-available_types = instant_values.available_types()
-print("Available types:", list(available_types.keys()))
+# Check connection status
+if client.is_connected:
+    print("Client is connected")
+else:
+    print("Client is not connected")
 ```
 
 #### Error Handling
 ```python
 from pooldose.request_handler import RequestStatus
 
-status, client = await PooldoseClient.create("192.168.1.100")
+client = PooldoseClient("192.168.1.100")
+status = await client.async_connect()
+
 if status == RequestStatus.SUCCESS:
     print("Connected successfully")
-elif status == RequestStatus.CONNECTION_ERROR:
-    print("Could not connect to device")
+elif status == RequestStatus.HOST_UNREACHABLE:
+    print("Could not reach device")
+elif status == RequestStatus.PARAMS_FETCH_FAILED:
+    print("Failed to fetch device parameters")
 elif status == RequestStatus.API_VERSION_UNSUPPORTED:
     print("Unsupported API version")
 else:
@@ -222,8 +227,18 @@ else:
 
 ### PooldoseClient
 
+#### Constructor
+```python
+PooldoseClient(host, timeout=10, include_sensitive_data=False)
+```
+
+**Parameters:**
+- `host` (str): The hostname or IP address of the device
+- `timeout` (int): Request timeout in seconds (default: 10)
+- `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
+
 #### Methods
-- `create(host, timeout=10, include_sensitive_data=False)` - Factory method to create and initialize client
+- `async_connect()` - Connect to device and initialize all components
 - `static_values()` - Get static device information
 - `instant_values()` - Get current sensor readings and device state
 - `available_types()` - Get all available entity types
@@ -232,6 +247,12 @@ else:
 - `available_numbers()` - Get available number configurations
 - `available_switches()` - Get available switch configurations  
 - `available_selects()` - Get available select configurations
+
+#### Properties
+- `is_connected` - Check if client is connected to device
+- `device_info` - Dictionary containing device information
+- `host` - Device hostname or IP address
+- `timeout` - Request timeout in seconds
 
 ### InstantValues
 
@@ -275,13 +296,23 @@ Other SEKO PoolDose models may work but are untested. The client uses JSON mappi
 By default, the client excludes sensitive information like WiFi passwords from device info. To include sensitive data:
 
 ```python
-status, client = await PooldoseClient.create(
+client = PooldoseClient(
     host="192.168.1.100", 
     include_sensitive_data=True
 )
+status = await client.async_connect()
 ```
 
 ## Changelog
+
+### [0.4.0] - 2025-07-11
+- **BREAKING**: Removed `create()` factory method
+- **BREAKING**: Changed client initialization pattern to separate `__init__` and `async_connect()` methods
+- Added `is_connected` property to check connection status
+- Improved flexibility for testing and connection management
+- Simplified RequestHandler by removing factory method pattern
+- Changed default timeout to 30s
+- Improved unit handling (No Unit is 'None')
 
 ### [0.3.1] - 2025-07-04
 - First official release, published on PyPi

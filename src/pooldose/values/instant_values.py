@@ -174,7 +174,7 @@ class InstantValues:
                     if value in conversion:
                         value = conversion[value]
                 units = entry.get("magnitude", [""])
-                unit = units[0] if units else ""
+                unit = units[0] if units[0] != "UNDEFINED" else None
                 return (value, unit)
 
             # Binary sensor: return bool
@@ -197,7 +197,7 @@ class InstantValues:
                 abs_max = entry.get("absMax")
                 resolution = entry.get("resolution")
                 units = entry.get("magnitude", [""])
-                unit = units[0] if units else ""
+                unit = units[0] if units[0] != "UNDEFINED" else None
                 return (value, unit, abs_min, abs_max, resolution)
 
             # Select: return converted value or raw value

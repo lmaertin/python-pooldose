@@ -51,25 +51,33 @@ class RequestHandler:
         self._headers = {"Content-Type": "application/json"}
         self.software_version = None
         self.api_version = None
+        self._connected = False
 
-    @classmethod
-    async def create(cls, host: str, timeout: int = 10):
+    async def connect(self) -> RequestStatus:
         """
-        Asynchronous factory method to create and initialize the RequestHandler.
-
+        Connect to the device and initialize connection parameters.
+        
         Returns:
-            (RequestStatus, RequestHandler|None): Tuple of status and handler instance.
+            RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
-        self = cls(host, timeout)
         if not self.check_host_reachable():
-            return RequestStatus.HOST_UNREACHABLE, None
+            return RequestStatus.HOST_UNREACHABLE
+            
         params = await self._get_core_params()
         if not params:
             _LOGGER.error("Could not fetch core params")
-            return RequestStatus.PARAMS_FETCH_FAILED, None
+            return RequestStatus.PARAMS_FETCH_FAILED
+            
         self.software_version = params.get("softwareVersion")
         self.api_version = params.get("apiversion")
-        return RequestStatus.SUCCESS, self
+        self._connected = True
+        
+        return RequestStatus.SUCCESS
+
+    @property
+    def is_connected(self) -> bool:
+        """Check if the handler is connected to the device."""
+        return self._connected
 
     def check_host_reachable(self) -> bool:
         """

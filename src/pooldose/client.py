@@ -27,16 +27,18 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
-    def __init__(self, host: str, timeout: int = 10) -> None:
+    def __init__(self, host: str, timeout: int = 30, include_sensitive_data: bool = False) -> None:
         """
         Initialize the Pooldose client.
 
         Args:
             host (str): The host address of the Pooldose device.
             timeout (int): Timeout for API requests in seconds.
+            include_sensitive_data (bool): If True, fetch WiFi and AP keys.
         """
         self._host = host
         self._timeout = timeout
+        self._include_sensitive_data = include_sensitive_data
         self._last_data = None
         self._request_handler = None
 
@@ -44,15 +46,15 @@ class PooldoseClient:
         self.device_info = {
             "NAME": None,           # Device name
             "SERIAL_NUMBER": None,  # Serial number
-            "DEVICE_ID": "01220000095B_DEVICE",      # Device ID, i.e., SERIAL_NUMBER + "_DEVICE"
+            "DEVICE_ID": None,      # Device ID, i.e., SERIAL_NUMBER + "_DEVICE"
             "MODEL": None,          # Device model
-            "MODEL_ID": "PDPR1H1HAW100",       # Model ID
+            "MODEL_ID": None,       # Model ID
             "OWNERID": None,        # Owner ID
             "GROUPNAME": None,      # Group name
             "FW_VERSION": None,     # Firmware version
             "SW_VERSION": None,     # Software version
             "API_VERSION": None,    # API version
-            "FW_CODE": "539187",        # Firmware code
+            "FW_CODE": None,        # Firmware code
             "MAC": None,            # MAC address
             "IP": None,             # IP address
             "WIFI_SSID": None,      # WiFi SSID
@@ -64,30 +66,44 @@ class PooldoseClient:
         # Mapping-Status und Mapping-Cache
         self._mapping_status = None
         self._mapping_info: Optional[MappingInfo] = None
+        self._connected = False
 
-    @classmethod
-    async def create(cls, host: str, timeout: int = 10, include_sensitive_data: bool = False) -> tuple[RequestStatus, "PooldoseClient" | None]:
+    async def async_connect(self) -> RequestStatus:
         """
-        Asynchronous factory method to initialize the Pooldose client.
-
-        Args:
-            host (str): The host address of the Pooldose device.
-            timeout (int): Timeout for API requests in seconds.
-            include_sensitive_data (bool): If True, fetch WiFi and AP keys.
-
+        Asynchronously connect to the device and initialize all components.
+        
         Returns:
-            tuple: (RequestStatus, PooldoseClient|None) - Status and client instance.
+            RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
-        self = cls(host, timeout)
-        status, handler = await RequestHandler.create(host, timeout)
+        # Create and connect request handler
+        self._request_handler = RequestHandler(self._host, self._timeout)
+        status = await self._request_handler.connect()
         if status != RequestStatus.SUCCESS:
             _LOGGER.error("Failed to create RequestHandler: %s", status)
-            return status, None
-        self._request_handler = handler
+            return status
+        
+        # Load device information
+        status = await self._load_device_info()
+        if status != RequestStatus.SUCCESS:
+            _LOGGER.error("Failed to load device info: %s", status)
+            return status
 
+        self._connected = True
+        _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
+        return RequestStatus.SUCCESS
+
+    async def _load_device_info(self) -> RequestStatus:
+        """
+        Load device information from the request handler.
+        This method should be called after a successful connection.
+        """
+        if not self._request_handler:
+            raise RuntimeError("RequestHandler is not initialized. Call async_connect first.")
+        
         # Fetch core parameters and device info
         self.device_info["API_VERSION"] = self._request_handler.api_version
 
+        # Load device information
         status, debug_config = await self._request_handler.get_debug_config()
         if status != RequestStatus.SUCCESS or not debug_config:
             _LOGGER.error("Failed to fetch debug config: %s", status)
@@ -104,7 +120,7 @@ class PooldoseClient:
             self.device_info["FW_CODE"] = device.get("FW_CODE")
         await asyncio.sleep(0.5)
 
-        # Mapping laden, sobald MODEL_ID und FW_CODE verfügbar sind (asynchron!)
+        # Load mapping information
         self._mapping_info = await MappingInfo.load(
             self.device_info.get("MODEL_ID"),
             self.device_info.get("FW_CODE")
@@ -119,7 +135,7 @@ class PooldoseClient:
             self.device_info["MAC"] = wifi_station.get("MAC")
             self.device_info["IP"] = wifi_station.get("IP")
             # Only include WiFi key if explicitly requested
-            if include_sensitive_data:
+            if self._include_sensitive_data:
                 self.device_info["WIFI_KEY"] = wifi_station.get("KEY")
         await asyncio.sleep(0.5)
 
@@ -130,7 +146,7 @@ class PooldoseClient:
         else:
             self.device_info["AP_SSID"] = access_point.get("SSID")
             # Only include AP key if explicitly requested
-            if include_sensitive_data:
+            if self._include_sensitive_data:
                 self.device_info["AP_KEY"] = access_point.get("KEY")
         await asyncio.sleep(0.5)
 
@@ -142,11 +158,15 @@ class PooldoseClient:
         self.device_info["OWNERID"] = network_info.get("OWNERID")
         self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
 
-        if not include_sensitive_data:
-            _LOGGER.info("Excluded WiFi and AP keys (use include_sensitive_data=True to include)")
+        if self._include_sensitive_data:
+            _LOGGER.info("Included WiFi and AP keys (use include_sensitive_data=False to exclude)")
 
-        _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
-        return RequestStatus.SUCCESS, self
+        return RequestStatus.SUCCESS
+
+    @property
+    def is_connected(self) -> bool:
+        """Check if the client is connected to the device."""
+        return self._connected
 
     def static_values(self) -> tuple[RequestStatus, StaticValues | None]:
         """
