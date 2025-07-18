@@ -107,7 +107,7 @@ pip install python-pooldose
 import asyncio
 import json
 from pooldose.client import PooldoseClient
-from pooldose.request_handler import RequestStatus
+from pooldose.client import RequestStatus
 
 HOST = "192.168.1.100"  # Change this to your device's host or IP address
 TIMEOUT = 30
@@ -193,6 +193,8 @@ if __name__ == "__main__":
 
 #### Connection Management
 ```python
+from pooldose.client import PooldoseClient, RequestStatus
+
 # Recommended: Separate initialization and connection
 client = PooldoseClient("192.168.1.100", timeout=30)
 status = await client.connect()
@@ -206,7 +208,7 @@ else:
 
 #### Error Handling
 ```python
-from pooldose.request_handler import RequestStatus
+from pooldose.client import PooldoseClient, RequestStatus
 
 client = PooldoseClient("192.168.1.100")
 status = await client.connect()
@@ -223,9 +225,84 @@ else:
     print(f"Other error: {status}")
 ```
 
+#### Type-specific Access
+```python
+# Get all values by type
+sensors = instant_values.get_sensors()          # All sensor readings
+binary_sensors = instant_values.get_binary_sensors()  # All boolean states
+numbers = instant_values.get_numbers()          # All configurable numbers
+switches = instant_values.get_switches()        # All switch states
+selects = instant_values.get_selects()          # All select options
+
+# Check available types dynamically
+available_types = instant_values.available_types()
+print("Available types:", list(available_types.keys()))
+```
+
+#### Working with Mappings
+```
+Mapping Discovery Process:
+┌─────────────────┐
+│ Device Connect  │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Get MODEL_ID    │ ──────► PDPR1H1HAW100
+│ Get FW_CODE     │ ──────► 539187
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Load JSON File  │ ──────► model_PDPR1H1HAW100_FW539187.json
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Type Discovery  │
+│ ┌─────────────┐ │
+│ │ Sensors     │ │ ──────► temperature, ph, orp, ...
+│ │ Switches    │ │ ──────► stop_dosing, pump_detection, ...
+│ │ Numbers     │ │ ──────► ph_target, orp_target, ...
+│ │ Selects     │ │ ──────► water_meter_unit, ...
+│ └─────────────┘ │
+└─────────────────┘
+```
+
+```python
+# Query what's available for your specific device
+print("\nAvailable sensors:")
+for name, sensor in client.available_sensors().items():
+    print(f"  {name}: key={sensor.key}")
+    if sensor.conversion:
+        print(f"    conversion: {sensor.conversion}")
+
+print("\nAvailable numbers (settable):")
+for name, number in client.available_numbers().items():
+    print(f"  {name}: key={number.key}")
+
+print("\nAvailable switches:")
+for name, switch in client.available_switches().items():
+    print(f"  {name}: key={switch.key}")
+```
+
 ## API Reference
 
-### PooldoseClient
+### PooldoseClient Class Hierarchy
+```
+PooldoseClient
+├── Device Info
+│   ├── static_values() ──────► StaticValues
+│   └── device_info{} ─────────► dict
+├── Type Discovery
+│   ├── available_types() ────► dict[str, list[str]]
+│   ├── available_sensors() ──► dict[str, SensorMapping]
+│   ├── available_numbers() ──► dict[str, NumberMapping]
+│   ├── available_switches() ─► dict[str, SwitchMapping]
+│   └── available_selects() ──► dict[str, SelectMapping]
+└── Live Data
+    └── instant_values() ─────► InstantValues
+```
 
 #### Constructor
 ```python
@@ -254,7 +331,41 @@ PooldoseClient(host, timeout=10, include_sensitive_data=False)
 - `host` - Device hostname or IP address
 - `timeout` - Request timeout in seconds
 
-### InstantValues
+### RequestStatus
+
+All client methods return `RequestStatus` enum values:
+
+```python
+from pooldose.client import RequestStatus
+
+RequestStatus.SUCCESS                    # Operation successful
+RequestStatus.CONNECTION_ERROR           # Network connection failed
+RequestStatus.HOST_UNREACHABLE           # Device not reachable
+RequestStatus.PARAMS_FETCH_FAILED        # Failed to fetch device parameters
+RequestStatus.API_VERSION_UNSUPPORTED    # API version not supported
+RequestStatus.NO_DATA                    # No data received
+RequestStatus.UNKNOWN_ERROR              # Other error occurred
+```
+
+### InstantValues Interface
+```
+InstantValues
+├── Dictionary Interface
+│   ├── [key] ─────────────────► __getitem__
+│   ├── get(key, default) ────► get method
+│   ├── key in values ────────► __contains__
+│   └── [key] = value ────────► __setitem__ (async)
+├── Type Getters
+│   ├── get_sensors() ────────► dict[str, tuple]
+│   ├── get_binary_sensors() ─► dict[str, bool]
+│   ├── get_numbers() ────────► dict[str, tuple]
+│   ├── get_switches() ───────► dict[str, bool]
+│   └── get_selects() ────────► dict[str, int]
+└── Type Setters (async)
+    ├── set_number(key, value) ──► bool
+    ├── set_switch(key, value) ──► bool
+    └── set_select(key, value) ──► bool
+```
 
 #### Dictionary Interface
 ```python
@@ -303,7 +414,30 @@ client = PooldoseClient(
 status = await client.connect()
 ```
 
+### Security Model
+```
+Data Classification:
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Public Data   │    │ Sensitive Data  │    │  Never Exposed  │
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ • Device Name   │    │ • WiFi Password │    │ • Admin Creds   │
+│ • Model ID      │    │ • AP Password   │    │ • Internal Keys │
+│ • Serial Number │    │                 │    │                 │
+│ • Sensor Values │    │                 │    │                 │
+│ • IP Address    │    │                 │    │                 │
+│ • MAC Address   │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                       │                       │
+        ▼                       ▼                       ▼
+  Always Included      include_sensitive_data=True    Never Included
+```
+
 ## Changelog
+
+### [0.4.1] - 2025-07-17
+- **BREAKING**: Moved all RequestStatus into client module - import from `pooldose.client` instead of `pooldose.request_handler`
+- Moved all connect checks into client (incl. API Version check) to avoid public access to requesthandler
+- Clean up code and improved encapsulation
 
 ### [0.4.0] - 2025-07-11
 - **BREAKING**: Removed `create()` factory method

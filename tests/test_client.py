@@ -39,3 +39,27 @@ async def test_get_model_mapping_file_not_found():
     mapping_info = await MappingInfo.load("DOESNOTEXIST", "000000")
     assert mapping_info.status != RequestStatus.SUCCESS
     assert mapping_info.mapping is None
+
+@pytest.mark.asyncio
+async def test_check_apiversion_supported():
+    """Test API version check logic."""
+    from unittest.mock import Mock
+    from pooldose.request_handler import RequestHandler
+
+    client = PooldoseClient("localhost")
+
+    # Mock the request handler instead of trying to connect
+    mock_handler = Mock(spec=RequestHandler)
+    client._request_handler = mock_handler
+
+   # Test supported API version
+    mock_handler.api_version = "v1/"
+    assert client.check_apiversion_supported()[0] == RequestStatus.SUCCESS
+
+    # Test unsupported API version
+    mock_handler.api_version = "v2/"
+    assert client.check_apiversion_supported()[0] == RequestStatus.API_VERSION_UNSUPPORTED
+
+    # Test missing API version
+    mock_handler.api_version = None
+    assert client.check_apiversion_supported()[0] == RequestStatus.NO_DATA

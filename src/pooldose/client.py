@@ -21,6 +21,8 @@ from pooldose.mappings.mapping_info import (
 
 _LOGGER = logging.getLogger(__name__)
 
+API_VERSION_SUPPORTED = "v1/"
+
 class PooldoseClient:
     """
     Async client for SEKO Pooldose API.
@@ -91,6 +93,32 @@ class PooldoseClient:
         self._connected = True
         _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
         return RequestStatus.SUCCESS
+
+    def check_apiversion_supported(self) -> tuple[RequestStatus, dict]:
+        """
+        Check if the loaded API version matches the supported version.
+
+        Returns:
+            tuple: (RequestStatus, dict)
+                - dict contains:
+                    "api_version_is": the current API version (or None if not set)
+                    "api_version_should": the supported API version
+                - RequestStatus.SUCCESS if supported,
+                - RequestStatus.API_VERSION_UNSUPPORTED if not supported,
+                - RequestStatus.NO_DATA if not set.
+        """
+        result = {
+            "api_version_is": self._request_handler.api_version,
+            "api_version_should": API_VERSION_SUPPORTED,
+        }
+        if not self._request_handler.api_version:
+            _LOGGER.warning("API version not set, cannot check support")
+            return RequestStatus.NO_DATA, result
+        if self._request_handler.api_version != API_VERSION_SUPPORTED:
+            _LOGGER.warning("Unsupported API version: %s, expected %s", self._request_handler.api_version, API_VERSION_SUPPORTED)
+            return RequestStatus.API_VERSION_UNSUPPORTED, result
+        else:
+            return RequestStatus.SUCCESS, result
 
     async def _load_device_info(self) -> RequestStatus:
         """
