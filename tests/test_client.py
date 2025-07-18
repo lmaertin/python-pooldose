@@ -1,7 +1,9 @@
 """Tests for Client for Async API client for SEKO Pooldose."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from pooldose.client import PooldoseClient, RequestStatus
 from pooldose.request_handler import RequestHandler
 from pooldose.mappings.mapping_info import MappingInfo

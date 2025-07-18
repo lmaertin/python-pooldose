@@ -117,7 +117,7 @@ class PooldoseClient:
         if self._request_handler.api_version != API_VERSION_SUPPORTED:
             _LOGGER.warning("Unsupported API version: %s, expected %s", self._request_handler.api_version, API_VERSION_SUPPORTED)
             return RequestStatus.API_VERSION_UNSUPPORTED, result
-        
+
         return RequestStatus.SUCCESS, result
 
     async def _load_device_info(self) -> RequestStatus:
