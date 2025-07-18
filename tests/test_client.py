@@ -1,8 +1,9 @@
 """Tests for Client for Async API client for SEKO Pooldose."""
 
 import pytest
-from pooldose.client import PooldoseClient
-from pooldose.request_handler import RequestStatus
+from unittest.mock import Mock
+from pooldose.client import PooldoseClient, RequestStatus
+from pooldose.request_handler import RequestHandler
 from pooldose.mappings.mapping_info import MappingInfo
 
 @pytest.mark.asyncio
@@ -43,16 +44,14 @@ async def test_get_model_mapping_file_not_found():
 @pytest.mark.asyncio
 async def test_check_apiversion_supported():
     """Test API version check logic."""
-    from unittest.mock import Mock
-    from pooldose.request_handler import RequestHandler
-
     client = PooldoseClient("localhost")
 
     # Mock the request handler instead of trying to connect
     mock_handler = Mock(spec=RequestHandler)
+    # pylint: disable=protected-access
     client._request_handler = mock_handler
 
-   # Test supported API version
+    # Test supported API version
     mock_handler.api_version = "v1/"
     assert client.check_apiversion_supported()[0] == RequestStatus.SUCCESS
 
