@@ -6,7 +6,8 @@ import asyncio
 import logging
 from typing import Optional
 from pooldose.values.instant_values import InstantValues
-from pooldose.request_handler import RequestHandler, RequestStatus
+from pooldose.request_handler import RequestHandler
+from pooldose.request_status import RequestStatus
 from pooldose.values.static_values import StaticValues
 from pooldose.mappings.mapping_info import (
     MappingInfo,

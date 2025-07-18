@@ -107,7 +107,7 @@ pip install python-pooldose
 import asyncio
 import json
 from pooldose.client import PooldoseClient
-from pooldose.client import RequestStatus
+from pooldose.request_status import RequestStatus
 
 HOST = "192.168.1.100"  # Change this to your device's host or IP address
 TIMEOUT = 30
@@ -193,7 +193,8 @@ if __name__ == "__main__":
 
 #### Connection Management
 ```python
-from pooldose.client import PooldoseClient, RequestStatus
+from pooldose.client import PooldoseClient
+from pooldose.request_status import RequestStatus
 
 # Recommended: Separate initialization and connection
 client = PooldoseClient("192.168.1.100", timeout=30)
@@ -208,7 +209,7 @@ else:
 
 #### Error Handling
 ```python
-from pooldose.client import PooldoseClient, RequestStatus
+from pooldose.client import PooldoseClient
 
 client = PooldoseClient("192.168.1.100")
 status = await client.connect()
@@ -336,7 +337,7 @@ PooldoseClient(host, timeout=10, include_sensitive_data=False)
 All client methods return `RequestStatus` enum values:
 
 ```python
-from pooldose.client import RequestStatus
+from pooldose.request_status import RequestStatus
 
 RequestStatus.SUCCESS                    # Operation successful
 RequestStatus.CONNECTION_ERROR           # Network connection failed
@@ -433,6 +434,10 @@ Data Classification:
 ```
 
 ## Changelog
+
+### [0.4.2] - 2025-07-19
+- Corrected imports of RequestStatus class
+- Fixing broken release 0.4.1
 
 ### [0.4.1] - 2025-07-17
 - **BREAKING**: Moved all RequestStatus into client module - import from `pooldose.client` instead of `pooldose.request_handler`

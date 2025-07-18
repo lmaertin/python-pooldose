@@ -4,7 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from pooldose.client import PooldoseClient, RequestStatus
+from pooldose.client import PooldoseClient
+from pooldose.request_status import RequestStatus
 from pooldose.request_handler import RequestHandler
 from pooldose.mappings.mapping_info import MappingInfo
 
