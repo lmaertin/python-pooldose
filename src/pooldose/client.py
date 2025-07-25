@@ -30,7 +30,8 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
-    def __init__(self, host: str, timeout: int = 30, include_sensitive_data: bool = False) -> None:
+    def __init__(self, host: str, timeout: int = 30, include_sensitive_data: bool = False, 
+                 port: int = 80, use_ssl: bool = False, verify_ssl: bool = True) -> None:
         """
         Initialize the Pooldose client.
 
@@ -38,10 +39,16 @@ class PooldoseClient:
             host (str): The host address of the Pooldose device.
             timeout (int): Timeout for API requests in seconds.
             include_sensitive_data (bool): If True, fetch WiFi and AP keys.
+            port (int): Port number for API connections (default: 80 for HTTP, 443 for HTTPS).
+            use_ssl (bool): If True, use HTTPS instead of HTTP (default: False).
+            verify_ssl (bool): If True, verify SSL certificates (default: True).
         """
         self._host = host
         self._timeout = timeout
         self._include_sensitive_data = include_sensitive_data
+        self._port = port
+        self._use_ssl = use_ssl
+        self._verify_ssl = verify_ssl
         self._last_data = None
         self._request_handler = None
 
@@ -79,7 +86,10 @@ class PooldoseClient:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
         # Create and connect request handler
-        self._request_handler = RequestHandler(self._host, self._timeout)
+        self._request_handler = RequestHandler(
+            self._host, self._timeout, 
+            port=self._port, use_ssl=self._use_ssl, verify_ssl=self._verify_ssl
+        )
         status = await self._request_handler.connect()
         if status != RequestStatus.SUCCESS:
             _LOGGER.error("Failed to create RequestHandler: %s", status)
@@ -136,7 +146,7 @@ class PooldoseClient:
         status, debug_config = await self._request_handler.get_debug_config()
         if status != RequestStatus.SUCCESS or not debug_config:
             _LOGGER.error("Failed to fetch debug config: %s", status)
-            return status, None
+            return status
         if (gateway := debug_config.get("GATEWAY")) is not None:
             self.device_info["SERIAL_NUMBER"] = gateway.get("DID")
             self.device_info["NAME"] = gateway.get("NAME")
@@ -183,7 +193,7 @@ class PooldoseClient:
         status, network_info = await self._request_handler.get_network_info()
         if status != RequestStatus.SUCCESS or not network_info:
             _LOGGER.error("Failed to fetch network info: %s", status)
-            return status, None
+            return status
         self.device_info["OWNERID"] = network_info.get("OWNERID")
         self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
 
@@ -196,6 +206,31 @@ class PooldoseClient:
     def is_connected(self) -> bool:
         """Check if the client is connected to the device."""
         return self._connected
+
+    @property
+    def host(self) -> str:
+        """Get the device hostname or IP address."""
+        return self._host
+
+    @property
+    def timeout(self) -> int:
+        """Get the request timeout in seconds."""
+        return self._timeout
+
+    @property
+    def port(self) -> int:
+        """Get the configured port number."""
+        return self._port
+
+    @property 
+    def use_ssl(self) -> bool:
+        """Check if SSL/HTTPS is enabled."""
+        return self._use_ssl
+
+    @property
+    def verify_ssl(self) -> bool:
+        """Check if SSL certificate verification is enabled."""
+        return self._verify_ssl
 
     def static_values(self) -> tuple[RequestStatus, StaticValues | None]:
         """

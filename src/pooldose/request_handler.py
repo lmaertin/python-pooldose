@@ -4,7 +4,8 @@ import logging
 import json
 import re
 import socket
-from typing import Any
+import ssl
+from typing import Any, Optional
 import asyncio
 import aiohttp
 
@@ -20,9 +21,12 @@ class RequestHandler:
     Only softwareVersion, and apiversion are loaded from params.js.
     """
 
-    def __init__(self, host: str, timeout: int = 10):
+    def __init__(self, host: str, timeout: int = 10, port: int = 80, use_ssl: bool = False, verify_ssl: bool = True):
         self.host = host
         self.timeout = timeout
+        self.port = port
+        self.use_ssl = use_ssl
+        self.verify_ssl = verify_ssl
         self.last_data = None
         self._headers = {"Content-Type": "application/json"}
         self.software_version = None
@@ -55,18 +59,55 @@ class RequestHandler:
         """Check if the handler is connected to the device."""
         return self._connected
 
+    def _get_base_url(self) -> str:
+        """
+        Get the base URL for API requests.
+        
+        Returns:
+            str: Base URL with protocol, host and port.
+        """
+        protocol = "https" if self.use_ssl else "http"
+        return f"{protocol}://{self.host}:{self.port}"
+
+    def _create_ssl_context(self) -> Optional[ssl.SSLContext]:
+        """
+        Create SSL context based on verification settings.
+        
+        Returns:
+            Optional[ssl.SSLContext]: SSL context if SSL is enabled, None otherwise.
+        """
+        if not self.use_ssl:
+            return None
+            
+        ssl_context = ssl.create_default_context()
+        if not self.verify_ssl:
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+        return ssl_context
+
+    def _create_session(self) -> aiohttp.ClientSession:
+        """
+        Create aiohttp ClientSession with appropriate SSL configuration.
+        
+        Returns:
+            aiohttp.ClientSession: Configured session object.
+        """
+        ssl_context = self._create_ssl_context()
+        connector = aiohttp.TCPConnector(ssl=ssl_context) if self.use_ssl else None
+        return aiohttp.ClientSession(connector=connector)
+
     def check_host_reachable(self) -> bool:
         """
-        Check if the host is reachable on port 80 (HTTP).
+        Check if the host is reachable on the configured port.
 
         Returns:
             bool: True if reachable, False otherwise.
         """
         try:
-            with socket.create_connection((self.host, 80), timeout=self.timeout):
+            with socket.create_connection((self.host, self.port), timeout=self.timeout):
                 return True
         except (socket.error, socket.timeout) as err:
-            _LOGGER.error("Host %s not reachable: %s", self.host, err)
+            _LOGGER.error("Host %s:%d not reachable: %s", self.host, self.port, err)
             return False
 
     async def _get_core_params(self) -> dict | None:
@@ -76,12 +117,14 @@ class RequestHandler:
         Returns:
             dict: Dictionary with the selected parameters, or None on error.
         """
-        url = f"http://{self.host}/js_libs/params.js"
+        base_url = self._get_base_url()
+        url = f"{base_url}/js_libs/params.js"
         keys = ["softwareVersion", "apiversion"]
         result = {}
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            
+            async with self._create_session() as session:
                 async with session.get(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     js_text = await resp.text()
@@ -115,10 +158,11 @@ class RequestHandler:
                 - RequestStatus.NO_DATA and None if no data is found in the response.
                 - RequestStatus.UNKNOWN_ERROR and None if an error occurs during the request.
         """
-        url = f"http://{self.host}/api/v1/debug/config"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/debug/config"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.get(url, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -146,11 +190,12 @@ class RequestHandler:
         Raises:
             None. All exceptions are handled internally and logged.
         """
-        url = f"http://{self.host}/api/v1/infoRelease"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/infoRelease"
         payload = {"SOFTWAREVERSION": sw_version}
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -177,10 +222,11 @@ class RequestHandler:
         Raises:
             None: All exceptions are handled internally and logged.
         """
-        url = f"http://{self.host}/api/v1/network/wifi/getStation"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/network/wifi/getStation"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -217,10 +263,11 @@ class RequestHandler:
         Raises:
             None: All exceptions are handled internally and logged.
         """
-        url = f"http://{self.host}/api/v1/network/wifi/getAccessPoint"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/network/wifi/getAccessPoint"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     text = await resp.text()
@@ -251,10 +298,11 @@ class RequestHandler:
         Raises:
             None: All exceptions are handled internally and logged.
         """
-        url = f"http://{self.host}/api/v1/network/info/getInfo"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/network/info/getInfo"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -271,10 +319,11 @@ class RequestHandler:
         Fetch raw instant values from the device.
         Returns (RequestStatus, data).
         """
-        url = f"http://{self.host}/api/v1/DWI/getInstantValues"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/DWI/getInstantValues"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -309,7 +358,8 @@ class RequestHandler:
         Logs:
             Warnings for client errors and errors for timeout issues.
         """
-        url = f"http://{self.host}/api/v1/DWI/setInstantValues"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/DWI/setInstantValues"
         payload = {
             device_id: {
                 path: [
@@ -322,7 +372,7 @@ class RequestHandler:
         }
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
         except aiohttp.ClientError as e:
@@ -341,10 +391,11 @@ class RequestHandler:
         Returns:
             (RequestStatus, bool): Tuple of status and True if the reboot command was sent successfully, False otherwise.
         """
-        url = f"http://{self.host}/api/v1/system/reboot"
+        base_url = self._get_base_url()
+        url = f"{base_url}/api/v1/system/reboot"
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            async with aiohttp.ClientSession() as session:
+            async with self._create_session() as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     return RequestStatus.SUCCESS, True
