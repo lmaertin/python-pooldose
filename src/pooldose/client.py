@@ -30,7 +30,7 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
-    def __init__(self, host: str, timeout: int = 30, include_sensitive_data: bool = False) -> None:
+    def __init__(self, host: str, timeout: int = 30, include_sensitive_data: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:
         """
         Initialize the Pooldose client.
 
@@ -38,10 +38,16 @@ class PooldoseClient:
             host (str): The host address of the Pooldose device.
             timeout (int): Timeout for API requests in seconds.
             include_sensitive_data (bool): If True, fetch WiFi and AP keys.
+            use_ssl (bool): If True, use HTTPS instead of HTTP.
+            port (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS.
+            ssl_verify (bool): If True, verify SSL certificates. Only used when use_ssl=True.
         """
         self._host = host
         self._timeout = timeout
         self._include_sensitive_data = include_sensitive_data
+        self._use_ssl = use_ssl
+        self._port = port
+        self._ssl_verify = ssl_verify
         self._last_data = None
         self._request_handler = None
 
@@ -79,7 +85,13 @@ class PooldoseClient:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
         # Create and connect request handler
-        self._request_handler = RequestHandler(self._host, self._timeout)
+        self._request_handler = RequestHandler(
+            self._host, 
+            self._timeout, 
+            use_ssl=self._use_ssl,
+            port=self._port,
+            ssl_verify=self._ssl_verify
+        )
         status = await self._request_handler.connect()
         if status != RequestStatus.SUCCESS:
             _LOGGER.error("Failed to create RequestHandler: %s", status)

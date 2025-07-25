@@ -94,6 +94,62 @@ This client uses an undocumented local HTTP API. It provides live readings for p
    2. Check availability of data in the web interface.
 3. Optionally: Block the device from internet access to ensure cloudless-only operation.
 
+## SSL/HTTPS Support
+
+The client supports SSL/HTTPS connections for secure communication with your PoolDose device. This is particularly useful when the device is configured for HTTPS or when connecting over untrusted networks.
+
+### Basic SSL Configuration
+
+```python
+from pooldose.client import PooldoseClient
+
+# Enable SSL with default settings (port 443, certificate verification enabled)
+client = PooldoseClient("192.168.1.100", use_ssl=True)
+status = await client.connect()
+```
+
+### SSL Configuration Options
+
+```python
+# Custom HTTPS port
+client = PooldoseClient("192.168.1.100", use_ssl=True, port=8443)
+
+# Disable SSL certificate verification (not recommended for production)
+client = PooldoseClient("192.168.1.100", use_ssl=True, ssl_verify=False)
+
+# Complete SSL configuration example
+client = PooldoseClient(
+    host="pool-device.local",
+    timeout=30,
+    use_ssl=True,
+    port=8443,
+    ssl_verify=True,  # Verify SSL certificates
+    include_sensitive_data=False
+)
+```
+
+### SSL Security Considerations
+
+- **Certificate Verification**: By default, SSL certificate verification is enabled (`ssl_verify=True`). This ensures secure connections but requires valid certificates.
+- **Self-signed Certificates**: If your device uses self-signed certificates, set `ssl_verify=False`. Note that this reduces security.
+- **Port Configuration**: Use the `port` parameter to specify custom HTTPS ports. Defaults to 443 for HTTPS and 80 for HTTP.
+- **Connection Timeouts**: Consider increasing the `timeout` value for SSL connections as they may take longer to establish.
+
+### Migration from HTTP to HTTPS
+
+To migrate existing code from HTTP to HTTPS:
+
+```python
+# Before (HTTP)
+client = PooldoseClient("192.168.1.100")
+
+# After (HTTPS with SSL verification)
+client = PooldoseClient("192.168.1.100", use_ssl=True)
+
+# After (HTTPS with custom port and no verification)
+client = PooldoseClient("192.168.1.100", use_ssl=True, port=8443, ssl_verify=False)
+```
+
 ## Installation
 
 ```bash
@@ -196,8 +252,16 @@ if __name__ == "__main__":
 from pooldose.client import PooldoseClient
 from pooldose.request_status import RequestStatus
 
-# Recommended: Separate initialization and connection
+# HTTP connection (default)
 client = PooldoseClient("192.168.1.100", timeout=30)
+status = await client.connect()
+
+# HTTPS connection with SSL verification
+client = PooldoseClient("192.168.1.100", timeout=30, use_ssl=True)
+status = await client.connect()
+
+# HTTPS connection with custom port and disabled verification
+client = PooldoseClient("192.168.1.100", use_ssl=True, port=8443, ssl_verify=False)
 status = await client.connect()
 
 # Check connection status
@@ -307,13 +371,16 @@ PooldoseClient
 
 #### Constructor
 ```python
-PooldoseClient(host, timeout=10, include_sensitive_data=False)
+PooldoseClient(host, timeout=10, include_sensitive_data=False, use_ssl=False, port=None, ssl_verify=True)
 ```
 
 **Parameters:**
 - `host` (str): The hostname or IP address of the device
 - `timeout` (int): Request timeout in seconds (default: 10)
 - `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
+- `use_ssl` (bool): Whether to use HTTPS instead of HTTP (default: False)
+- `port` (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS (default: None)
+- `ssl_verify` (bool): Whether to verify SSL certificates when using HTTPS (default: True)
 
 #### Methods
 - `connect()` - Connect to device and initialize all components
