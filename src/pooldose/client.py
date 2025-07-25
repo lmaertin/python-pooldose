@@ -30,6 +30,7 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, host: str, timeout: int = 30, include_sensitive_data: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:
         """
         Initialize the Pooldose client.
@@ -80,14 +81,14 @@ class PooldoseClient:
     async def connect(self) -> RequestStatus:
         """
         Asynchronously connect to the device and initialize all components.
-        
+
         Returns:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
         # Create and connect request handler
         self._request_handler = RequestHandler(
-            self._host, 
-            self._timeout, 
+            self._host,
+            self._timeout,
             use_ssl=self._use_ssl,
             port=self._port,
             ssl_verify=self._ssl_verify

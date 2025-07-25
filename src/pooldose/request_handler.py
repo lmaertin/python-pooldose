@@ -21,6 +21,7 @@ class RequestHandler:
     Only softwareVersion, and apiversion are loaded from params.js.
     """
 
+    # pylint: disable=too-many-instance-attributes,too-many-arguments,too-many-positional-arguments
     def __init__(self, host: str, timeout: int = 10, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True):
         self.host = host
         self.timeout = timeout
@@ -32,7 +33,6 @@ class RequestHandler:
         self.software_version = None
         self.api_version = None
         self._connected = False
-        
         # Configure SSL context
         self._ssl_context = None
         if self.use_ssl:
@@ -41,7 +41,7 @@ class RequestHandler:
     async def connect(self) -> RequestStatus:
         """
         Asynchronously connect to the device and initialize connection parameters.
-        
+
         Returns:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
@@ -81,10 +81,10 @@ class RequestHandler:
     def _build_url(self, path: str) -> str:
         """
         Build the full URL for an API endpoint.
-        
+
         Args:
             path (str): The API endpoint path (e.g., "/api/v1/debug/config")
-            
+
         Returns:
             str: The complete URL
         """
@@ -136,7 +136,7 @@ class RequestHandler:
         Handles HTTP errors and timeouts, and returns the request status along with the response data.
 
         Returns:
-            Tuple[RequestStatus, Optional[dict]]: 
+            Tuple[RequestStatus, Optional[dict]]:
                 - RequestStatus.SUCCESS and the configuration data if the request is successful.
                 - RequestStatus.NO_DATA and None if no data is found in the response.
                 - RequestStatus.UNKNOWN_ERROR and None if an error occurs during the request.
@@ -197,7 +197,7 @@ class RequestHandler:
         Sends a POST request to the device's WiFi station API endpoint and returns the status and data.
 
         Returns:
-            Tuple[RequestStatus, Optional[dict]]: 
+            Tuple[RequestStatus, Optional[dict]]:
                 - RequestStatus.SUCCESS and the response data if successful.
                 - RequestStatus.NO_DATA and None if no data is found.
                 - RequestStatus.UNKNOWN_ERROR and None if an error occurs.
