@@ -1,9 +1,10 @@
 """Tests for SSL support in RequestHandler and PooldoseClient."""
+# pylint: disable=protected-access
 
-import pytest
 import ssl
 from unittest.mock import patch, Mock, AsyncMock
-import aiohttp
+
+import pytest
 
 from pooldose.request_handler import RequestHandler
 from pooldose.client import PooldoseClient
@@ -76,7 +77,7 @@ class TestRequestHandlerSSL:
         handler = RequestHandler("example.com", port=80)
         url = handler._build_url("/api/v1/test")
         assert url == "http://example.com/api/v1/test"
-        
+
         # HTTPS default port
         handler = RequestHandler("example.com", use_ssl=True, port=443)
         url = handler._build_url("/api/v1/test")
@@ -87,10 +88,10 @@ class TestRequestHandlerSSL:
         """Test host reachability check uses configured port."""
         mock_socket.return_value.__enter__ = Mock()
         mock_socket.return_value.__exit__ = Mock()
-        
+
         handler = RequestHandler("example.com", port=8080)
         result = handler.check_host_reachable()
-        
+
         mock_socket.assert_called_once_with(("example.com", 8080), timeout=10)
         assert result is True
 
@@ -98,10 +99,10 @@ class TestRequestHandlerSSL:
     def test_host_unreachable_custom_port(self, mock_socket):
         """Test host unreachable with custom port."""
         mock_socket.side_effect = OSError("Connection failed")
-        
+
         handler = RequestHandler("example.com", port=8443, use_ssl=True)
         result = handler.check_host_reachable()
-        
+
         mock_socket.assert_called_once_with(("example.com", 8443), timeout=10)
         assert result is False
 
@@ -111,11 +112,11 @@ class TestRequestHandlerSSL:
         handler = RequestHandler("example.com", use_ssl=True, ssl_verify=True)
         assert handler._ssl_context is not None
         assert isinstance(handler._ssl_context, ssl.SSLContext)
-        
+
         # SSL enabled without verification
         handler = RequestHandler("example.com", use_ssl=True, ssl_verify=False)
         assert handler._ssl_context is False
-        
+
         # SSL disabled
         handler = RequestHandler("example.com", use_ssl=False)
         assert handler._ssl_context is None
@@ -126,7 +127,7 @@ class TestRequestHandlerSSL:
         handler = RequestHandler("example.com", use_ssl=True, ssl_verify=True)
         should_create_connector = handler.use_ssl
         assert should_create_connector is True
-        
+
         # SSL disabled - no connector needed
         handler = RequestHandler("example.com", use_ssl=False)
         should_create_connector = handler.use_ssl
@@ -157,23 +158,23 @@ class TestPooldoseClientSSL:
         mock_handler = AsyncMock()
         mock_handler.connect.return_value = RequestStatus.HOST_UNREACHABLE
         mock_handler_class.return_value = mock_handler
-        
+
         client = PooldoseClient(
-            "example.com", 
-            timeout=15, 
-            use_ssl=True, 
-            port=8443, 
+            "example.com",
+            timeout=15,
+            use_ssl=True,
+            port=8443,
             ssl_verify=False
         )
-        
+
         status = await client.connect()
-        
+
         # Verify RequestHandler was created with correct SSL parameters
         mock_handler_class.assert_called_once_with(
-            "example.com", 
-            15, 
-            use_ssl=True, 
-            port=8443, 
+            "example.com",
+            15,
+            use_ssl=True,
+            port=8443,
             ssl_verify=False
         )
         assert status == RequestStatus.HOST_UNREACHABLE
@@ -185,16 +186,16 @@ class TestPooldoseClientSSL:
         mock_handler = AsyncMock()
         mock_handler.connect.return_value = RequestStatus.HOST_UNREACHABLE
         mock_handler_class.return_value = mock_handler
-        
+
         client = PooldoseClient("example.com", timeout=20)
         status = await client.connect()
-        
+
         # Verify RequestHandler was created with default SSL parameters
         mock_handler_class.assert_called_once_with(
-            "example.com", 
-            20, 
-            use_ssl=False, 
-            port=None, 
+            "example.com",
+            20,
+            use_ssl=False,
+            port=None,
             ssl_verify=True
         )
         assert status == RequestStatus.HOST_UNREACHABLE
@@ -224,7 +225,7 @@ class TestSSLIntegration:
         assert client._use_ssl is False
         assert client._port is None
         assert client._ssl_verify is True
-        
+
         handler = RequestHandler("example.com", timeout=10)
         assert handler.use_ssl is False
         assert handler.port == 80
