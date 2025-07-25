@@ -504,7 +504,5 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.4.5)
-- **SSL/HTTPS Support**: Complete implementation with configurable certificate verification
-- **Code Quality**: Pylint integration with CI/CD across Python 3.11-3.13
-- **Enhanced Security**: Configurable SSL verification and port handling
+### Latest Release (0.4.6)
+- Device returns unit for pH values, which have physically no unit. Fixed by replacing such occurrences with None.
