@@ -15,13 +15,13 @@ from pooldose.request_status import RequestStatus
 
 _LOGGER = logging.getLogger(__name__)
 
-class RequestHandler:
+class RequestHandler:  # pylint: disable=too-many-instance-attributes
     """
     Handles all HTTP requests to the Pooldose API.
     Only softwareVersion, and apiversion are loaded from params.js.
     """
 
-    def __init__(self, host: str, timeout: int = 10, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True):
+    def __init__(self, host: str, timeout: int = 10, *, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True):  # pylint: disable=too-many-arguments
         self.host = host
         self.timeout = timeout
         self.use_ssl = use_ssl
@@ -32,7 +32,6 @@ class RequestHandler:
         self.software_version = None
         self.api_version = None
         self._connected = False
-        
         # Configure SSL context
         self._ssl_context = None
         if self.use_ssl:
