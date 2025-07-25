@@ -108,7 +108,7 @@ def test_ph_values_no_units():
             "magnitude": ["°C", "CDEG"],  # Temperature should keep its unit
         }
     }
-    
+
     mapping = {
         "ph": {"key": "w_1ekeigkin", "type": "sensor"},
         "ph_target": {"key": "w_1ekeiqfat", "type": "number"},
@@ -117,34 +117,34 @@ def test_ph_values_no_units():
         "ph_calibration_slope": {"key": "w_1eklhs65u", "type": "sensor"},
         "temperature": {"key": "w_1eommf39k", "type": "sensor"},
     }
-    
+
     prefix = "PDPR1H1HAW100_FW539187_"
     instant = InstantValues(device_raw_data, mapping, prefix, "TESTDEVICE", None)
-    
+
     # pH sensor should have None unit
     ph_value = instant["ph"]
     assert ph_value[0] == 7.2
     assert ph_value[1] is None
-    
+
     # pH target (number) should have None unit
     ph_target = instant["ph_target"]
     assert ph_target[0] == 7.5
     assert ph_target[1] is None
-    
+
     # OFA pH value should have None unit
     ofa_ph = instant["ofa_ph_value"]
     assert ofa_ph[0] == 7.1
     assert ofa_ph[1] is None
-    
+
     # pH calibration values should have None unit
     ph_offset = instant["ph_calibration_offset"]
     assert ph_offset[0] == 0.02
     assert ph_offset[1] is None
-    
+
     ph_slope = instant["ph_calibration_slope"]
     assert ph_slope[0] == 1.0
     assert ph_slope[1] is None
-    
+
     # Temperature should keep its unit (verify we didn't break other sensors)
     temp_value = instant["temperature"]
     assert temp_value[0] == 27.5
