@@ -502,6 +502,10 @@ Data Classification:
 
 ## Changelog
 
+### [0.4.5] - 2024-12-28
+- Version increment for new release
+- Maintenance update with improved stability
+
 ### [0.4.2] - 2025-07-19
 - Corrected imports of RequestStatus class
 - Fixing broken release 0.4.1
