@@ -502,42 +502,9 @@ Data Classification:
 
 ## Changelog
 
-### [0.4.2] - 2025-07-19
-- Corrected imports of RequestStatus class
-- Fixing broken release 0.4.1
+For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### [0.4.1] - 2025-07-17
-- **BREAKING**: Moved all RequestStatus into client module - import from `pooldose.client` instead of `pooldose.request_handler`
-- Moved all connect checks into client (incl. API Version check) to avoid public access to requesthandler
-- Clean up code and improved encapsulation
-
-### [0.4.0] - 2025-07-11
-- **BREAKING**: Removed `create()` factory method
-- **BREAKING**: Changed client initialization pattern to separate `__init__` and async `connect()` methods
-- Added `is_connected` property to check connection status
-- Improved flexibility for testing and connection management
-- Simplified RequestHandler by removing factory method pattern
-- Changed default timeout to 30s
-- Improved unit handling (No Unit is 'None')
-
-### [0.3.1] - 2025-07-04
-- First official release, published on PyPi
-- Install with ```pip install python-pooldose```
-
-### [0.3.0] - 2025-07-02
-- **BREAKING**: Changed from dataclass properties to dictionary-based access for instant values
-- Added dynamic sensor discovery based on device mapping files
-- Added type-specific getter methods (get_sensors, get_switches, etc.)
-- Added type-specific setter methods with validation (set_number, set_switch, etc.)
-- Added dictionary-style access (__getitem__, __setitem__, get, __contains__)
-- Added configurable sensitive data handling (excludes WiFi passwords by default)
-- Improved async file loading to prevent event loop blocking
-- Enhanced error handling and logging
-- Added comprehensive type annotations
-
-### [0.2.0] - 2024-06-25
-- Added query feature to list all available sensors and actuators
-
-### [0.1.5] - 2024-06-24
-- First working prototype for PoolDose Double/Dual WiFi supported
-- All sensors and actuators for PoolDose Double/Dual WiFi supported
+### Latest Release (0.4.5)
+- **SSL/HTTPS Support**: Complete implementation with configurable certificate verification
+- **Code Quality**: Pylint integration with CI/CD across Python 3.11-3.13
+- **Enhanced Security**: Configurable SSL verification and port handling
