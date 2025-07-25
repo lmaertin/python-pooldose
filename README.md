@@ -218,12 +218,14 @@ async def main() -> None:
     sensors = instant_values.get_sensors()
     for key, value in sensors.items():
         if isinstance(value, tuple) and len(value) >= 2:
-            print(f"  {key}: {value[0]} {value[1]}")
+            unit_str = f" {value[1]}" if value[1] is not None else ""
+            print(f"  {key}: {value[0]}{unit_str}")
 
     # Dictionary-style individual access
     if "temperature" in instant_values:
         temp = instant_values["temperature"]
-        print(f"Temperature: {temp[0]} {temp[1]}")
+        unit_str = f" {temp[1]}" if temp[1] is not None else ""
+        print(f"Temperature: {temp[0]}{unit_str}")
 
     # Get with default
     ph_value = instant_values.get("ph", "Not available")

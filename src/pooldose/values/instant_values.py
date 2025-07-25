@@ -32,6 +32,23 @@ class InstantValues:
         self._request_handler = request_handler
         self._cache: Dict[str, Any] = {}
 
+    def _is_ph_related(self, name: str) -> bool:
+        """
+        Check if a key name is pH-related.
+        pH is dimensionless and should not have units.
+        
+        Args:
+            name (str): The key name to check.
+            
+        Returns:
+            bool: True if the key is pH-related, False otherwise.
+        """
+        ph_related_keys = {
+            "ph", "ph_target", "ofa_ph_value", 
+            "ph_calibration_offset", "ph_calibration_slope"
+        }
+        return name in ph_related_keys
+
     def __getitem__(self, key: str) -> Any:
         """Allow dict-like read access to instant values."""
         if key in self._cache:
@@ -175,6 +192,9 @@ class InstantValues:
                         value = conversion[value]
                 units = entry.get("magnitude", [""])
                 unit = units[0] if units[0] != "UNDEFINED" else None
+                # pH is dimensionless and should not have units
+                if self._is_ph_related(name):
+                    unit = None
                 return (value, unit)
 
             # Binary sensor: return bool
@@ -198,6 +218,9 @@ class InstantValues:
                 resolution = entry.get("resolution")
                 units = entry.get("magnitude", [""])
                 unit = units[0] if units[0] != "UNDEFINED" else None
+                # pH is dimensionless and should not have units
+                if self._is_ph_related(name):
+                    unit = None
                 return (value, unit, abs_min, abs_max, resolution)
 
             # Select: return converted value or raw value
