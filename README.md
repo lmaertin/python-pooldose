@@ -89,7 +89,7 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 1. Install and set-up the PoolDose devices according to the user manual.
    1. In particular, connect the device to your WiFi network.
    2. Identify the IP address or hostname of the device.
-2. Browse to the IP address or hostname (default port: 80).
+2. Browse to the IP address or hostname (default port: 80 for HTTP, 443 for HTTPS).
    1. Try to log in to the web interface with the default password (0000).
    2. Check availability of data in the web interface.
 3. Optionally: Block the device from internet access to ensure cloudless-only operation.
@@ -187,6 +187,54 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+### SSL/HTTPS Configuration Example
+
+```python
+import asyncio
+from pooldose.client import PooldoseClient
+from pooldose.request_status import RequestStatus
+
+async def ssl_example() -> None:
+    """Demonstrate SSL/HTTPS configuration options."""
+    
+    # HTTPS with SSL verification (recommended for production)
+    client = PooldoseClient(
+        host="pooldose.example.com",
+        port=443,
+        use_ssl=True,
+        verify_ssl=True,  # Verify SSL certificates (default)
+        timeout=30
+    )
+    
+    # HTTPS with SSL verification disabled (for self-signed certificates)
+    client_no_verify = PooldoseClient(
+        host="192.168.1.100",
+        port=8443,  # Custom HTTPS port
+        use_ssl=True,
+        verify_ssl=False,  # Disable SSL certificate verification
+        timeout=30
+    )
+    
+    # Standard HTTP (default)
+    client_http = PooldoseClient(
+        host="192.168.1.100",
+        port=80,  # Default HTTP port
+        use_ssl=False,  # HTTP instead of HTTPS
+        timeout=30
+    )
+    
+    # Connect and use the client
+    status = await client.connect()
+    if status == RequestStatus.SUCCESS:
+        print(f"Connected via {'HTTPS' if client.use_ssl else 'HTTP'} on port {client.port}")
+        print(f"SSL verification: {'enabled' if client.verify_ssl else 'disabled'}")
+    else:
+        print(f"Connection failed: {status}")
+
+if __name__ == "__main__":
+    asyncio.run(ssl_example())
 ```
 
 ### Advanced Usage
@@ -307,13 +355,16 @@ PooldoseClient
 
 #### Constructor
 ```python
-PooldoseClient(host, timeout=10, include_sensitive_data=False)
+PooldoseClient(host, timeout=30, include_sensitive_data=False, port=80, use_ssl=False, verify_ssl=True)
 ```
 
 **Parameters:**
 - `host` (str): The hostname or IP address of the device
-- `timeout` (int): Request timeout in seconds (default: 10)
+- `timeout` (int): Request timeout in seconds (default: 30)
 - `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
+- `port` (int): Port number for API connections (default: 80 for HTTP, 443 typically for HTTPS)
+- `use_ssl` (bool): Whether to use HTTPS instead of HTTP (default: False)
+- `verify_ssl` (bool): Whether to verify SSL certificates when using HTTPS (default: True)
 
 #### Methods
 - `connect()` - Connect to device and initialize all components
@@ -331,6 +382,9 @@ PooldoseClient(host, timeout=10, include_sensitive_data=False)
 - `device_info` - Dictionary containing device information
 - `host` - Device hostname or IP address
 - `timeout` - Request timeout in seconds
+- `port` - Port number for API connections
+- `use_ssl` - Whether SSL/HTTPS is enabled
+- `verify_ssl` - Whether SSL certificate verification is enabled
 
 ### RequestStatus
 
@@ -403,6 +457,91 @@ Other SEKO PoolDose models may work but are untested. The client uses JSON mappi
 
 > **Note:** The other JSON files in the `docs/` directory define the default English names for the data keys of the PoolDose devices. These mappings are used for display and documentation purposes.
 
+## SSL/HTTPS Configuration
+
+The python-pooldose client supports both HTTP and HTTPS connections with flexible SSL configuration options.
+
+### SSL Configuration Options
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `use_ssl` | bool | `False` | Enable HTTPS instead of HTTP |
+| `port` | int | `80` | Port number for connections |
+| `verify_ssl` | bool | `True` | Verify SSL certificates |
+
+### Configuration Examples
+
+#### Standard HTTP (Default)
+```python
+client = PooldoseClient("192.168.1.100")
+# Uses HTTP on port 80
+```
+
+#### HTTPS with SSL Verification
+```python
+client = PooldoseClient(
+    host="pooldose.example.com",
+    port=443,
+    use_ssl=True,
+    verify_ssl=True  # Verify SSL certificates (recommended)
+)
+```
+
+#### HTTPS without SSL Verification (Self-signed certificates)
+```python
+client = PooldoseClient(
+    host="192.168.1.100",
+    port=8443,
+    use_ssl=True,
+    verify_ssl=False  # Disable SSL verification for self-signed certs
+)
+```
+
+#### Custom Port Configuration
+```python
+# Custom HTTP port
+client = PooldoseClient("192.168.1.100", port=8080, use_ssl=False)
+
+# Custom HTTPS port
+client = PooldoseClient("192.168.1.100", port=8443, use_ssl=True)
+```
+
+### SSL Security Considerations
+
+- **Production environments**: Always use `verify_ssl=True` with properly signed certificates
+- **Development/Testing**: Use `verify_ssl=False` only for self-signed certificates in trusted environments
+- **Default behavior**: SSL verification is enabled by default for security
+- **Port selection**: Use standard ports (80 for HTTP, 443 for HTTPS) unless your device is configured differently
+
+### SSL Error Handling
+
+```python
+import asyncio
+import ssl
+from pooldose.client import PooldoseClient
+from pooldose.request_status import RequestStatus
+
+async def ssl_error_handling():
+    client = PooldoseClient(
+        host="192.168.1.100",
+        port=443,
+        use_ssl=True,
+        verify_ssl=True
+    )
+    
+    try:
+        status = await client.connect()
+        if status == RequestStatus.HOST_UNREACHABLE:
+            print("Host not reachable - check IP and port")
+        elif status == RequestStatus.CONNECTION_ERROR:
+            print("Connection error - possibly SSL certificate issues")
+        elif status == RequestStatus.SUCCESS:
+            print("Connected successfully")
+    except ssl.SSLError as e:
+        print(f"SSL Error: {e}")
+        print("Try setting verify_ssl=False for self-signed certificates")
+```
+
 ## Security
 
 By default, the client excludes sensitive information like WiFi passwords from device info. To include sensitive data:
@@ -433,7 +572,35 @@ Data Classification:
   Always Included      include_sensitive_data=True    Never Included
 ```
 
+### SSL Security Model
+```
+SSL Configuration:
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Production      │    │ Development     │    │ Local Testing   │
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ use_ssl=True    │    │ use_ssl=True    │    │ use_ssl=False   │
+│ verify_ssl=True │    │ verify_ssl=False│    │ port=80         │
+│ port=443        │    │ port=8443       │    │                 │
+│ Valid SSL cert  │    │ Self-signed     │    │ HTTP only       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                       │                       │
+        ▼                       ▼                       ▼
+  Maximum Security     Balanced Security       No Encryption
+```
+
 ## Changelog
+
+### [0.5.0] - 2024-07-25
+- **NEW**: Added SSL/HTTPS support with configurable verification
+- **NEW**: Added custom port configuration support  
+- **NEW**: Added `use_ssl` parameter for HTTPS connections
+- **NEW**: Added `verify_ssl` parameter for SSL certificate verification control
+- **NEW**: Added `port` parameter for custom port configuration
+- **NEW**: Extended PooldoseClient with SSL configuration properties
+- **IMPROVED**: Enhanced URL construction to support both HTTP and HTTPS
+- **IMPROVED**: Updated all API endpoints to use configurable SSL settings
+- **FIXED**: Fixed bug in `_load_device_info` method returning incorrect tuple format
+- **DOCS**: Comprehensive SSL configuration documentation and examples
 
 ### [0.4.2] - 2025-07-19
 - Corrected imports of RequestStatus class
