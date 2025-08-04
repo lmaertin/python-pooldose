@@ -504,5 +504,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.4.6)
+### Latest Release (0.4.7)
 - Device returns unit for pH values, which have physically no unit. Fixed by replacing such occurrences with None.
+  - Applied to number values as well

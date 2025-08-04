@@ -197,7 +197,7 @@ class InstantValues:
                 abs_max = entry.get("absMax")
                 resolution = entry.get("resolution")
                 units = entry.get("magnitude", [""])
-                unit = units[0] if units[0] != "UNDEFINED" else None
+                unit = units[0] if units and units[0].lower() not in ("undefined", "ph") else None #device returns unit for pH values, which have physically no unit
                 return (value, unit, abs_min, abs_max, resolution)
 
             # Select: return converted value or raw value
