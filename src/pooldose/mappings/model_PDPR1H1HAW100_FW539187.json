@@ -11,6 +11,10 @@
     "key": "w_1eklenb23",
     "type": "sensor"
   },
+  "cl": {
+    "key": "w_1eo03t46k",
+    "type": "sensor"
+  },
   "ph_type_dosing": {
     "key": "w_1eklg44ro",
     "type": "sensor",
@@ -124,6 +128,10 @@
   },
     "orp_target": {
     "key": "w_1eklgnjk2",
+    "type": "number"
+  },
+    "cl_target": {
+    "key": "w_1eo1unpqb",
     "type": "number"
   },
     "stop_pool_dosing": {
