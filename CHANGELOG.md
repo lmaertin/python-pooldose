@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-08-24
+
+### Changed
+- **BREAKING**: Complete redesign of InstantValues API for improved usability and performance
+  - Removed deprecated type-specific getter methods (`get_sensors()`, `get_switches()`, etc.)
+  - Removed deprecated `available_types()` method and similar discovery methods
+  - Simplified API to focus on dictionary-style access and structured data retrieval
+
+### Added
+- Enhanced dictionary-style access with full dict-like interface
+  - `instant_values["key"]` for direct value access
+  - `instant_values.get("key", default)` for safe access with defaults
+  - `"key" in instant_values` for existence checks
+  - Improved caching mechanism for better performance
+- New `to_structured_dict()` method for type-organized data access
+  - Returns data grouped by type: `sensor`, `number`, `switch`, `binary_sensor`, `select`
+  - Clean, consistent data structure with value/unit/constraints information
+  - Replaces all previous type-specific methods with single unified approach
+- Enhanced async setter methods with comprehensive validation
+  - `await instant_values.set_number()` with range and step validation
+  - `await instant_values.set_switch()` with boolean type checking
+  - `await instant_values.set_select()` with option validation
+- Improved error handling and logging throughout InstantValues class
+  - Better type checking and validation messages
+  - Graceful handling of missing or invalid data
+  - Enhanced debugging information for troubleshooting
+
+### Enhanced
+- Complete code cleanup and modernization
+  - All comments and documentation converted to English
+  - Improved type hints with Union and Tuple types
+  - Better method organization and code structure
+  - Removed obsolete number conversion logic (factor/offset)
+- Robust data processing with comprehensive error handling
+  - Enhanced validation for all data types
+  - Better handling of edge cases and malformed data
+  - Improved conversion logic for select values
+- Updated comprehensive test suite
+  - Full coverage for new InstantValues interface
+  - Tests for both success and error scenarios
+  - Proper mocking of async operations and dependencies
+  - Updated to use correct RequestStatus enum values
+
+### Migration Guide
+**From 0.4.x to 0.5.0:**
+
+```python
+# OLD (0.4.x) - DEPRECATED
+sensors = instant_values.get_sensors()
+switches = instant_values.get_switches()
+numbers = instant_values.get_numbers()
+
+# NEW (0.5.0) - Dictionary-style access
+temperature = instant_values["temperature"]  # Direct access
+ph = instant_values.get("ph", "Not available")  # With default
+has_temp = "temperature" in instant_values  # Existence check
+
+# NEW (0.5.0) - Structured data access
+status, structured_data = await client.instant_values_structured()
+sensors = structured_data.get("sensor", {})
+switches = structured_data.get("switch", {})
+numbers = structured_data.get("number", {})
+```
+
 ## [0.4.7] - 2025-08-04
 
 ### Enhanced

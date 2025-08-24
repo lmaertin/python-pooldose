@@ -4,19 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional
+from typing import Optional, Tuple, Dict, Any
 from pooldose.values.instant_values import InstantValues
 from pooldose.request_handler import RequestHandler
 from pooldose.request_status import RequestStatus
 from pooldose.values.static_values import StaticValues
-from pooldose.mappings.mapping_info import (
-    MappingInfo,
-    SensorMapping,
-    BinarySensorMapping,
-    NumberMapping,
-    SwitchMapping,
-    SelectMapping,
-)
+from pooldose.mappings.mapping_info import MappingInfo
 
 # pylint: disable=line-too-long,too-many-instance-attributes
 
@@ -148,7 +141,7 @@ class PooldoseClient:
         status, debug_config = await self._request_handler.get_debug_config()
         if status != RequestStatus.SUCCESS or not debug_config:
             _LOGGER.error("Failed to fetch debug config: %s", status)
-            return status, None
+            return status
         if (gateway := debug_config.get("GATEWAY")) is not None:
             self.device_info["SERIAL_NUMBER"] = gateway.get("DID")
             self.device_info["NAME"] = gateway.get("NAME")
@@ -195,7 +188,7 @@ class PooldoseClient:
         status, network_info = await self._request_handler.get_network_info()
         if status != RequestStatus.SUCCESS or not network_info:
             _LOGGER.error("Failed to fetch network info: %s", status)
-            return status, None
+            return status
         self.device_info["OWNERID"] = network_info.get("OWNERID")
         self.device_info["GROUPNAME"] = network_info.get("GROUPNAME")
 
@@ -222,47 +215,6 @@ class PooldoseClient:
             _LOGGER.warning("Error creating StaticValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    def available_types(self) -> dict[str, list[str]]:
-        """
-        Returns a dictionary mapping type categories to lists of available type names.
-
-        Returns:
-            dict[str, list[str]]: A dictionary where each key is a type category (as a string),
-            and each value is a list of available type names (as strings). If no mapping information
-            is available, returns an empty dictionary.
-        """
-        return self._mapping_info.available_types() if self._mapping_info else {}
-
-    def available_sensors(self) -> dict[str, SensorMapping]:
-        """
-        Returns all available sensors from the mapping as SensorMapping objects.
-        """
-        return self._mapping_info.available_sensors() if self._mapping_info else {}
-
-    def available_binary_sensors(self) -> dict[str, BinarySensorMapping]:
-        """
-        Returns all available binary sensors from the mapping as BinarySensorMapping objects.
-        """
-        return self._mapping_info.available_binary_sensors() if self._mapping_info else {}
-
-    def available_numbers(self) -> dict[str, NumberMapping]:
-        """
-        Returns all available numbers from the mapping as NumberMapping objects.
-        """
-        return self._mapping_info.available_numbers() if self._mapping_info else {}
-
-    def available_switches(self) -> dict[str, SwitchMapping]:
-        """
-        Returns all available switches from the mapping as SwitchMapping objects.
-        """
-        return self._mapping_info.available_switches() if self._mapping_info else {}
-
-    def available_selects(self) -> dict[str, SelectMapping]:
-        """
-        Returns all available selects from the mapping as SelectMapping objects.
-        """
-        return self._mapping_info.available_selects() if self._mapping_info else {}
-
     async def instant_values(self) -> tuple[RequestStatus, InstantValues | None]:
         """
         Fetch the current instant values from the Pooldose device.
@@ -287,3 +239,24 @@ class PooldoseClient:
         except (KeyError, TypeError, ValueError) as err:
             _LOGGER.warning("Error creating InstantValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
+
+    async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
+        """
+        Get instant values in structured JSON format with types as top-level keys.
+        
+        Returns:
+            Tuple[RequestStatus, Dict[str, Any]]: Status and structured data dict.
+        """
+        # Get instant values object
+        status, instant_values = await self.instant_values()
+        if status != RequestStatus.SUCCESS:
+            return status, {}
+
+        try:
+            # Let InstantValues handle the structuring
+            structured_data = instant_values.to_structured_dict()
+            return RequestStatus.SUCCESS, structured_data
+
+        except (KeyError, TypeError, ValueError) as err:
+            _LOGGER.error("Error creating structured instant values: %s", err)
+            return RequestStatus.UNKNOWN_ERROR, {}

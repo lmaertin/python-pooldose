@@ -1,67 +1,353 @@
-"""Tests for Client for Async API client for SEKO Pooldose."""
-
-from unittest.mock import Mock
+"""Tests for PooldoseClient."""
 
 import pytest
-
+from unittest.mock import AsyncMock, MagicMock, patch
 from pooldose.client import PooldoseClient
 from pooldose.request_status import RequestStatus
-from pooldose.request_handler import RequestHandler
-from pooldose.mappings.mapping_info import MappingInfo
+from pooldose.values.static_values import StaticValues
+from pooldose.values.instant_values import InstantValues
 
-@pytest.mark.asyncio
-async def test_static_values():
-    """Test static_values returns correct status and object."""
-    client = PooldoseClient("localhost")
-    client.device_info = {
-        "NAME": "TestDevice",
-        "SERIAL_NUMBER": "12345",
-        "DEVICE_ID": "12345_DEVICE",
-        "MODEL": "TestModel",
-        "MODEL_ID": "TESTMODELID",
-        "FW_CODE": "000000",
+
+@pytest.fixture
+def mock_request_handler():
+    """Create a mock request handler."""
+    handler = AsyncMock()
+    handler.api_version = "v1/"
+    handler.connect.return_value = RequestStatus.SUCCESS
+    return handler
+
+
+@pytest.fixture
+def mock_device_info():
+    """Create mock device information."""
+    return {
+        "NAME": "Test Device",
+        "SERIAL_NUMBER": "TEST123",
+        "DEVICE_ID": "TEST123_DEVICE",
+        "MODEL": "PDPR1H1HAW100",
+        "MODEL_ID": "PDPR1H1HAW100",
+        "FW_VERSION": "1.0.0",
+        "FW_CODE": "FW539187",
+        "API_VERSION": "v1/",
+        "IP": "192.168.1.100"
     }
-    # MappingInfo is not required for static_values
-    status, static = client.static_values()
-    assert status == RequestStatus.SUCCESS
-    assert static.sensor_name == "TestDevice"
-    assert static.sensor_serial_number == "12345"
-    assert static.sensor_device_id == "12345_DEVICE"
-    assert static.sensor_model == "TestModel"
-    assert static.sensor_model_id == "TESTMODELID"
 
-async def test_get_model_mapping_file_not_found():
-    """Test get_model_mapping returns UNKNOWN_ERROR if file not found."""
-    client = PooldoseClient("localhost")
-    client.device_info = {
-        "MODEL_ID": "DOESNOTEXIST",
-        "FW_CODE": "000000"
+
+@pytest.fixture
+def mock_mapping():
+    """Create mock mapping data."""
+    return {
+        "temperature": {
+            "type": "sensor",
+            "key": "w_1eommf39k"
+        },
+        "ph": {
+            "type": "sensor", 
+            "key": "w_1eomog123"
+        },
+        "target_ph": {
+            "type": "number",
+            "key": "w_1eomph456"
+        }
     }
-    # Use MappingInfo directly, as get_model_mapping is deprecated
-    mapping_info = client._mapping_info = None  # Simulate not loaded
-    # Simulate the MappingInfo.load call
-    mapping_info = await MappingInfo.load("DOESNOTEXIST", "000000")
-    assert mapping_info.status != RequestStatus.SUCCESS
-    assert mapping_info.mapping is None
 
-@pytest.mark.asyncio
-async def test_check_apiversion_supported():
-    """Test API version check logic."""
-    client = PooldoseClient("localhost")
 
-    # Mock the request handler instead of trying to connect
-    mock_handler = Mock(spec=RequestHandler)
-    # pylint: disable=protected-access
-    client._request_handler = mock_handler
+@pytest.fixture
+def mock_raw_data():
+    """Create mock raw device data."""
+    return {
+        "devicedata": {
+            "TEST123_DEVICE": {
+                "PDPR1H1HAW100_FW539187_w_1eommf39k": {
+                    "current": 25.5,
+                    "magnitude": ["°C"]
+                },
+                "PDPR1H1HAW100_FW539187_w_1eomog123": {
+                    "current": 7.2,
+                    "magnitude": ["ph"]
+                },
+                "PDPR1H1HAW100_FW539187_w_1eomph456": {
+                    "current": 7.0,
+                    "magnitude": ["ph"],
+                    "absMin": 6.0,
+                    "absMax": 8.0,
+                    "resolution": 0.1
+                }
+            }
+        }
+    }
 
-    # Test supported API version
-    mock_handler.api_version = "v1/"
-    assert client.check_apiversion_supported()[0] == RequestStatus.SUCCESS
 
-    # Test unsupported API version
-    mock_handler.api_version = "v2/"
-    assert client.check_apiversion_supported()[0] == RequestStatus.API_VERSION_UNSUPPORTED
+class TestPooldoseClient:
+    """Test PooldoseClient functionality."""
 
-    # Test missing API version
-    mock_handler.api_version = None
-    assert client.check_apiversion_supported()[0] == RequestStatus.NO_DATA
+    @pytest.mark.asyncio
+    async def test_init(self):
+        """Test client initialization."""
+        client = PooldoseClient(host="192.168.1.100")
+        
+        assert client._host == "192.168.1.100"
+        assert client._timeout == 30
+        assert client._use_ssl is False
+        assert client._connected is False
+        assert client.device_info["NAME"] is None
+
+    @pytest.mark.asyncio
+    async def test_connect_success(self, mock_request_handler, mock_device_info):
+        """Test successful connection."""
+        client = PooldoseClient(host="192.168.1.100")
+        
+        # Mock the debug config response
+        debug_config = {
+            "GATEWAY": {
+                "DID": "TEST123",
+                "NAME": "Test Device",
+                "FW_REL": "1.0.0"
+            },
+            "DEVICES": [{
+                "DID": "TEST123_DEVICE",
+                "NAME": "PDPR1H1HAW100", 
+                "PRODUCT_CODE": "PDPR1H1HAW100",
+                "FW_REL": "1.0.0",
+                "FW_CODE": "FW539187"
+            }]
+        }
+        
+        mock_request_handler.get_debug_config.return_value = (RequestStatus.SUCCESS, debug_config)
+        mock_request_handler.get_wifi_station.return_value = (RequestStatus.SUCCESS, {"IP": "192.168.1.100"})
+        mock_request_handler.get_access_point.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_network_info.return_value = (RequestStatus.SUCCESS, {})
+        
+        # Mock mapping info with proper structure
+        mock_mapping_info = MagicMock()
+        mock_mapping_info.mapping = {}
+        
+        with patch('pooldose.client.RequestHandler', return_value=mock_request_handler):
+            with patch('pooldose.mappings.mapping_info.MappingInfo.load', return_value=mock_mapping_info):
+                status = await client.connect()
+        
+        assert status == RequestStatus.SUCCESS
+        assert client.is_connected is True
+        assert client.device_info["SERIAL_NUMBER"] == "TEST123"
+        assert client.device_info["MODEL"] == "PDPR1H1HAW100"
+
+    @pytest.mark.asyncio
+    async def test_connect_request_handler_failure(self):
+        """Test connection failure when RequestHandler fails."""
+        client = PooldoseClient(host="192.168.1.100")
+        
+        mock_handler = AsyncMock()
+        mock_handler.connect.return_value = RequestStatus.HOST_UNREACHABLE
+        
+        with patch('pooldose.client.RequestHandler', return_value=mock_handler):
+            status = await client.connect()
+        
+        assert status == RequestStatus.HOST_UNREACHABLE
+        assert client.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_connect_debug_config_failure(self):
+        """Test connection failure when debug config fails."""
+        client = PooldoseClient(host="192.168.1.100")
+        
+        mock_handler = AsyncMock()
+        mock_handler.connect.return_value = RequestStatus.SUCCESS
+        mock_handler.get_debug_config.return_value = (RequestStatus.PARAMS_FETCH_FAILED, None)
+        
+        with patch('pooldose.client.RequestHandler', return_value=mock_handler):
+            status = await client.connect()
+        
+        assert status == RequestStatus.PARAMS_FETCH_FAILED
+        assert client.is_connected is False
+
+    def test_static_values(self, mock_device_info):
+        """Test static values retrieval."""
+        client = PooldoseClient(host="192.168.1.100")
+        client.device_info.update(mock_device_info)
+        
+        status, static_values = client.static_values()
+        
+        assert status == RequestStatus.SUCCESS
+        assert isinstance(static_values, StaticValues)
+        assert static_values.sensor_name == "Test Device"
+        assert static_values.sensor_serial_number == "TEST123"
+
+    def test_static_values_error(self):
+        """Test static values with exception during creation."""
+        client = PooldoseClient(host="192.168.1.100")
+        
+        # Mock StaticValues to raise an exception
+        with patch('pooldose.client.StaticValues') as mock_static_values:
+            mock_static_values.side_effect = ValueError("Invalid device info")
+            
+            status, static_values = client.static_values()
+            
+            assert status == RequestStatus.UNKNOWN_ERROR
+            assert static_values is None
+
+    @pytest.mark.asyncio
+    async def test_instant_values_success(self, mock_request_handler, mock_device_info, mock_mapping, mock_raw_data):
+        """Test successful instant values retrieval."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        client.device_info.update(mock_device_info)
+        
+        # Mock mapping info
+        mock_mapping_info = MagicMock()
+        mock_mapping_info.mapping = mock_mapping
+        client._mapping_info = mock_mapping_info
+        
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, mock_raw_data)
+        
+        status, instant_values = await client.instant_values()
+        
+        assert status == RequestStatus.SUCCESS
+        assert isinstance(instant_values, InstantValues)
+
+    @pytest.mark.asyncio
+    async def test_instant_values_failure(self, mock_request_handler, mock_device_info):
+        """Test instant values retrieval failure."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        client.device_info.update(mock_device_info)
+        
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.HOST_UNREACHABLE, None)
+        
+        status, instant_values = await client.instant_values()
+        
+        assert status == RequestStatus.HOST_UNREACHABLE
+        assert instant_values is None
+
+    @pytest.mark.asyncio
+    async def test_instant_values_no_mapping(self, mock_request_handler, mock_device_info, mock_raw_data):
+        """Test instant values when mapping is None."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        client.device_info.update(mock_device_info)
+        
+        # No mapping info
+        client._mapping_info = None
+        
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, mock_raw_data)
+        
+        status, instant_values = await client.instant_values()
+        
+        assert status == RequestStatus.UNKNOWN_ERROR
+        assert instant_values is None
+
+    @pytest.mark.asyncio
+    async def test_instant_values_structured_success(self, mock_request_handler, mock_device_info, mock_mapping, mock_raw_data):
+        """Test successful structured instant values retrieval."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        client.device_info.update(mock_device_info)
+        
+        # Mock mapping info
+        mock_mapping_info = MagicMock()
+        mock_mapping_info.mapping = mock_mapping
+        client._mapping_info = mock_mapping_info
+        
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, mock_raw_data)
+        
+        # Mock the InstantValues.to_structured_dict method directly
+        with patch('pooldose.values.instant_values.InstantValues.to_structured_dict') as mock_structured:
+            mock_structured.return_value = {
+                "sensor": {
+                    "temperature": {"value": 25.5, "unit": "°C"},
+                    "ph": {"value": 7.2, "unit": None}
+                },
+                "number": {
+                    "target_ph": {"value": 7.0, "unit": None, "min": 6.0, "max": 8.0, "step": 0.1}
+                }
+            }
+            
+            status, structured_data = await client.instant_values_structured()
+        
+        assert status == RequestStatus.SUCCESS
+        assert isinstance(structured_data, dict)
+        assert "sensor" in structured_data
+        assert "number" in structured_data
+        assert "temperature" in structured_data["sensor"]
+        assert "target_ph" in structured_data["number"]
+
+    @pytest.mark.asyncio
+    async def test_instant_values_structured_failure(self, mock_request_handler, mock_device_info):
+        """Test structured instant values retrieval failure."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        client.device_info.update(mock_device_info)
+        
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.NO_DATA, None)
+        
+        status, structured_data = await client.instant_values_structured()
+        
+        assert status == RequestStatus.NO_DATA
+        assert structured_data == {}
+
+    @pytest.mark.asyncio
+    async def test_instant_values_structured_error_in_processing(self, mock_request_handler, mock_device_info, mock_mapping, mock_raw_data):
+        """Test structured instant values with error during processing."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        client.device_info.update(mock_device_info)
+        
+        # Mock mapping info
+        mock_mapping_info = MagicMock()
+        mock_mapping_info.mapping = mock_mapping
+        client._mapping_info = mock_mapping_info
+        
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, mock_raw_data)
+        
+        # Mock InstantValues.to_structured_dict to raise an exception
+        with patch('pooldose.values.instant_values.InstantValues.to_structured_dict') as mock_structured:
+            mock_structured.side_effect = ValueError("Processing error")
+            
+            status, structured_data = await client.instant_values_structured()
+        
+        assert status == RequestStatus.UNKNOWN_ERROR
+        assert structured_data == {}
+
+    def test_check_apiversion_supported_success(self, mock_request_handler):
+        """Test API version check success."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        mock_request_handler.api_version = "v1/"
+        
+        status, result = client.check_apiversion_supported()
+        
+        assert status == RequestStatus.SUCCESS
+        assert result["api_version_is"] == "v1/"
+        assert result["api_version_should"] == "v1/"
+
+    def test_check_apiversion_unsupported(self, mock_request_handler):
+        """Test API version check with unsupported version."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        mock_request_handler.api_version = "v2/"
+        
+        status, result = client.check_apiversion_supported()
+        
+        assert status == RequestStatus.API_VERSION_UNSUPPORTED
+        assert result["api_version_is"] == "v2/"
+        assert result["api_version_should"] == "v1/"
+
+    def test_check_apiversion_no_data(self, mock_request_handler):
+        """Test API version check with no version set."""
+        client = PooldoseClient(host="192.168.1.100")
+        client._request_handler = mock_request_handler
+        mock_request_handler.api_version = None
+        
+        status, result = client.check_apiversion_supported()
+        
+        assert status == RequestStatus.NO_DATA
+        assert result["api_version_is"] is None
+        assert result["api_version_should"] == "v1/"
+
+    def test_is_connected_property(self):
+        """Test is_connected property."""
+        client = PooldoseClient(host="192.168.1.100")
+        
+        assert client.is_connected is False
+        
+        client._connected = True
+        assert client.is_connected is True

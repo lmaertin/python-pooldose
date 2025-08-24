@@ -6,9 +6,10 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 - **Async/await support** for non-blocking operations
 - **Dynamic sensor discovery** based on device model and firmware
 - **Dictionary-style access** to instant values
-- **Type-specific getters** for sensors, switches, numbers, selects
+- **Structured data API** with type-based organization
 - **Secure by default** - WiFi passwords excluded unless explicitly requested
 - **Comprehensive error handling** with detailed logging
+- **SSL/HTTPS support** for secure communication
 
 ## API Overview
 
@@ -16,26 +17,23 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 
 ```
 1. Create PooldoseClient
-   ├── Fetch Device Info
-   │   ├── Debug Config
+   ├── Connect to Device
+   │   ├── Fetch Device Info (Debug Config)
    │   ├── WiFi Station Info (optional)
    │   ├── Access Point Info (optional)
    │   └── Network Info
-   ├── Load Mapping JSON (based on MODEL_ID + FW_CODE)
-   └── Query Available Types
-       ├── Sensors
-       ├── Binary Sensors
-       ├── Numbers
-       ├── Switches
-       └── Selects
+   └── Load Mapping JSON (based on MODEL_ID + FW_CODE)
 
-2. Get Instant Values
-   └── Access Values via Dictionary Interface
-       ├── instant_values['temperature']
-       ├── instant_values.get('ph', default)
-       └── 'sensor_name' in instant_values
+2. Get Static Values
+   └── Device information and configuration
 
-3. Set Values via Type Methods
+3. Get Instant Values
+   ├── Dictionary-style access: instant_values['temperature']
+   ├── Get with default: instant_values.get('ph', default)
+   ├── Check existence: 'sensor_name' in instant_values
+   └── Structured access: instant_values_structured()
+
+4. Set Values via Type Methods
    ├── set_number()
    ├── set_switch()
    └── set_select()
@@ -63,25 +61,18 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 └─────────────────┘    └─────────────────┘
          │
          ▼
-┌─────────────────┐
-│ Type Discovery  │
-│ • Sensors       │
-│ • Switches      │
-│ • Numbers       │
-│ • Selects       │
-└─────────────────┘
-         │
-         ▼
 ┌─────────────────┐    ┌─────────────────┐
 │  InstantValues  │────│ Dictionary API  │
 └─────────────────┘    └─────────────────┘
          │
          ▼
 ┌─────────────────┐
-│ Type Methods    │
-│ • set_number()  │
-│ • set_switch()  │
-│ • set_select()  │
+│ Structured API  │
+│ • sensor{}      │
+│ • number{}      │
+│ • switch{}      │
+│ • binary_sensor{}│
+│ • select{}      │
 └─────────────────┘
 ```
 
@@ -169,7 +160,7 @@ HOST = "192.168.1.100"  # Change this to your device's host or IP address
 TIMEOUT = 30
 
 async def main() -> None:
-    """Demonstrate PooldoseClient usage with new dictionary-based API."""
+    """Demonstrate PooldoseClient usage with dictionary-based API."""
     
     # Create client instance (excludes WiFi passwords by default)
     client = PooldoseClient(host=HOST, timeout=TIMEOUT)
@@ -186,18 +177,6 @@ async def main() -> None:
     print(f"Connected to {HOST}")
     print("Device Info:", json.dumps(client.device_info, indent=2))
 
-    # --- Query available types dynamically ---
-    print("\nAvailable types:")
-    for typ, keys in client.available_types().items():
-        print(f"  {typ}: {keys}")
-
-    # --- Query available sensors ---
-    print("\nAvailable sensors:")
-    for name, sensor in client.available_sensors().items():
-        print(f"  {name}: key={sensor.key}, type={sensor.type}")
-        if sensor.conversion is not None:
-            print(f"    conversion: {sensor.conversion}")
-
     # --- Get static values ---
     status, static_values = client.static_values()
     if status == RequestStatus.SUCCESS:
@@ -205,20 +184,11 @@ async def main() -> None:
         print(f"Serial Number: {static_values.sensor_serial_number}")
         print(f"Firmware Version: {static_values.sensor_fw_version}")
 
-    # --- Get instant values ---
+    # --- Get instant values (dictionary-style) ---
     status, instant_values = await client.instant_values()
     if status != RequestStatus.SUCCESS:
         print(f"Error getting instant values: {status}")
         return
-
-    # --- Dictionary-style access ---
-    
-    # Get all sensors at once
-    print("\nAll sensor values:")
-    sensors = instant_values.get_sensors()
-    for key, value in sensors.items():
-        if isinstance(value, tuple) and len(value) >= 2:
-            print(f"  {key}: {value[0]} {value[1]}")
 
     # Dictionary-style individual access
     if "temperature" in instant_values:
@@ -229,17 +199,73 @@ async def main() -> None:
     ph_value = instant_values.get("ph", "Not available")
     print(f"pH: {ph_value}")
 
+    # --- Get structured instant values ---
+    status, structured_data = await client.instant_values_structured()
+    if status != RequestStatus.SUCCESS:
+        print(f"Error getting structured values: {status}")
+        return
+
+    # Access sensors
+    sensors = structured_data.get("sensor", {})
+    print("\nSensor Values:")
+    for key, sensor_data in sensors.items():
+        value = sensor_data.get("value")
+        unit = sensor_data.get("unit")
+        if unit:
+            print(f"  {key}: {value} {unit}")
+        else:
+            print(f"  {key}: {value}")
+
+    # Access numbers (setpoints)
+    numbers = structured_data.get("number", {})
+    print("\nSetpoints:")
+    for key, number_data in numbers.items():
+        value = number_data.get("value")
+        unit = number_data.get("unit")
+        min_val = number_data.get("min")
+        max_val = number_data.get("max")
+        
+        if unit:
+            print(f"  {key}: {value} {unit} (Range: {min_val}-{max_val})")
+        else:
+            print(f"  {key}: {value} (Range: {min_val}-{max_val})")
+
+    # Access switches
+    switches = structured_data.get("switch", {})
+    print("\nSwitches:")
+    for key, switch_data in switches.items():
+        value = switch_data.get("value")
+        status_text = "ON" if value else "OFF"
+        print(f"  {key}: {status_text}")
+
+    # Access binary sensors (alarms/status)
+    binary_sensors = structured_data.get("binary_sensor", {})
+    print("\nAlarms & Status:")
+    for key, sensor_data in binary_sensors.items():
+        value = sensor_data.get("value")
+        status_text = "ACTIVE" if value else "OK"
+        print(f"  {key}: {status_text}")
+
+    # Access selects (configuration options)
+    selects = structured_data.get("select", {})
+    print("\nSettings:")
+    for key, select_data in selects.items():
+        value = select_data.get("value")
+        print(f"  {key}: {value}")
+
     # --- Setting values ---
     
-    # Set number values
-    if "ph_target" in instant_values.get_numbers():
-        result = await instant_values.set_number("ph_target", 7.2)
-        print(f"Set pH target to 7.2: {result}")
+    # Set number values (via InstantValues)
+    result = await instant_values.set_number("target_ph", 7.2)
+    print(f"Set pH target to 7.2: {result}")
 
     # Set switch values
-    if "stop_pool_dosing" in instant_values.get_switches():
-        result = await instant_values.set_switch("stop_pool_dosing", True)
-        print(f"Set stop pool dosing: {result}")
+    result = await instant_values.set_switch("stop_dosing", True)
+    print(f"Set stop dosing: {result}")
+
+    # Set select values
+    result = await instant_values.set_select("water_meter_unit", "L/h")
+    print(f"Set water meter unit: {result}")
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -290,18 +316,33 @@ else:
     print(f"Other error: {status}")
 ```
 
-#### Type-specific Access
+#### Working with Structured Data
 ```python
-# Get all values by type
-sensors = instant_values.get_sensors()          # All sensor readings
-binary_sensors = instant_values.get_binary_sensors()  # All boolean states
-numbers = instant_values.get_numbers()          # All configurable numbers
-switches = instant_values.get_switches()        # All switch states
-selects = instant_values.get_selects()          # All select options
+# Get all data types at once
+status, structured_data = await client.instant_values_structured()
 
-# Check available types dynamically
-available_types = instant_values.available_types()
-print("Available types:", list(available_types.keys()))
+if status == RequestStatus.SUCCESS:
+    # Check what types are available
+    available_types = list(structured_data.keys())
+    print("Available types:", available_types)
+    
+    # Process each type
+    for data_type, items in structured_data.items():
+        print(f"\n{data_type.title()} ({len(items)} items):")
+        for key, data in items.items():
+            if data_type in ["sensor", "number"]:
+                value = data.get("value")
+                unit = data.get("unit")
+                if unit:
+                    print(f"  {key}: {value} {unit}")
+                else:
+                    print(f"  {key}: {value}")
+            elif data_type in ["switch", "binary_sensor"]:
+                value = data.get("value")
+                print(f"  {key}: {'ON' if value else 'OFF'}")
+            elif data_type == "select":
+                value = data.get("value")
+                print(f"  {key}: {value}")
 ```
 
 #### Working with Mappings
@@ -330,74 +371,38 @@ Mapping Discovery Process:
 │ │ Switches    │ │ ──────► stop_dosing, pump_detection, ...
 │ │ Numbers     │ │ ──────► ph_target, orp_target, ...
 │ │ Selects     │ │ ──────► water_meter_unit, ...
+│ │ Binary Sens │ │ ──────► alarm_ph, alarm_orp, ...
 │ └─────────────┘ │
 └─────────────────┘
 ```
 
-```python
-# Query what's available for your specific device
-print("\nAvailable sensors:")
-for name, sensor in client.available_sensors().items():
-    print(f"  {name}: key={sensor.key}")
-    if sensor.conversion:
-        print(f"    conversion: {sensor.conversion}")
-
-print("\nAvailable numbers (settable):")
-for name, number in client.available_numbers().items():
-    print(f"  {name}: key={number.key}")
-
-print("\nAvailable switches:")
-for name, switch in client.available_switches().items():
-    print(f"  {name}: key={switch.key}")
-```
-
 ## API Reference
 
-### PooldoseClient Class Hierarchy
-```
-PooldoseClient
-├── Device Info
-│   ├── static_values() ──────► StaticValues
-│   └── device_info{} ─────────► dict
-├── Type Discovery
-│   ├── available_types() ────► dict[str, list[str]]
-│   ├── available_sensors() ──► dict[str, SensorMapping]
-│   ├── available_numbers() ──► dict[str, NumberMapping]
-│   ├── available_switches() ─► dict[str, SwitchMapping]
-│   └── available_selects() ──► dict[str, SelectMapping]
-└── Live Data
-    └── instant_values() ─────► InstantValues
-```
+### PooldoseClient Class
 
 #### Constructor
 ```python
-PooldoseClient(host, timeout=10, include_sensitive_data=False, use_ssl=False, port=None, ssl_verify=True)
+PooldoseClient(host, timeout=30, include_sensitive_data=False, use_ssl=False, port=None, ssl_verify=True)
 ```
 
 **Parameters:**
 - `host` (str): The hostname or IP address of the device
-- `timeout` (int): Request timeout in seconds (default: 10)
+- `timeout` (int): Request timeout in seconds (default: 30)
 - `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
 - `use_ssl` (bool): Whether to use HTTPS instead of HTTP (default: False)
 - `port` (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS (default: None)
 - `ssl_verify` (bool): Whether to verify SSL certificates when using HTTPS (default: True)
 
 #### Methods
-- `connect()` - Connect to device and initialize all components
-- `static_values()` - Get static device information
-- `instant_values()` - Get current sensor readings and device state
-- `available_types()` - Get all available entity types
-- `available_sensors()` - Get available sensor configurations
-- `available_binary_sensors()` - Get available binary sensor configurations
-- `available_numbers()` - Get available number configurations
-- `available_switches()` - Get available switch configurations  
-- `available_selects()` - Get available select configurations
+- `async connect()` → `RequestStatus` - Connect to device and initialize all components
+- `static_values()` → `tuple[RequestStatus, StaticValues | None]` - Get static device information
+- `async instant_values()` → `tuple[RequestStatus, InstantValues | None]` - Get current sensor readings and device state
+- `async instant_values_structured()` → `tuple[RequestStatus, dict[str, Any]]` - Get structured data organized by type
+- `check_apiversion_supported()` → `tuple[RequestStatus, dict]` - Check API version compatibility
 
 #### Properties
-- `is_connected` - Check if client is connected to device
-- `device_info` - Dictionary containing device information
-- `host` - Device hostname or IP address
-- `timeout` - Request timeout in seconds
+- `is_connected: bool` - Check if client is connected to device
+- `device_info: dict` - Dictionary containing device information
 
 ### RequestStatus
 
@@ -407,59 +412,63 @@ All client methods return `RequestStatus` enum values:
 from pooldose.request_status import RequestStatus
 
 RequestStatus.SUCCESS                    # Operation successful
-RequestStatus.CONNECTION_ERROR           # Network connection failed
 RequestStatus.HOST_UNREACHABLE           # Device not reachable
 RequestStatus.PARAMS_FETCH_FAILED        # Failed to fetch device parameters
 RequestStatus.API_VERSION_UNSUPPORTED    # API version not supported
 RequestStatus.NO_DATA                    # No data received
+RequestStatus.LAST_DATA                  # Last valid data used
+RequestStatus.CLIENT_ERROR_SET           # Error setting client value
 RequestStatus.UNKNOWN_ERROR              # Other error occurred
 ```
 
 ### InstantValues Interface
-```
-InstantValues
-├── Dictionary Interface
-│   ├── [key] ─────────────────► __getitem__
-│   ├── get(key, default) ────► get method
-│   ├── key in values ────────► __contains__
-│   └── [key] = value ────────► __setitem__ (async)
-├── Type Getters
-│   ├── get_sensors() ────────► dict[str, tuple]
-│   ├── get_binary_sensors() ─► dict[str, bool]
-│   ├── get_numbers() ────────► dict[str, tuple]
-│   ├── get_switches() ───────► dict[str, bool]
-│   └── get_selects() ────────► dict[str, int]
-└── Type Setters (async)
-    ├── set_number(key, value) ──► bool
-    ├── set_switch(key, value) ──► bool
-    └── set_select(key, value) ──► bool
-```
 
-#### Dictionary Interface
+The `InstantValues` class provides dictionary-style access to sensor data:
+
 ```python
-# Reading
-value = instant_values["sensor_name"]
-value = instant_values.get("sensor_name", default)
-exists = "sensor_name" in instant_values
+# Dictionary Interface
+value = instant_values["sensor_name"]                    # Direct access
+value = instant_values.get("sensor_name", default)      # Get with default
+exists = "sensor_name" in instant_values                 # Check existence
 
-# Writing (async)
-await instant_values.__setitem__("switch_name", True)
+# Setting values (async, with validation)
+await instant_values.set_number("ph_target", 7.2)       # Set number value
+await instant_values.set_switch("stop_dosing", True)    # Set switch value
+await instant_values.set_select("unit", "L/h")          # Set select value
 ```
 
-#### Type-specific Methods
+### Structured Data Format
+
+The `instant_values_structured()` method returns data organized by type:
+
 ```python
-# Getters
-sensors = instant_values.get_sensors()
-binary_sensors = instant_values.get_binary_sensors()
-numbers = instant_values.get_numbers()
-switches = instant_values.get_switches()
-selects = instant_values.get_selects()
-
-# Setters (async, with validation)
-await instant_values.set_number("ph_target", 7.2)
-await instant_values.set_switch("stop_dosing", True)
-await instant_values.set_select("water_meter_unit", 1)
+{
+    "sensor": {
+        "temperature": {"value": 25.5, "unit": "°C"},
+        "ph": {"value": 7.2, "unit": None}
+    },
+    "number": {
+        "target_ph": {"value": 7.0, "unit": None, "min": 6.0, "max": 8.0, "step": 0.1}
+    },
+    "switch": {
+        "stop_dosing": {"value": False}
+    },
+    "binary_sensor": {
+        "alarm_ph": {"value": False}
+    },
+    "select": {
+        "water_meter_unit": {"value": "L/h"}
+    }
+}
 ```
+
+#### Data Types
+
+- **sensor**: Read-only sensor values with optional units
+- **number**: Configurable numeric values with min/max/step constraints
+- **switch**: Boolean on/off controls  
+- **binary_sensor**: Read-only boolean status indicators
+- **select**: Configurable selection options
 
 ## Supported Devices
 
@@ -468,7 +477,7 @@ This client has been tested with:
 
 Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
 
-> **Note:** The other JSON files in the `docs/` directory define the default English names for the data keys of the PoolDose devices. These mappings are used for display and documentation purposes.
+> **Note:** The JSON files in the mappings directory define the device-specific data keys and their human-readable names for different PoolDose models and firmware versions.
 
 ## Security
 
@@ -504,6 +513,8 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.4.7)
-- Device returns unit for pH values, which have physically no unit. Fixed by replacing such occurrences with None.
-  - Applied to number values as well
+### Latest Release (0.5.0)
+- **BREAKING**: Redesigned API with dictionary-style access (`instant_values["key"]`)
+- New structured data method `instant_values_structured()` grouped by type
+- Removed deprecated getter methods, enhanced validation, improved error handling
+- Complete code modernization and comprehensive test
