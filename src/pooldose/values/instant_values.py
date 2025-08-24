@@ -113,7 +113,7 @@ class InstantValues:
                             "unit": value_data[1]
                         }
 
-                elif entry_type == "binary_sensor" or entry_type == "switch":
+                elif entry_type in ("binary_sensor", "switch"):
                     structured_data[entry_type][mapping_key] = {
                         "value": value_data
                     }
