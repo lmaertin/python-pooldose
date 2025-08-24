@@ -3,7 +3,7 @@
 import pytest
 
 
-class TestInstantValues:
+class TestInstantValues:  # pylint: disable=too-many-public-methods
     """Test InstantValues functionality."""
 
     def test_init(self, instant_values_fixture):

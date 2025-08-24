@@ -156,24 +156,23 @@ class TestPooldoseClient:
         assert instant_values is None
 
     @pytest.mark.asyncio
-    async def test_instant_values_structured_success(
-        self, mock_request_handler, mock_device_info,
-        mock_mapping_info, mock_raw_data, mock_structured_data
-    ):
+    async def test_instant_values_structured_success(self, complete_client_setup):
         """Test successful structured instant values retrieval."""
         client = PooldoseClient(host="192.168.1.100")
         # pylint: disable=protected-access
-        client._request_handler = mock_request_handler
-        client.device_info.update(mock_device_info)
-        client._mapping_info = mock_mapping_info
+        client._request_handler = complete_client_setup["request_handler"]
+        client.device_info.update(complete_client_setup["device_info"])
+        client._mapping_info = complete_client_setup["mapping_info"]
 
-        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, mock_raw_data)
+        complete_client_setup["request_handler"].get_values_raw.return_value = (
+            RequestStatus.SUCCESS, complete_client_setup["raw_data"]
+        )
 
         # Mock the InstantValues.to_structured_dict method directly
         with patch(
             'pooldose.values.instant_values.InstantValues.to_structured_dict'
         ) as mock_to_structured:
-            mock_to_structured.return_value = mock_structured_data
+            mock_to_structured.return_value = complete_client_setup["structured_data"]
             status, structured_data = await client.instant_values_structured()
 
         assert status == RequestStatus.SUCCESS

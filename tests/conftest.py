@@ -207,3 +207,18 @@ def mock_structured_data():
             "water_unit": {"value": "m³"}
         }
     }
+
+
+@pytest.fixture
+def complete_client_setup(  # pylint: disable=redefined-outer-name
+    mock_request_handler, mock_device_info, mock_mapping_info,
+    mock_raw_data, mock_structured_data
+):
+    """Create a complete setup for client testing with all dependencies."""
+    return {
+        "request_handler": mock_request_handler,
+        "device_info": mock_device_info,
+        "mapping_info": mock_mapping_info,
+        "raw_data": mock_raw_data,
+        "structured_data": mock_structured_data
+    }
