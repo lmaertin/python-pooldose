@@ -1,4 +1,4 @@
-# python-pooldose
+ja# python-pooldose
 
 Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for pools and spas.
 
@@ -176,9 +176,6 @@ python examples/demo.py
 Shows how to use the mock client with JSON files for development and testing:
 
 ```bash
-# Run with sample data
-python examples/demo_mock.py references/testdaten/suplere/instantvalues.json
-
 # Use custom JSON file
 python examples/demo_mock.py path/to/your/data.json
 ```
