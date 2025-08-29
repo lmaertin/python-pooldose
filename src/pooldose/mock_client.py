@@ -6,6 +6,8 @@ import json
 import logging
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any, Union
+
+from pooldose.constants import get_default_device_info
 from pooldose.values.instant_values import InstantValues
 from pooldose.request_status import RequestStatus
 from pooldose.values.static_values import StaticValues
@@ -45,25 +47,7 @@ class MockPooldoseClient:
         self._mapping_info = None
 
         # Initialize device info with default values
-        self.device_info = {
-            "NAME": None,
-            "SERIAL_NUMBER": None,
-            "DEVICE_ID": None,
-            "MODEL": None,
-            "MODEL_ID": None,
-            "OWNERID": None,
-            "GROUPNAME": None,
-            "FW_VERSION": None,
-            "SW_VERSION": None,
-            "API_VERSION": None,
-            "FW_CODE": None,
-            "MAC": None,
-            "IP": None,
-            "WIFI_SSID": None,
-            "WIFI_KEY": None,
-            "AP_SSID": None,
-            "AP_KEY": None
-        }
+        self.device_info = get_default_device_info()
 
         # Load data immediately
         self._load_json_data()
