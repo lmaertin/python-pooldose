@@ -1,6 +1,6 @@
 [project]
 name = "python-pooldose"
-version = "0.5.0"
+version = "0.5.1"
 description = "Unoffical async Python client for SEKO PoolDose devices"
 authors = [
     { name = "Lukas Maertin", email = "pypi@lukas-maertin.de" }

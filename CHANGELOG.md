@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-08-29
+
+### Added
+
+- **Examples**: Demo scripts for real and mock clients (`examples/` directory)
+- **Device Support**: Added mapping for model `PDPR1H1HAR1V0_FW539224`
+- **Mock Client**: JSON-based testing framework for development without hardware
+
 ## [0.5.0] - 2025-08-24
 
 ### Changed
@@ -49,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated to use correct RequestStatus enum values
 
 ### Migration Guide
-**From 0.4.x to 0.5.0:**
+**From 0.4.x to 0.5.x:**
 
 ```python
 # OLD (0.4.x) - DEPRECATED

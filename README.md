@@ -781,9 +781,9 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.5.0)
+### Latest Release (0.5.1)
 
-- **BREAKING**: Redesigned API with dictionary-style access (`instant_values["key"]`)
-- New structured data method `instant_values_structured()` grouped by type
-- Removed deprecated getter methods, enhanced validation, improved error handling
-- Complete code modernization and comprehensive test
+- **Examples**: Demo scripts for real and mock clients (`examples/` directory)
+- **Device Support**: Added mapping for model `PDPR1H1HAR1V0_FW539224`
+- **Mock Client**: JSON-based testing framework for development without hardware
+- **Fixed**: Removed deprecated references and improved consistency
