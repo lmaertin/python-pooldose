@@ -1,8 +1,11 @@
 # python-pooldose
-Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for Pools and Spas.
+
+Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for pools and spas.
+
 This client uses an undocumented local HTTP API. It provides live readings for pool sensors such as temperature, pH, ORP/Redox, as well as status information and control over the dosing logic.
 
 ## Features
+
 - **Async/await support** for non-blocking operations
 - **Dynamic sensor discovery** based on device model and firmware
 - **Dictionary-style access** to instant values
@@ -77,6 +80,7 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 ```
 
 ## Prerequisites
+
 1. Install and set-up the PoolDose devices according to the user manual.
    1. In particular, connect the device to your WiFi network.
    2. Identify the IP address or hostname of the device.
@@ -147,9 +151,263 @@ client = PooldoseClient("192.168.1.100", use_ssl=True, port=8443, ssl_verify=Fal
 pip install python-pooldose
 ```
 
+## Examples
+
+The `examples/` directory contains demonstration scripts that show how to use the python-pooldose library:
+
+### 1. Real Device Demo (`examples/demo.py`)
+
+Demonstrates connecting to a real PoolDose device and accessing all types of data:
+
+```bash
+# Edit the HOST variable in the file first
+python examples/demo.py
+```
+
+**Features:**
+
+- Connects to actual hardware
+- Shows device information and static values
+- Displays all sensor readings, alarms, setpoints, and settings
+- Demonstrates error handling
+
+### 2. Mock Client Demo (`examples/demo_mock.py`)
+
+Shows how to use the mock client with JSON files for development and testing:
+
+```bash
+# Run with sample data
+python examples/demo_mock.py references/testdaten/suplere/instantvalues.json
+
+# Use custom JSON file
+python examples/demo_mock.py path/to/your/data.json
+```
+
+**Features:**
+
+- No hardware required
+- Uses real device data from JSON files
+- Same API as real client
+- Perfect for development and CI/CD
+
+### 3. Simple Mock Test (`examples/test_mock_simple.py`)
+
+A minimal example showing basic mock client usage:
+
+```bash
+python examples/test_mock_simple.py
+```
+
+**Features:**
+
+- Quick verification of basic functionality
+- Simple sensor value display
+- Minimal error handling
+
+### Benefits of the Examples
+
+- **Learning**: Step-by-step progression from simple to advanced usage
+- **Development**: Mock client allows development without hardware
+- **Testing**: JSON-based testing for CI/CD pipelines
+- **Reference**: Real-world code patterns and best practices
+
+## Mock Client System
+
+The **MockPooldoseClient** system allows using JSON files instead of real Pooldose hardware for testing and development. This is particularly useful for:
+
+- **Development without hardware**
+- **Unit tests**
+- **Data analysis with real device data**
+- **CI/CD pipeline tests**
+
+### Mock Client Quick Start
+
+```python
+import asyncio
+from pathlib import Path
+from pooldose.mock_client import MockPooldoseClient
+
+async def simple_test():
+    # Load data file
+    json_file = Path("path/to/your/data.json")
+    
+    # Create mock client
+    client = MockPooldoseClient(json_file_path=json_file)
+    
+    # Connect (loads mapping data)
+    status = await client.connect()
+    if status.name != "SUCCESS":
+        print(f"Connection failed: {status}")
+        return
+    
+    # Get sensor values
+    status, instant_values = await client.instant_values()
+    if status.name == "SUCCESS" and instant_values:
+        print(f"Temperature: {instant_values['temperature']}")
+        print(f"pH Value: {instant_values['ph']}")
+        print(f"ORP: {instant_values['orp']}")
+    
+    # Get structured data
+    status, data = await client.instant_values_structured()
+    if status.name == "SUCCESS":
+        sensors = data.get('sensor', {})
+        for name, info in sensors.items():
+            value = info.get('value', 'N/A')
+            unit = info.get('unit', '')
+            print(f"{name}: {value} {unit}")
+
+# Run demo
+asyncio.run(simple_test())
+```
+
+### Mock Client Command Line Usage
+
+You can run the demo script with custom JSON files:
+
+```bash
+# Run with sample data
+python examples/demo_mock.py references/testdaten/suplere/instantvalues.json
+
+# Use custom JSON file
+python examples/demo_mock.py path/to/your/data.json
+
+# Simple test script
+python examples/test_mock_simple.py
+```
+
+### JSON Data Format
+
+The JSON file must have the following structure:
+
+```json
+{
+    "devicedata": {
+        "SERIALNUMBER_DEVICE": {
+            "MODEL_FW_w_key1": {
+                "current": 25.5,
+                "magnitude": ["°C"]
+            },
+            "MODEL_FW_w_key2": {
+                "current": 7.2,
+                "magnitude": ["pH"]
+            }
+        }
+    }
+}
+```
+
+### Mock Client API Methods
+
+#### Initialization
+
+```python
+client = MockPooldoseClient(
+    json_file_path="path/to/data.json",
+    timeout=30,  # Ignored (compatibility)
+    include_sensitive_data=True  # Include WiFi keys etc.
+)
+```
+
+#### Connection
+
+```python
+status = await client.connect()  # Loads mapping configuration
+is_connected = client.is_connected  # Check status
+```
+
+#### Data Retrieval
+
+```python
+# Static device information
+status, static_values = client.static_values()
+
+# Live sensor values
+status, instant_values = await client.instant_values()
+
+# Structured data (grouped by types)
+status, structured_data = await client.instant_values_structured()
+```
+
+#### Utility Methods
+
+```python
+# Get raw data
+raw_data = client.get_raw_data()
+device_data = client.get_device_data()
+
+# Reload JSON file
+success = client.reload_data()
+```
+
+### Available Sample Files
+
+The following sample JSON files are available in the repository:
+
+- `references/testdaten/suplere/instantvalues.json` - PDPR1H1HAR1V0_FW539224 device
+- `references/testdaten/instantvalues_poolforum_1.json` - Additional sample data
+
+### Mock Client Use Cases
+
+#### Unit Tests
+
+```python
+def test_temperature_reading():
+    client = MockPooldoseClient("sample_data.json")
+    asyncio.run(client.connect())
+    
+    status, values = asyncio.run(client.instant_values())
+    assert status.name == "SUCCESS"
+    assert values['temperature'][0] == 23.0  # Expected value
+```
+
+#### Data Analysis
+
+```python
+# Analyze all sensor values
+client = MockPooldoseClient("production_data.json")
+await client.connect()
+
+status, data = await client.instant_values_structured()
+sensors = data.get('sensor', {})
+
+for sensor_name, sensor_data in sensors.items():
+    value = sensor_data.get('value')
+    unit = sensor_data.get('unit', '')
+    print(f"{sensor_name}: {value} {unit}")
+```
+
+#### Integration Tests
+
+```python
+async def test_full_integration():
+    client = MockPooldoseClient("integration_sample_data.json")
+    
+    # Test connection
+    assert await client.connect() == RequestStatus.SUCCESS
+    
+    # Test static values
+    status, static = client.static_values()
+    assert status == RequestStatus.SUCCESS
+    assert static.sensor_name is not None
+    
+    # Test live values
+    status, instant = await client.instant_values()
+    assert status == RequestStatus.SUCCESS
+    assert 'temperature' in instant
+```
+
+### Benefits of the Mock System
+
+- **Fast**: No network latency
+- **Reliable**: No hardware dependencies  
+- **Flexible**: Different scenarios testable
+- **Realistic**: Real device data structures
+- **Compatible**: Same API as real client
+
 ## Example Usage
 
 ### Basic Example
+
 ```python
 import asyncio
 import json
@@ -274,6 +532,7 @@ if __name__ == "__main__":
 ### Advanced Usage
 
 #### Connection Management
+
 ```python
 from pooldose.client import PooldoseClient
 from pooldose.request_status import RequestStatus
@@ -298,6 +557,7 @@ else:
 ```
 
 #### Error Handling
+
 ```python
 from pooldose.client import PooldoseClient
 
@@ -317,6 +577,7 @@ else:
 ```
 
 #### Working with Structured Data
+
 ```python
 # Get all data types at once
 status, structured_data = await client.instant_values_structured()
@@ -346,6 +607,7 @@ if status == RequestStatus.SUCCESS:
 ```
 
 #### Working with Mappings
+
 ```
 Mapping Discovery Process:
 ┌─────────────────┐
@@ -381,11 +643,13 @@ Mapping Discovery Process:
 ### PooldoseClient Class
 
 #### Constructor
+
 ```python
 PooldoseClient(host, timeout=30, include_sensitive_data=False, use_ssl=False, port=None, ssl_verify=True)
 ```
 
 **Parameters:**
+
 - `host` (str): The hostname or IP address of the device
 - `timeout` (int): Request timeout in seconds (default: 30)
 - `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
@@ -394,6 +658,7 @@ PooldoseClient(host, timeout=30, include_sensitive_data=False, use_ssl=False, po
 - `ssl_verify` (bool): Whether to verify SSL certificates when using HTTPS (default: True)
 
 #### Methods
+
 - `async connect()` → `RequestStatus` - Connect to device and initialize all components
 - `static_values()` → `tuple[RequestStatus, StaticValues | None]` - Get static device information
 - `async instant_values()` → `tuple[RequestStatus, InstantValues | None]` - Get current sensor readings and device state
@@ -401,6 +666,7 @@ PooldoseClient(host, timeout=30, include_sensitive_data=False, use_ssl=False, po
 - `check_apiversion_supported()` → `tuple[RequestStatus, dict]` - Check API version compatibility
 
 #### Properties
+
 - `is_connected: bool` - Check if client is connected to device
 - `device_info: dict` - Dictionary containing device information
 
@@ -473,6 +739,7 @@ The `instant_values_structured()` method returns data organized by type:
 ## Supported Devices
 
 This client has been tested with:
+
 - **PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: 539187)
 
 Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
@@ -492,6 +759,7 @@ status = await client.connect()
 ```
 
 ### Security Model
+
 ```
 Data Classification:
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -514,6 +782,7 @@ Data Classification:
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
 ### Latest Release (0.5.0)
+
 - **BREAKING**: Redesigned API with dictionary-style access (`instant_values["key"]`)
 - New structured data method `instant_values_structured()` grouped by type
 - Removed deprecated getter methods, enhanced validation, improved error handling

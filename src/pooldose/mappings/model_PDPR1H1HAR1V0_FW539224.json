@@ -1,0 +1,110 @@
+{
+  "temperature": {
+    "key": "w_1f0io7hq6",
+    "type": "sensor"
+  },
+  "ph": {
+    "key": "w_1f0inr5mg",
+    "type": "sensor"
+  },
+  "orp": {
+    "key": "w_1f0invtg9",
+    "type": "sensor"
+  },
+  "cl": {
+    "key": "w_1f0io42cq",
+    "type": "sensor"
+  },
+  "ph_type_dosing": {
+    "key": "w_1f0it2vcf",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ALCALYNE|": "alcalyne",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ACID|": "acid"
+    }
+  },
+  "peristaltic_ph_dosing": {
+    "key": "w_1f0iteoja",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_OFF|": "off",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_PROPORTIONAL|": "proportional",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_ON_OFF|": "on_off",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_TIMED|": "timed"
+    }
+  },
+  "orp_type_dosing": {
+    "key": "w_1f0it326i",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_LOW_|": "low",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_HIGH|": "high"
+    }
+  },
+  "peristaltic_orp_dosing": {
+    "key": "w_1f0iteqrl",
+    "type": "sensor",
+    "conversion": {
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_OFF|": "off",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_PROPORTIONAL|": "proportional",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_ON_OFF|": "on_off",
+        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_TIMED|": "timed"
+    }
+  },
+  "pump_running": {
+    "key": "w_1f1fng00q",
+    "type": "binary_sensor"
+  },
+  "ph_level_ok": {
+    "key": "w_1f0ioo093",
+    "type": "binary_sensor"
+  },
+  "orp_level_ok": {
+    "key": "w_1f0ioo2gc",
+    "type": "binary_sensor"
+  },
+  "flow_rate_ok": {
+    "key": "w_1f0iolq38",
+    "type": "binary_sensor"
+  },
+  "alarm_relay": {
+    "key": "w_1f0ir59fo",
+    "type": "binary_sensor"
+  },
+  "relay_aux1_ph": {
+    "key": "w_1gmgkbmap",
+    "type": "binary_sensor"
+  },
+  "relay_aux2_orpcl": {
+    "key": "w_1gmgkfe9s",
+    "type": "binary_sensor"
+  },
+  "ph_target": {
+    "key": "w_1f0irf02j",
+    "type": "number"
+  },
+  "orp_target": {
+    "key": "w_1f0ishl5i",
+    "type": "number"
+  },
+  "stop_pool_dosing": {
+    "key": "w_1f2jpqa6e",
+    "type": "switch"
+  },
+  "pump_detection": {
+    "key": "w_1hn0h4fmb",
+    "type": "switch"
+  },
+  "water_meter_unit": {
+        "key": "w_1f3dfp59r",
+        "type": "select",
+        "options": {
+            "8": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_",
+            "9": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__"
+        },
+        "conversion": {
+            "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_": "L",
+            "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__": "m³"
+        }
+    }   
+}
