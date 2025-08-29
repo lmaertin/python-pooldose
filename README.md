@@ -190,20 +190,6 @@ python examples/demo_mock.py path/to/your/data.json
 - Same API as real client
 - Perfect for development and CI/CD
 
-### 3. Simple Mock Test (`examples/test_mock_simple.py`)
-
-A minimal example showing basic mock client usage:
-
-```bash
-python examples/test_mock_simple.py
-```
-
-**Features:**
-
-- Quick verification of basic functionality
-- Simple sensor value display
-- Minimal error handling
-
 ### Benefits of the Examples
 
 - **Learning**: Step-by-step progression from simple to advanced usage
@@ -270,9 +256,6 @@ python examples/demo_mock.py references/testdaten/suplere/instantvalues.json
 
 # Use custom JSON file
 python examples/demo_mock.py path/to/your/data.json
-
-# Simple test script
-python examples/test_mock_simple.py
 ```
 
 ### JSON Data Format

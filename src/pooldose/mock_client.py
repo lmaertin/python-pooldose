@@ -23,9 +23,9 @@ class MockPooldoseClient:
     """
 
     def __init__(
-        self, 
-        json_file_path: Union[str, Path], 
-        *, 
+        self,
+        json_file_path: Union[str, Path],
+        *,
         timeout: int = 30,
         include_sensitive_data: bool = False
     ) -> None:
@@ -43,7 +43,7 @@ class MockPooldoseClient:
         self._mock_data = None
         self._device_key = None
         self._mapping_info = None
-        
+
         # Initialize device info with default values
         self.device_info = {
             "NAME": None,
@@ -64,7 +64,7 @@ class MockPooldoseClient:
             "AP_SSID": None,
             "AP_KEY": None
         }
-        
+
         # Load data immediately
         self._load_json_data()
 
@@ -73,10 +73,10 @@ class MockPooldoseClient:
         try:
             with open(self.json_file_path, 'r', encoding='utf-8') as file:
                 self._mock_data = json.load(file)
-            
+
             # Extract device key and device info
             if 'devicedata' in self._mock_data:
-                device_keys = [k for k in self._mock_data['devicedata'].keys() 
+                device_keys = [k for k in self._mock_data['devicedata'].keys()
                               if k.endswith('_DEVICE')]
                 if device_keys:
                     self._device_key = device_keys[0]
@@ -85,7 +85,7 @@ class MockPooldoseClient:
                     raise ValueError("No device key found in JSON data")
             else:
                 raise ValueError("No 'devicedata' key found in JSON file")
-                
+
         except FileNotFoundError:
             _LOGGER.error("JSON file not found: %s", self.json_file_path)
             raise
@@ -100,15 +100,15 @@ class MockPooldoseClient:
         """Extract device information from the loaded data."""
         if not self._device_key:
             return
-            
+
         # Extract serial number from device key (remove _DEVICE suffix)
         serial_number = self._device_key.replace('_DEVICE', '')
-        
+
         # Try to determine model and firmware from data keys
         device_data = self._mock_data['devicedata'][self._device_key]
         model = None
         fw_code = None
-        
+
         # Look for model/firmware pattern in keys
         for key in device_data.keys():
             if key.startswith('PDPR1H1'):
@@ -117,7 +117,7 @@ class MockPooldoseClient:
                     model = parts[0]
                     fw_code = parts[1]
                     break
-        
+
         # Update device info
         self.device_info.update({
             "NAME": f"Mock {model or 'POOLDOSE'} Device",
@@ -125,11 +125,12 @@ class MockPooldoseClient:
             "DEVICE_ID": self._device_key,
             "MODEL": model or "MOCK_MODEL",
             "MODEL_ID": model or "MOCK_MODEL",
-            "FW_CODE": fw_code.replace('FW', '') if fw_code and fw_code.startswith('FW') else fw_code or "MOCK_FW",
+            "FW_CODE": (fw_code.replace('FW', '') if fw_code and fw_code.startswith('FW')
+                       else fw_code or "MOCK_FW"),
             "API_VERSION": API_VERSION_SUPPORTED,
             "IP": "127.0.0.1",  # Mock IP
         })
-        
+
         if self._include_sensitive_data:
             self.device_info.update({
                 "WIFI_SSID": "MockWiFi",
@@ -141,7 +142,7 @@ class MockPooldoseClient:
     async def connect(self) -> RequestStatus:
         """
         Mock connection - always succeeds if data is loaded.
-        
+
         Returns:
             RequestStatus: SUCCESS if mock data is available
         """
@@ -149,7 +150,7 @@ class MockPooldoseClient:
             # Load mapping info
             try:
                 self._mapping_info = await MappingInfo.load(
-                    self.device_info["MODEL_ID"], 
+                    self.device_info["MODEL_ID"],
                     self.device_info["FW_CODE"]
                 )
                 _LOGGER.info("Mock client connected successfully")
@@ -164,17 +165,17 @@ class MockPooldoseClient:
     def static_values(self) -> Tuple[RequestStatus, Optional[StaticValues]]:
         """
         Get static device values from mock data.
-        
+
         Returns:
             Tuple of (RequestStatus, StaticValues or None)
         """
         try:
             if not self._mock_data:
                 return RequestStatus.UNKNOWN_ERROR, None
-                
+
             static_values = StaticValues(self.device_info)
             return RequestStatus.SUCCESS, static_values
-            
+
         except (ValueError, TypeError, KeyError) as e:
             _LOGGER.error("Error creating static values: %s", e)
             return RequestStatus.UNKNOWN_ERROR, None
@@ -182,22 +183,22 @@ class MockPooldoseClient:
     async def instant_values(self) -> Tuple[RequestStatus, Optional[InstantValues]]:
         """
         Get instant values from mock data.
-        
+
         Returns:
             Tuple of (RequestStatus, InstantValues or None)
         """
         try:
             if not self._mock_data or not self._device_key or not self._mapping_info:
                 return RequestStatus.UNKNOWN_ERROR, None
-                
+
             device_data = self._mock_data['devicedata'][self._device_key]
-            
+
             # Filter out non-sensor data
             filtered_data = {
-                k: v for k, v in device_data.items() 
+                k: v for k, v in device_data.items()
                 if k.startswith(self.device_info["MODEL_ID"]) and isinstance(v, dict)
             }
-            
+
             instant_values = InstantValues(
                 device_data=filtered_data,
                 mapping=self._mapping_info.mapping,
@@ -205,9 +206,9 @@ class MockPooldoseClient:
                 device_id=self._device_key,
                 request_handler=None  # No real request handler in mock
             )
-            
+
             return RequestStatus.SUCCESS, instant_values
-            
+
         except (ValueError, TypeError, KeyError) as e:
             _LOGGER.error("Error creating instant values: %s", e)
             return RequestStatus.UNKNOWN_ERROR, None
@@ -215,7 +216,7 @@ class MockPooldoseClient:
     async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
         """
         Get structured instant values from mock data.
-        
+
         Returns:
             Tuple of (RequestStatus, structured data dict)
         """
@@ -223,10 +224,10 @@ class MockPooldoseClient:
             status, instant_values = await self.instant_values()
             if status != RequestStatus.SUCCESS or not instant_values:
                 return status, {}
-                
+
             structured_data = instant_values.to_structured_dict()
             return RequestStatus.SUCCESS, structured_data
-            
+
         except (ValueError, TypeError, AttributeError) as e:
             _LOGGER.error("Error creating structured instant values: %s", e)
             return RequestStatus.UNKNOWN_ERROR, {}
@@ -239,7 +240,7 @@ class MockPooldoseClient:
     def reload_data(self) -> bool:
         """
         Reload data from JSON file.
-        
+
         Returns:
             bool: True if reload was successful
         """
@@ -253,7 +254,7 @@ class MockPooldoseClient:
     def get_raw_data(self) -> Optional[Dict[str, Any]]:
         """
         Get the raw loaded JSON data.
-        
+
         Returns:
             The complete loaded JSON data or None
         """
@@ -262,7 +263,7 @@ class MockPooldoseClient:
     def get_device_data(self) -> Optional[Dict[str, Any]]:
         """
         Get only the device-specific data.
-        
+
         Returns:
             Device data dictionary or None
         """

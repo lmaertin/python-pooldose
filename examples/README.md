@@ -44,23 +44,6 @@ python demo_mock.py --help
 - Perfect for development and CI/CD
 - Command-line argument support for custom data files
 
-### `test_mock_simple.py` - Simple Mock Test
-
-A minimal example showing basic mock client usage.
-
-**Usage:**
-
-```bash
-python test_mock_simple.py
-```
-
-**Features:**
-
-- Quick verification of basic functionality
-- Simple sensor value display
-- Minimal error handling
-- Good starting point for learning
-
 ## Running the Examples
 
 From the project root directory:

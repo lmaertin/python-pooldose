@@ -3,4 +3,3 @@ references/*
 .DS_Store
 dist/*
 src/python_pooldose.egg-info/*
-demo.py
