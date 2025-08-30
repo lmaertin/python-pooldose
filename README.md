@@ -248,9 +248,6 @@ asyncio.run(simple_test())
 You can run the demo script with custom JSON files:
 
 ```bash
-# Run with sample data
-python examples/demo_mock.py references/testdaten/suplere/instantvalues.json
-
 # Use custom JSON file
 python examples/demo_mock.py path/to/your/data.json
 ```
@@ -323,7 +320,6 @@ success = client.reload_data()
 
 The following sample JSON files are available in the repository:
 
-- `references/testdaten/suplere/instantvalues.json` - PDPR1H1HAR1V0_FW539224 device
 - `references/testdaten/instantvalues_poolforum_1.json` - Additional sample data
 
 ### Mock Client Use Cases
