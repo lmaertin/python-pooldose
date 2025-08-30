@@ -17,12 +17,16 @@ try:
 except ImportError:
     # Fallback implementations for when installed via pip
     def display_static_values(static_values):
-        """Display static device values."""
+        """Display static device values (fallback implementation)."""
+        device_info = [
+            ("Name", static_values.sensor_name),
+            ("Serial", static_values.sensor_serial_number),
+            ("Model", static_values.sensor_model),
+            ("Firmware", static_values.sensor_fw_version),
+        ]
         print("\nDevice Information:")
-        print(f"  Name: {static_values.sensor_name}")
-        print(f"  Serial: {static_values.sensor_serial_number}")
-        print(f"  Model: {static_values.sensor_model}")
-        print(f"  Firmware: {static_values.sensor_fw_version}")
+        for label, value in device_info:
+            print(f"  {label}: {value}")
 
     def display_structured_data(structured_data):
         """Display structured data in a simple format."""
