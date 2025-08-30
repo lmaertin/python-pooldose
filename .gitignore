@@ -67,24 +67,6 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
-references/ha_comp/pooldose/__init__.py
-references/ha_comp/pooldose/_pooldose_strings.json
-references/ha_comp/pooldose/binary_sensor.py
-references/ha_comp/pooldose/config_flow.py
-references/ha_comp/pooldose/const.py
-references/ha_comp/pooldose/coordinator.py
-references/ha_comp/pooldose/entity.py
-references/ha_comp/pooldose/manifest.json
-references/ha_comp/pooldose/number.py
-references/ha_comp/pooldose/pooldose_api.py
-references/ha_comp/pooldose/quality_scale.yaml
-references/ha_comp/pooldose/select.py
-references/ha_comp/pooldose/sensor.py
-references/ha_comp/pooldose/strings.json
-references/ha_comp/pooldose/switch.py
-references/ha_comp/pooldose/translations/en.json
-references/testdaten/params.js
-references/testdaten/suplere/devicename.txt
-references/testdaten/suplere/index.html
-references/testdaten/suplere/instantvalues.json
-references/testdaten/tscherno/instantvalues.json
+
+# Project specific
+references/*
