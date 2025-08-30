@@ -1,6 +1,6 @@
 """Constants for the Pooldose library."""
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 # Default device info structure
 DEFAULT_DEVICE_INFO: Dict[str, Optional[Any]] = {

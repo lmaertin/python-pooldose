@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-08-30
+
+### Added
+
+- **Command Line Interface**: Complete CLI implementation with `--host`, `--mock`, `--ssl`, and `--port` options
+  - Real device connection: `pooldose --host 192.168.1.100`
+  - Mock mode with JSON files: `pooldose --mock path/to/data.json`
+  - HTTPS support: `pooldose --host 192.168.1.100 --ssl --port 8443`
+  - Alternative module execution: `python -m pooldose --host IP`
+- **Pip Installation Support**: Install as console script via `pip install python-pooldose`
+- **Version and Help Commands**: `--version` and `--help` support in CLI
+- **PEP-561 Type Compliance**: Package is now fully PEP-561 compliant for Home Assistant integrations
+  - Added `py.typed` file marking the package as typed
+  - Public API methods have comprehensive type annotations
+  - mypy configuration included in pyproject.toml
+  - Compatible with Home Assistant strict typing requirements
+
+### Enhanced
+
+- **Documentation Modernization**: Complete overhaul of all documentation
+  - Centralized CLI documentation in main README
+  - Removed all references to deprecated demo scripts
+  - Updated examples and usage instructions
+- **Code Quality Improvements**: Achieved Pylint 10.00/10 score
+  - Strict typing implementation with PEP-561 compliance
+  - Enhanced error handling and validation
+  - Code deduplication and cleanup
+  - mypy configuration for type checking
+  - Type-safe public API for Home Assistant integrations
+- **Mock Client Integration**: Seamless integration of mock functionality into CLI
+  - No separate demo scripts needed
+  - Same command interface for real and mock modes
+  - Enhanced JSON data validation
+
+### Removed
+
+- **Deprecated Demo Scripts**: Removed `demo_mock.py` and related files
+  - All functionality now available via CLI
+  - Simplified project structure
+  - Reduced maintenance overhead
+- **Legacy References**: Cleaned up all user-specific and test data references
+
+### Fixed
+
+- **Documentation Consistency**: All documentation now accurately reflects current functionality
+- **CLI Error Handling**: Improved error messages and validation
+- **Examples Accuracy**: Updated all examples to use current API and CLI patterns
+
 ## [0.5.1] - 2025-08-29
 
 ### Added

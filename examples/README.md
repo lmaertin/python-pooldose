@@ -22,18 +22,19 @@ python demo.py
 - Displays all sensor readings, alarms, setpoints, and settings
 - Demonstrates error handling and SSL support
 
-### `demo_mock.py` - Mock Client Demo
+## Mock Client Usage
 
-Shows how to use the mock client with JSON files for development and testing.
-
-**Usage:**
+The mock client functionality is now integrated into the main CLI. No separate demo file needed:
 
 ```bash
-# Use custom JSON file
-python demo_mock.py path/to/your/data.json
+# Use mock client with JSON file
+pooldose --mock path/to/your/data.json
+
+# Or as Python module
+python -m pooldose --mock path/to/your/data.json
 
 # Show help
-python demo_mock.py --help
+pooldose --help
 ```
 
 **Features:**
@@ -42,7 +43,7 @@ python demo_mock.py --help
 - Uses real device data from JSON files
 - Same API as real client
 - Perfect for development and CI/CD
-- Command-line argument support for custom data files
+- Integrated command-line interface
 
 ## Running the Examples
 
@@ -52,11 +53,11 @@ From the project root directory:
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the mock demo with custom data
-python examples/demo_mock.py path/to/your/data.json
-
 # Run the real device demo (edit HOST first!)
 python examples/demo.py
+
+# For mock client testing, use the CLI instead:
+pooldose --mock path/to/your/data.json
 ```
 
 ## Documentation

@@ -5,7 +5,7 @@
             "name": "Python: demo.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/demo.py",
+            "program": "${workspaceFolder}/examples/demo.py",
             "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"

@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+
 class RequestStatus(Enum):
     """
     Enum for standardized return codes of API and client methods.

@@ -1,11 +1,13 @@
 """Mapping Parser for async API client for SEKO Pooldose."""
 
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
 import importlib.resources
 import json
 import logging
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
+
 import aiofiles
+
 from pooldose.request_handler import RequestStatus
 
 # pylint: disable=line-too-long

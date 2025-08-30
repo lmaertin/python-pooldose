@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional, Tuple, Dict, Any
+from typing import Any, Dict, Optional, Tuple
 
 from pooldose.constants import get_default_device_info
-from pooldose.values.instant_values import InstantValues
+from pooldose.mappings.mapping_info import MappingInfo
 from pooldose.request_handler import RequestHandler
 from pooldose.request_status import RequestStatus
+from pooldose.values.instant_values import InstantValues
 from pooldose.values.static_values import StaticValues
-from pooldose.mappings.mapping_info import MappingInfo
 
 # pylint: disable=line-too-long,too-many-instance-attributes
 

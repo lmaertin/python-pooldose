@@ -1,12 +1,13 @@
 """Request Handler for async API client for SEKO Pooldose."""
 
-import logging
+import asyncio
 import json
+import logging
 import re
 import socket
 import ssl
 from typing import Any, Optional
-import asyncio
+
 import aiohttp
 
 from pooldose.request_status import RequestStatus
@@ -93,7 +94,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         else:
             return f"{scheme}://{self.host}{path}"
 
-    async def _get_core_params(self) -> dict | None:
+    async def _get_core_params(self) -> dict[str, Any] | None:
         """
         Fetch and extract softwareVersion and apiversion from params.js.
 

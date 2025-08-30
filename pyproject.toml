@@ -1,6 +1,6 @@
 [project]
 name = "python-pooldose"
-version = "0.5.1"
+dynamic = ["version"]
 description = "Unoffical async Python client for SEKO PoolDose devices"
 authors = [
     { name = "Lukas Maertin", email = "pypi@lukas-maertin.de" }
@@ -17,6 +17,9 @@ dependencies = [
 Homepage = "https://github.com/lmaertin/python-pooldose"
 Repository = "https://github.com/lmaertin/python-pooldose"
 
+[project.scripts]
+pooldose = "pooldose.__main__:main"
+
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -27,12 +30,59 @@ dev = ["pytest", "pytest-asyncio"]
 [tool.setuptools]
 package-dir = {"" = "src"}
 
+[tool.setuptools.dynamic]
+version = {attr = "pooldose.__version__"}
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 "pooldose.mappings" = ["*.json"]
+"pooldose" = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.11"
+# Home Assistant strict typing compliance
+strict = false
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+warn_no_return = true
+strict_equality = true
+ignore_missing_imports = true
+# Focus on public API typing
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = "examples.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "tests.*" 
+ignore_errors = true
+
+# Strict typing for core public API modules
+[[tool.mypy.overrides]]
+module = "pooldose.__init__"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = "pooldose.client"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "pooldose.request_status"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true

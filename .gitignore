@@ -1,5 +1,90 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-references/*
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# VS Code (keep settings.json, ignore user-specific files)
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
+.vscode/*.code-workspace
+
+# OS
 .DS_Store
-dist/*
-src/python_pooldose.egg-info/*
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+references/ha_comp/pooldose/__init__.py
+references/ha_comp/pooldose/_pooldose_strings.json
+references/ha_comp/pooldose/binary_sensor.py
+references/ha_comp/pooldose/config_flow.py
+references/ha_comp/pooldose/const.py
+references/ha_comp/pooldose/coordinator.py
+references/ha_comp/pooldose/entity.py
+references/ha_comp/pooldose/manifest.json
+references/ha_comp/pooldose/number.py
+references/ha_comp/pooldose/pooldose_api.py
+references/ha_comp/pooldose/quality_scale.yaml
+references/ha_comp/pooldose/select.py
+references/ha_comp/pooldose/sensor.py
+references/ha_comp/pooldose/strings.json
+references/ha_comp/pooldose/switch.py
+references/ha_comp/pooldose/translations/en.json
+references/testdaten/params.js
+references/testdaten/suplere/devicename.txt
+references/testdaten/suplere/index.html
+references/testdaten/suplere/instantvalues.json
+references/testdaten/tscherno/instantvalues.json

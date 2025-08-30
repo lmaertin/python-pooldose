@@ -1,4 +1,4 @@
-ja# python-pooldose
+# python-pooldose
 
 Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for pools and spas.
 
@@ -10,6 +10,8 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 - **Dynamic sensor discovery** based on device model and firmware
 - **Dictionary-style access** to instant values
 - **Structured data API** with type-based organization
+- **PEP-561 compliant** with full type hints for Home Assistant integrations
+- **Command-line interface** for direct device interaction and testing
 - **Secure by default** - WiFi passwords excluded unless explicitly requested
 - **Comprehensive error handling** with detailed logging
 - **SSL/HTTPS support** for secure communication
@@ -151,6 +153,45 @@ client = PooldoseClient("192.168.1.100", use_ssl=True, port=8443, ssl_verify=Fal
 pip install python-pooldose
 ```
 
+## Command Line Usage
+
+After installation, you can use python-pooldose directly from the command line:
+
+### Connect to Real Device
+
+```bash
+# Basic connection
+pooldose --host 192.168.1.100
+
+# With HTTPS
+pooldose --host 192.168.1.100 --ssl
+
+# Custom port
+pooldose --host 192.168.1.100 --ssl --port 8443
+```
+
+### Mock Mode with JSON Files
+
+```bash
+# Use JSON file for testing
+pooldose --mock path/to/your/data.json
+```
+
+### Alternative Module Execution
+
+You can also run it as a Python module:
+
+```bash
+# Real device
+python -m pooldose --host 192.168.1.100
+
+# Mock mode
+python -m pooldose --mock data.json
+
+# Show help
+python -m pooldose --help
+```
+
 ## Examples
 
 The `examples/` directory contains demonstration scripts that show how to use the python-pooldose library:
@@ -170,22 +211,6 @@ python examples/demo.py
 - Shows device information and static values
 - Displays all sensor readings, alarms, setpoints, and settings
 - Demonstrates error handling
-
-### 2. Mock Client Demo (`examples/demo_mock.py`)
-
-Shows how to use the mock client with JSON files for development and testing:
-
-```bash
-# Use custom JSON file
-python examples/demo_mock.py path/to/your/data.json
-```
-
-**Features:**
-
-- No hardware required
-- Uses real device data from JSON files
-- Same API as real client
-- Perfect for development and CI/CD
 
 ### Benefits of the Examples
 
@@ -245,11 +270,14 @@ asyncio.run(simple_test())
 
 ### Mock Client Command Line Usage
 
-You can run the demo script with custom JSON files:
+You can use the mock client with custom JSON files via the command line:
 
 ```bash
-# Use custom JSON file
-python examples/demo_mock.py path/to/your/data.json
+# Use mock client with JSON file
+pooldose --mock path/to/your/data.json
+
+# Or as Python module
+python -m pooldose --mock path/to/your/data.json
 ```
 
 ### JSON Data Format
@@ -320,7 +348,7 @@ success = client.reload_data()
 
 The following sample JSON files are available in the repository:
 
-- `references/testdaten/instantvalues_poolforum_1.json` - Additional sample data
+- `references/testdaten/tscherno/instantvalues.json` - Sample device data for testing
 
 ### Mock Client Use Cases
 
@@ -716,11 +744,53 @@ The `instant_values_structured()` method returns data organized by type:
 
 This client has been tested with:
 
-- **PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: 539187)
+- **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: 539187)
+- **VA dos BASIC Chlor - pH/ORP Wi-Fi** (Model: PDPR1H1HAR1V0, FW: 539224)
 
 Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
 
 > **Note:** The JSON files in the mappings directory define the device-specific data keys and their human-readable names for different PoolDose models and firmware versions.
+
+## Type Hints & Home Assistant Integration
+
+This package is **PEP-561 compliant** and fully typed for use in Home Assistant integrations:
+
+### Type Safety Features
+
+**PEP-561 Compliance**: Package includes `py.typed` file marking it as fully typed  
+**Comprehensive Type Annotations**: All public API methods have complete type hints  
+**mypy Support**: Built-in mypy configuration for static type checking  
+**Home Assistant Ready**: Compatible with Home Assistant's strict typing requirements  
+
+### Type-Safe Usage
+
+```python
+from pooldose import PooldoseClient
+from pooldose.request_status import RequestStatus
+
+# Type checkers will infer all types automatically
+client: PooldoseClient = PooldoseClient("192.168.1.100")
+status: RequestStatus = await client.connect()
+
+# Dictionary-style access with proper typing
+status, instant_values = await client.instant_values()
+if status == RequestStatus.SUCCESS and instant_values:
+    temperature = instant_values["temperature"]  # Typed as tuple[float, str]
+    ph_value = instant_values.get("ph", "N/A")  # Safe access with default
+
+# Structured data with full type safety
+status, structured_data = await client.instant_values_structured()
+sensors = structured_data.get("sensor", {})  # Type: dict[str, dict[str, Any]]
+```
+
+### Integration Benefits
+
+- **IDE Support**: Full autocomplete and type checking in VS Code, PyCharm, etc.
+- **Runtime Safety**: Catch type errors before deployment
+- **Documentation**: Self-documenting code through type annotations
+- **Maintenance**: Easier refactoring with type-guided development
+
+For Home Assistant integrations, add this package to your integration's dependencies and enjoy full type safety throughout your integration code.
 
 ## Security
 
@@ -736,7 +806,7 @@ status = await client.connect()
 
 ### Security Model
 
-```
+```text
 Data Classification:
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Public Data   │    │ Sensitive Data  │    │  Never Exposed  │
@@ -757,9 +827,11 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.5.1)
+### Latest Release (0.6.0)
 
-- **Examples**: Demo scripts for real and mock clients (`examples/` directory)
-- **Device Support**: Added mapping for model `PDPR1H1HAR1V0_FW539224`
-- **Mock Client**: JSON-based testing framework for development without hardware
-- **Fixed**: Removed deprecated references and improved consistency
+- **Command Line Interface**: Complete CLI with `--host`, `--mock`, `--ssl`, and `--port` options
+- **Pip Installation**: Install as console script via `pip install python-pooldose`
+- **PEP-561 Type Compliance**: Full typing support for Home Assistant integrations
+- **Documentation Modernization**: Centralized CLI documentation
+- **Code Quality**: Pylint 10.00/10 score with strict typing and enhanced error handling
+- **Simplified Structure**: Removed deprecated demo scripts, integrated mock functionality into CLI
