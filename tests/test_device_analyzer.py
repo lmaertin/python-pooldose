@@ -1,8 +1,8 @@
 """Tests for DeviceAnalyzer functionality."""
 
-import json
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from pooldose.device_analyzer import DeviceAnalyzer, DeviceInfo, WidgetInfo
 from pooldose.request_handler import RequestHandler
@@ -130,7 +130,7 @@ class TestDeviceAnalyzer:
         """Test successful device info extraction."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info = analyzer._extract_device_info(sample_instant_values)
-        
+
         assert device_info is not None
         assert device_info.device_id == "01220000095B_DEVICE"
         assert device_info.model == "PDPR1H1HAW100"
@@ -160,7 +160,7 @@ class TestDeviceAnalyzer:
         }
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info = analyzer._extract_device_info(data)
-        
+
         assert device_info is not None
         assert device_info.device_id == "test_device"
         assert device_info.model == "UNKNOWN"
@@ -186,7 +186,7 @@ class TestDeviceAnalyzer:
         possible_values = analyzer._extract_possible_values_from_labels(
             "w_1eklj6euj", sample_device_language
         )
-        
+
         expected_values = [
             "PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_OFF: Off",
             "PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_PROPORTIONAL: Proportional",
@@ -201,7 +201,7 @@ class TestDeviceAnalyzer:
         possible_values = analyzer._extract_possible_values_from_labels(
             "w_1eklinki6", sample_device_language
         )
-        
+
         expected_values = [
             "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_M_: m³",
             "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_LITER: Liter"
@@ -214,14 +214,14 @@ class TestDeviceAnalyzer:
         possible_values = analyzer._extract_possible_values_from_labels(
             "w_nonexistent", sample_device_language
         )
-        assert possible_values == []
+        assert not possible_values
 
     def test_format_widget_details_simple(self, mock_request_handler):
         """Test formatting of simple widget details."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         widget_data = "simple_value"
         details = analyzer._format_widget_details(widget_data)
-        
+
         expected = {"type": "simple", "data": "simple_value"}
         assert details == expected
 
@@ -243,7 +243,7 @@ class TestDeviceAnalyzer:
             ]
         }
         details = analyzer._format_widget_details(widget_data)
-        
+
         assert details["unit"] == "pH"
         assert details["range"] == "0 - 14"
         assert details["resolution"] == 0.1
@@ -262,7 +262,7 @@ class TestDeviceAnalyzer:
             "magnitude": ["pH"]
         }
         details = analyzer._format_widget_details(widget_data)
-        
+
         assert details["target_range"] == "6.0 - 8.0"
         assert "range" not in details
 
@@ -308,22 +308,22 @@ class TestDeviceAnalyzer:
         assert label == "N/A"
 
     @pytest.mark.asyncio
-    async def test_analyze_device_success(self, mock_request_handler, sample_instant_values, 
+    async def test_analyze_device_success(self, mock_request_handler, sample_instant_values,
                                         sample_device_language):
         """Test successful device analysis."""
         mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, sample_instant_values)
         mock_request_handler.get_device_language.return_value = (RequestStatus.SUCCESS, sample_device_language)
-        
+
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info, widgets, status = await analyzer.analyze_device()
-        
+
         assert status == RequestStatus.SUCCESS
         assert device_info is not None
         assert device_info.device_id == "01220000095B_DEVICE"
         assert device_info.model == "PDPR1H1HAW100"
         assert device_info.fw_code == "FW539187"
         assert len(widgets) == 4  # 4 widgets in sample data (excluding skipped keys)
-        
+
         # Check widget details
         ph_widget = next((w for w in widgets if w.short_key == "w_1ekeigkin"), None)
         assert ph_widget is not None
@@ -336,10 +336,10 @@ class TestDeviceAnalyzer:
     async def test_analyze_device_failed_instant_values(self, mock_request_handler):
         """Test device analysis when instant values fetch fails."""
         mock_request_handler.get_values_raw.return_value = (RequestStatus.UNKNOWN_ERROR, {})
-        
+
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info, widgets, status = await analyzer.analyze_device()
-        
+
         assert status == RequestStatus.UNKNOWN_ERROR
         assert device_info is None
         assert widgets == []
@@ -348,10 +348,10 @@ class TestDeviceAnalyzer:
     async def test_analyze_device_no_device_info(self, mock_request_handler):
         """Test device analysis when device info extraction fails."""
         mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, {})
-        
+
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info, widgets, status = await analyzer.analyze_device()
-        
+
         assert status == RequestStatus.NO_DATA
         assert device_info is None
         assert widgets == []
@@ -361,14 +361,14 @@ class TestDeviceAnalyzer:
         """Test device analysis when label fetch fails."""
         mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, sample_instant_values)
         mock_request_handler.get_device_language.return_value = (RequestStatus.UNKNOWN_ERROR, {})
-        
+
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info, widgets, status = await analyzer.analyze_device()
-        
+
         assert status == RequestStatus.SUCCESS
         assert device_info is not None
         assert len(widgets) == 4  # Should still process widgets
-        
+
         # All widgets should have default label
         for widget in widgets:
             assert widget.label == "N/A"
@@ -377,21 +377,21 @@ class TestDeviceAnalyzer:
         """Test widget processing."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info = DeviceInfo("01220000095B_DEVICE", "PDPR1H1HAW100", "FW539187")
-        
+
         widgets = analyzer._process_widgets(sample_instant_values, device_info, sample_device_language)
-        
+
         assert len(widgets) == 4
-        
+
         # Check that skipped keys are not included
         widget_keys = [w.short_key for w in widgets]
         assert "deviceInfo" not in widget_keys
         assert "collapsed_bar" not in widget_keys
-        
+
         # Check specific widgets
         ph_widget = next((w for w in widgets if w.short_key == "w_1ekeigkin"), None)
         assert ph_widget is not None
         assert ph_widget.label == "pH"
-        
+
         combo_widget = next((w for w in widgets if w.short_key == "w_1eklj6euj"), None)
         assert combo_widget is not None
         assert "possible_values" in combo_widget.details
@@ -400,7 +400,7 @@ class TestDeviceAnalyzer:
     def test_format_widget_detail_string(self, mock_request_handler):
         """Test formatting widget details into strings."""
         analyzer = DeviceAnalyzer(mock_request_handler)
-        
+
         details = {
             "unit": "pH",
             "range": "0-14",
@@ -410,9 +410,9 @@ class TestDeviceAnalyzer:
             "alarm": True,
             "warning": False
         }
-        
+
         detail_strings = analyzer._format_widget_detail_string(details)
-        
+
         expected = [
             "Unit: pH",
             "Range: 0-14",
@@ -426,14 +426,14 @@ class TestDeviceAnalyzer:
     def test_format_widget_detail_string_target_range(self, mock_request_handler):
         """Test formatting widget details with target range instead of range."""
         analyzer = DeviceAnalyzer(mock_request_handler)
-        
+
         details = {
             "target_range": "6.0-8.0",
             "unit": "pH"
         }
-        
+
         detail_strings = analyzer._format_widget_detail_string(details)
-        
+
         expected = [
             "Unit: pH",
             "Target Range: 6.0-8.0"
@@ -444,7 +444,7 @@ class TestDeviceAnalyzer:
         """Test display analysis showing only visible widgets."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info = DeviceInfo("test_device", "TEST_MODEL", "FW123")
-        
+
         # Create test widgets - one visible, one hidden
         visible_widget = WidgetInfo(
             key="visible_key",
@@ -453,7 +453,7 @@ class TestDeviceAnalyzer:
             raw_value=123,
             details={"visible": True, "unit": "test"}
         )
-        
+
         hidden_widget = WidgetInfo(
             key="hidden_key",
             short_key="hidden",
@@ -461,11 +461,11 @@ class TestDeviceAnalyzer:
             raw_value=456,
             details={"visible": False, "unit": "test"}
         )
-        
+
         widgets = [visible_widget, hidden_widget]
-        
+
         analyzer.display_analysis(device_info, widgets, show_all=False)
-        
+
         captured = capsys.readouterr()
         assert "Visible Widget" in captured.out
         assert "Hidden Widget" not in captured.out
@@ -475,7 +475,7 @@ class TestDeviceAnalyzer:
         """Test display analysis showing all widgets."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info = DeviceInfo("test_device", "TEST_MODEL", "FW123")
-        
+
         # Create test widgets - one visible, one hidden
         visible_widget = WidgetInfo(
             key="visible_key",
@@ -484,7 +484,7 @@ class TestDeviceAnalyzer:
             raw_value=123,
             details={"visible": True, "unit": "test"}
         )
-        
+
         hidden_widget = WidgetInfo(
             key="hidden_key",
             short_key="hidden",
@@ -492,11 +492,11 @@ class TestDeviceAnalyzer:
             raw_value=456,
             details={"visible": False, "unit": "test"}
         )
-        
+
         widgets = [visible_widget, hidden_widget]
-        
+
         analyzer.display_analysis(device_info, widgets, show_all=True)
-        
+
         captured = capsys.readouterr()
         assert "Visible Widget" in captured.out
         assert "Hidden Widget" in captured.out
@@ -506,7 +506,7 @@ class TestDeviceAnalyzer:
         """Test display analysis with no widgets to display."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info = DeviceInfo("test_device", "TEST_MODEL", "FW123")
-        
+
         # Create only hidden widgets
         hidden_widget = WidgetInfo(
             key="hidden_key",
@@ -515,11 +515,11 @@ class TestDeviceAnalyzer:
             raw_value=456,
             details={"visible": False, "unit": "test"}
         )
-        
+
         widgets = [hidden_widget]
-        
+
         analyzer.display_analysis(device_info, widgets, show_all=False)
-        
+
         captured = capsys.readouterr()
         assert "No widgets to display" in captured.out
 
@@ -527,7 +527,7 @@ class TestDeviceAnalyzer:
         """Test display analysis with possible values."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info = DeviceInfo("test_device", "TEST_MODEL", "FW123")
-        
+
         widget = WidgetInfo(
             key="test_key",
             short_key="test",
@@ -543,11 +543,11 @@ class TestDeviceAnalyzer:
                 ]
             }
         )
-        
+
         widgets = [widget]
-        
+
         analyzer.display_analysis(device_info, widgets, show_all=True)
-        
+
         captured = capsys.readouterr()
         assert "Combo Items:" in captured.out
         assert "0: Option1" in captured.out
