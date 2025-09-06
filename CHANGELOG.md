@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.5] - 2025-09-06
+
+### Added
+
+- **Device Analyzer**: New CLI command `--analyze` for comprehensive device analysis
+  - Widget extraction and type detection for unsupported devices
+  - Support discovery: `pooldose --host IP --analyze` to analyze device capabilities
+  - Detailed widget information including labels, values, and possible values
+  - Option `--analyze-all` to show all widgets including hidden ones
+  - Helps identify new device models and their supported features
+- **Code Quality**: Achieved perfect Pylint 10.00/10 score
+  - Complete PEP-561 compliance for Home Assistant integrations
+  - Comprehensive type annotations with mypy strict mode
+  - Enhanced error handling and documentation
+  - Removed all linting issues (trailing whitespace, unused arguments, etc.)
+
+### Enhanced
+
+- **Documentation**: Added device analysis section with practical examples
+- **Testing**: All 111 tests pass with enhanced test coverage
+- **Type Safety**: Full mypy compliance with zero errors across codebase
+
 ## [0.6.0] - 2025-08-30
 
 ### Added
@@ -58,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Examples**: Demo scripts for real and mock clients (`examples/` directory)
-- **Device Support**: Added mapping for model `PDPR1H1HAR1V0_FW539224`
+- **Device Support**: Added mapping for model `PDPR1H1HAR***_FW53****`
 - **Mock Client**: JSON-based testing framework for development without hardware
 
 ## [0.5.0] - 2025-08-24

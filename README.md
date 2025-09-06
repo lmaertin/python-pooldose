@@ -10,6 +10,7 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 - **Dynamic sensor discovery** based on device model and firmware
 - **Dictionary-style access** to instant values
 - **Structured data API** with type-based organization
+- **Device analyzer** for discovering unsupported device capabilities
 - **PEP-561 compliant** with full type hints for Home Assistant integrations
 - **Command-line interface** for direct device interaction and testing
 - **Secure by default** - WiFi passwords excluded unless explicitly requested
@@ -168,6 +169,12 @@ pooldose --host 192.168.1.100 --ssl
 
 # Custom port
 pooldose --host 192.168.1.100 --ssl --port 8443
+
+# Analyze device capabilities (discover unsupported devices)
+pooldose --host 192.168.1.100 --analyze
+
+# Show all widgets including hidden ones
+pooldose --host 192.168.1.100 --analyze-all
 ```
 
 ### Mock Mode with JSON Files
@@ -185,12 +192,102 @@ You can also run it as a Python module:
 # Real device
 python -m pooldose --host 192.168.1.100
 
+# Device analysis
+python -m pooldose --host 192.168.1.100 --analyze
+
 # Mock mode
 python -m pooldose --mock data.json
 
 # Show help
 python -m pooldose --help
 ```
+
+## Device Analysis for Unsupported Devices
+
+The device analyzer is a powerful feature that helps discover and analyze PoolDose devices that are not yet officially supported. This is particularly useful for:
+
+- **New Device Discovery**: Identifying capabilities of unknown device models
+- **Device Support Development**: Gathering data needed to add support for new devices
+- **Troubleshooting**: Understanding how your device exposes data and controls
+- **Widget Exploration**: Discovering all available sensors, controls, and settings
+
+### Basic Device Analysis
+
+```bash
+# Analyze a device to discover its capabilities
+pooldose --host 192.168.1.100 --analyze
+
+# Show all widgets including hidden ones
+pooldose --host 192.168.1.100 --analyze-all
+
+# Analyze with HTTPS
+pooldose --host 192.168.1.100 --ssl --analyze
+```
+
+### Analysis Output
+
+The analyzer provides comprehensive information about your device:
+
+```
+=== DEVICE ANALYSIS ===
+Device: 01234567890A_DEVICE
+Model: PDPR1H1HAW***  
+Firmware: FW53****
+
+=== WIDGETS (Visible UI Elements) ===
+
+SENSORS (Read-only values)
+temperature: 24.5°C
+ph: 7.2
+orp: 720 mV
+
+SETPOINTS (Configurable values)  
+target_ph: 7.0 (Range: 6.0-8.0, Step: 0.1)
+target_orp: 700 mV (Range: 400-900, Step: 10)
+
+SWITCHES (On/Off controls)
+stop_dosing: OFF
+pump_detection: ON
+
+SELECTS (Configuration options)
+water_meter_unit: L/h
+  Options: [L/h, m³/h, gal/h]
+
+ALARMS (Status indicators)
+alarm_ph: OK
+alarm_orp: OK
+```
+
+### Using Analysis for Device Support
+
+When you encounter an unsupported device, the analyzer helps gather the necessary information:
+
+1. **Run Analysis**: Use `--analyze` to discover all device capabilities
+2. **Document Output**: Save the analysis output to understand device structure  
+3. **Check Widget Types**: Note which sensors, controls, and settings are available
+4. **Identify Patterns**: Look for device model and firmware information
+5. **Report Findings**: Use the analysis data to request support for your device model
+
+### Example: Discovering New Device
+
+```bash
+# Unknown device analysis
+pooldose --host 192.168.1.100 --analyze
+
+# Output shows:
+# Device: 01987654321B_DEVICE  
+# Model: PDPR2H2XYZ***        ← New model not yet supported
+# Firmware: FW54****          ← New firmware version
+# 
+# Widgets discovered: 15 sensors, 8 controls, 12 settings
+```
+
+With this information, you can:
+- Report the new model/firmware combination  
+- Share the widget structure for mapping development
+- Help expand device support for the community
+
+The device analyzer makes python-pooldose extensible and helps build support for the growing ecosystem of SEKO PoolDose devices.
 
 ## Examples
 
@@ -620,13 +717,13 @@ Mapping Discovery Process:
          │
          ▼
 ┌─────────────────┐
-│ Get MODEL_ID    │ ──────► PDPR1H1HAW100
-│ Get FW_CODE     │ ──────► 539187
+│ Get MODEL_ID    │ ──────► PDPR1H1HAW***
+│ Get FW_CODE     │ ──────► 53****
 └─────────────────┘
          │
          ▼
 ┌─────────────────┐
-│ Load JSON File  │ ──────► model_PDPR1H1HAW100_FW539187.json
+│ Load JSON File  │ ──────► model_PDPR1H1HAW***_FW53****.json
 └─────────────────┘
          │
          ▼
@@ -744,10 +841,10 @@ The `instant_values_structured()` method returns data organized by type:
 
 This client has been tested with:
 
-- **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: 539187)
-- **VA dos BASIC Chlor - pH/ORP Wi-Fi** (Model: PDPR1H1HAR1V0, FW: 539224)
+- **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW***, FW: 53****)
+- **VA dos BASIC Chlor - pH/ORP Wi-Fi** (Model: PDPR1H1HAR***, FW: 53****)
 
-Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
+Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW***_FW53****.json`).
 
 > **Note:** The JSON files in the mappings directory define the device-specific data keys and their human-readable names for different PoolDose models and firmware versions.
 
@@ -827,11 +924,8 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.6.0)
+### Latest Release (0.6.5)
 
-- **Command Line Interface**: Complete CLI with `--host`, `--mock`, `--ssl`, and `--port` options
-- **Pip Installation**: Install as console script via `pip install python-pooldose`
-- **PEP-561 Type Compliance**: Full typing support for Home Assistant integrations
-- **Documentation Modernization**: Centralized CLI documentation
-- **Code Quality**: Pylint 10.00/10 score with strict typing and enhanced error handling
-- **Simplified Structure**: Removed deprecated demo scripts, integrated mock functionality into CLI
+- **Device Analyzer**: New CLI command `--analyze` for comprehensive device analysis and support discovery
+- **Code Quality**: Perfect Pylint 10.00/10 score with complete PEP-561 compliance
+- **Enhanced Documentation**: Added device analysis guide for unsupported device discovery
