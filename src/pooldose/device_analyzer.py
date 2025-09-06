@@ -317,10 +317,6 @@ class DeviceAnalyzer:
         print("DEVICE ANALYSIS RESULTS")
         print("=" * SEPARATOR_LENGTH)
 
-        # Device information
-        print(f"\nDevice ID: {device_info.device_id}")
-        print(f"Model: {device_info.model}")
-        print(f"FW Code: {device_info.fw_code}")
         print(f"Total Widgets: {len(widgets)}")
         print(f"Showing: {len(filtered_widgets)} {filter_info}")
 

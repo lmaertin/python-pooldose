@@ -414,7 +414,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                 status, data = await self.get_values_raw()
                 if status == RequestStatus.SUCCESS and data:
                     device_id = self._extract_device_id(data)
-                    
+
             if device_id is None:
                 _LOGGER.error("Could not determine device ID")
                 return RequestStatus.NO_DATA, None
@@ -424,7 +424,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             "DeviceId": device_id,
             "LANG": _DEVICE_LANGUAGE
         }
-        
+
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
             connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
