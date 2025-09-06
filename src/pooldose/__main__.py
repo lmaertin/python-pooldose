@@ -8,7 +8,9 @@ from pathlib import Path
 
 from pooldose import __version__
 from pooldose.client import PooldoseClient, RequestStatus
+from pooldose.device_analyzer import DeviceAnalyzer
 from pooldose.mock_client import MockPooldoseClient
+from pooldose.request_handler import RequestHandler
 
 # Import demo utilities if available
 try:
@@ -41,6 +43,63 @@ except ImportError:
                     print(f"  {key}: {value} {unit}")
                 else:
                     print(f"  {key}: {value}")
+
+
+async def run_device_analyzer(host: str, use_ssl: bool, port: int, show_all: bool = False) -> None:
+    """Run the DeviceAnalyzer for unknown devices."""
+    print(f"Analyzing unknown device at {host}")
+    if use_ssl:
+        print(f"Using HTTPS on port {port}")
+    else:
+        print(f"Using HTTP on port {port}")
+
+    if show_all:
+        print("Showing ALL widgets (including hidden ones)")
+    else:
+        print("Showing only VISIBLE widgets (use --analyze-all for all)")
+
+    # Create request handler
+    handler = RequestHandler(
+        host=host,
+        timeout=30,
+        use_ssl=use_ssl,
+        port=port if port != 0 else None,
+        ssl_verify=False
+    )
+
+    try:
+        # Test connection
+        print("Testing connection...")
+        if not handler.check_host_reachable():
+            print("Host not reachable!")
+            return
+        print("Host is reachable")
+
+        # Connect and initialize
+        print("\nConnecting and initializing...")
+        status = await handler.connect()
+        if status != RequestStatus.SUCCESS:
+            print(f"Connection failed: {status}")
+            return
+        print("Connected successfully")
+        print(f"   Software Version: {handler.software_version}")
+        print(f"   API Version: {handler.api_version}")
+
+        # Create and run analyzer
+        analyzer = DeviceAnalyzer(handler)
+        device_info, widgets, analysis_status = await analyzer.analyze_device()
+
+        if analysis_status != RequestStatus.SUCCESS:
+            print(f"Analysis failed: {analysis_status}")
+            return
+
+        # Display results
+        analyzer.display_analysis(device_info, widgets, show_all=show_all)
+
+    except (ConnectionError, TimeoutError, OSError) as e:
+        print(f"Network error: {e}")
+    except Exception as e:  # pylint: disable=broad-except
+        print(f"Error during analysis: {e}")
 
 
 async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
@@ -138,6 +197,12 @@ Examples:
   # Connect with HTTPS
   python -m pooldose --host 192.168.1.100 --ssl --port 443
 
+  # Analyze unknown device (visible widgets only)
+  python -m pooldose --host 192.168.1.100 --analyze
+
+  # Analyze unknown device (all widgets including hidden)
+  python -m pooldose --host 192.168.1.100 --analyze-all
+
   # Use mock client with JSON file
   python -m pooldose --mock path/to/your/data.json
         """,
@@ -171,12 +236,30 @@ Examples:
         help="Custom port (default: 80 for HTTP, 443 for HTTPS)"
     )
     parser.add_argument(
+        "--analyze",
+        action="store_true",
+        help="Analyze unknown device (requires --host)"
+    )
+    parser.add_argument(
+        "--analyze-all",
+        action="store_true",
+        help="Analyze unknown device including hidden widgets (implies --analyze)"
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"python-pooldose {__version__}"
     )
 
     args = parser.parse_args()
+
+    # Handle analyze-all implies analyze
+    if args.analyze_all:
+        args.analyze = True
+
+    # Validation: --analyze requires --host
+    if args.analyze and not args.host:
+        parser.error("--analyze requires --host to be specified")
 
     # Set UTF-8 encoding for output
     if sys.stdout.encoding != 'utf-8':
@@ -189,7 +272,13 @@ Examples:
         if args.host:
             # Real device mode
             port = args.port if args.port != 0 else (443 if args.ssl else 80)
-            asyncio.run(run_real_client(args.host, args.ssl, port))
+            if args.analyze:
+                # Device analysis mode
+                asyncio.run(run_device_analyzer(
+                    args.host, args.ssl, port, show_all=args.analyze_all))
+            else:
+                # Normal client mode
+                asyncio.run(run_real_client(args.host, args.ssl, port))
         elif args.mock:
             # Mock mode
             asyncio.run(run_mock_client(args.mock))

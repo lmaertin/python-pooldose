@@ -16,6 +16,9 @@ from pooldose.request_status import RequestStatus
 
 _LOGGER = logging.getLogger(__name__)
 
+# Language constant for device language API - always use English as it's guaranteed to exist
+_DEVICE_LANGUAGE = "en"
+
 class RequestHandler:  # pylint: disable=too-many-instance-attributes
     """
     Handles all HTTP requests to the Pooldose API.
@@ -366,6 +369,76 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             return False
 
         return True
+
+    def _extract_device_id(self, instant_values_data: dict) -> str | None:
+        """
+        Extract the device ID from instant values data.
+        
+        Args:
+            instant_values_data (dict): The raw data from get_values_raw()
+            
+        Returns:
+            str | None: The device ID (e.g., "0123456789_DEVICE") or None if not found
+        """
+        try:
+            device_data = instant_values_data.get("devicedata", {})
+            # Get the first (and usually only) device ID key
+            device_ids = list(device_data.keys())
+            if device_ids:
+                return device_ids[0]
+            return None
+        except (AttributeError, KeyError) as err:
+            _LOGGER.error("Error extracting device ID: %s", err)
+            return None
+
+    async def get_device_language(self, device_id: str | None = None):
+        """
+        Asynchronously fetches device language/labels from the API.
+        Always uses English language as it's guaranteed to be available.
+        
+        Args:
+            device_id (str | None): The device ID. If None, will try to get it from last_data or fetch it.
+            
+        Returns:
+            Tuple[RequestStatus, Optional[dict]]: 
+                - RequestStatus.SUCCESS and the language data if successful.
+                - RequestStatus.NO_DATA and None if no data is found.
+                - RequestStatus.UNKNOWN_ERROR and None if an error occurs.
+        """
+        # If no device_id provided, try to extract from last_data or fetch it
+        if device_id is None:
+            if self.last_data is not None:
+                device_id = self._extract_device_id(self.last_data)
+            else:
+                # Try to fetch instant values to get device_id
+                status, data = await self.get_values_raw()
+                if status == RequestStatus.SUCCESS and data:
+                    device_id = self._extract_device_id(data)
+                    
+            if device_id is None:
+                _LOGGER.error("Could not determine device ID")
+                return RequestStatus.NO_DATA, None
+
+        url = self._build_url("/api/v1/DWI/getDeviceLanguage")
+        payload = {
+            "DeviceId": device_id,
+            "LANG": _DEVICE_LANGUAGE
+        }
+        
+        try:
+            timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
+            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            async with aiohttp.ClientSession(connector=connector) as session:
+                async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
+                    resp.raise_for_status()
+                    data = await resp.json()
+                    if not data:
+                        _LOGGER.error("No data found for device language")
+                        return RequestStatus.NO_DATA, None
+                    return RequestStatus.SUCCESS, data
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.error("Failed to fetch device language: %s", err)
+            return RequestStatus.UNKNOWN_ERROR, None
 
     async def reboot_device(self):
         """
