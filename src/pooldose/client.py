@@ -44,7 +44,7 @@ class PooldoseClient:
         self._port = port
         self._ssl_verify = ssl_verify
         self._last_data = None
-        self._request_handler = None
+        self._request_handler: Optional[RequestHandler] = None
 
         # Initialize device info with default or placeholder values
         self.device_info = get_default_device_info()
@@ -84,7 +84,14 @@ class PooldoseClient:
         _LOGGER.debug("Initialized Pooldose client with device info: %s", self.device_info)
         return RequestStatus.SUCCESS
 
-    def check_apiversion_supported(self) -> tuple[RequestStatus, dict]:
+    @property
+    def request_handler(self) -> RequestHandler:
+        """Get the request handler, ensuring it's initialized."""
+        if self._request_handler is None:
+            raise RuntimeError("Client not connected. Call connect() first.")
+        return self._request_handler
+
+    def check_apiversion_supported(self) -> Tuple[RequestStatus, Dict[str, Any]]:
         """
         Check if the loaded API version matches the supported version.
 
@@ -92,11 +99,15 @@ class PooldoseClient:
             tuple: (RequestStatus, dict)
                 - dict contains:
                     "api_version_is": the current API version (or None if not set)
-                    "api_version_should": the supported API version
-                - RequestStatus.SUCCESS if supported,
-                - RequestStatus.API_VERSION_UNSUPPORTED if not supported,
+                    "api_version_should": the expected API version
                 - RequestStatus.NO_DATA if not set.
         """
+        if self._request_handler is None:
+            return RequestStatus.NO_DATA, {
+                "api_version_is": None,
+                "api_version_should": API_VERSION_SUPPORTED,
+            }
+        
         result = {
             "api_version_is": self._request_handler.api_version,
             "api_version_should": API_VERSION_SUPPORTED,
@@ -139,10 +150,13 @@ class PooldoseClient:
         await asyncio.sleep(0.5)
 
         # Load mapping information
-        self._mapping_info = await MappingInfo.load(
-            self.device_info.get("MODEL_ID"),
-            self.device_info.get("FW_CODE")
-        )
+        model_id = self.device_info.get("MODEL_ID")
+        fw_code = self.device_info.get("FW_CODE")
+        if model_id and fw_code:
+            self._mapping_info = await MappingInfo.load(str(model_id), str(fw_code))
+        else:
+            _LOGGER.warning("Missing MODEL_ID or FW_CODE, cannot load mapping")
+            self._mapping_info = MappingInfo(mapping=None, status=RequestStatus.NO_DATA)
 
         # WiFi station info
         status, wifi_station = await self._request_handler.get_wifi_station()
@@ -207,6 +221,9 @@ class PooldoseClient:
             tuple: (RequestStatus, InstantValues|None) - Status and instant values object.
         """
         try:
+            if self._request_handler is None:
+                return RequestStatus.NO_DATA, None
+                
             status, raw_data = await self._request_handler.get_values_raw()
             if status != RequestStatus.SUCCESS or raw_data is None:
                 return status, None
@@ -214,10 +231,10 @@ class PooldoseClient:
             mapping = self._mapping_info.mapping if self._mapping_info else None
             if mapping is None:
                 return RequestStatus.UNKNOWN_ERROR, None
-            device_id = self.device_info["DEVICE_ID"]
+            device_id = str(self.device_info.get("DEVICE_ID", ""))
             device_raw_data = raw_data.get("devicedata", {}).get(device_id, {})
-            model_id = self.device_info["MODEL_ID"]
-            fw_code = self.device_info["FW_CODE"]
+            model_id = str(self.device_info.get("MODEL_ID", ""))
+            fw_code = str(self.device_info.get("FW_CODE", ""))
             prefix = f"{model_id}_FW{fw_code}_"
             return RequestStatus.SUCCESS, InstantValues(device_raw_data, mapping, prefix, device_id, self._request_handler)
         except (KeyError, TypeError, ValueError) as err:
@@ -233,7 +250,7 @@ class PooldoseClient:
         """
         # Get instant values object
         status, instant_values = await self.instant_values()
-        if status != RequestStatus.SUCCESS:
+        if status != RequestStatus.SUCCESS or instant_values is None:
             return status, {}
 
         try:

@@ -212,6 +212,10 @@ class DeviceAnalyzer:
         print("Raw data fetched successfully")
 
         # Extract device info
+        if instant_data is None:
+            print("No instant data received")
+            return None, [], RequestStatus.NO_DATA
+            
         device_info = self._extract_device_info(instant_data)
         if not device_info:
             print("Failed to extract device information")

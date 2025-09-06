@@ -94,7 +94,10 @@ async def run_device_analyzer(host: str, use_ssl: bool, port: int, show_all: boo
             return
 
         # Display results
-        analyzer.display_analysis(device_info, widgets, show_all=show_all)
+        if device_info is not None:
+            analyzer.display_analysis(device_info, widgets, show_all=show_all)
+        else:
+            print("Failed to analyze device - no device info available")
 
     except (ConnectionError, TimeoutError, OSError) as e:
         print(f"Network error: {e}")
@@ -262,7 +265,7 @@ Examples:
         parser.error("--analyze requires --host to be specified")
 
     # Set UTF-8 encoding for output
-    if sys.stdout.encoding != 'utf-8':
+    if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding != 'utf-8':
         sys.stdout.reconfigure(encoding='utf-8')
 
     print("Python PoolDose Client")

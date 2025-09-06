@@ -4,7 +4,7 @@ import importlib.resources
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import aiofiles
 
@@ -105,7 +105,7 @@ class MappingInfo:
                 return cls(mapping=None, status=RequestStatus.NO_DATA)
             filename = f"model_{model_id}_FW{fw_code}.json"
             path = importlib.resources.files("pooldose.mappings").joinpath(filename)
-            async with aiofiles.open(path, "r", encoding="utf-8") as f:
+            async with aiofiles.open(str(path), "r", encoding="utf-8") as f:
                 content = await f.read()
                 mapping = json.loads(content)
                 return cls(mapping=mapping, status=RequestStatus.SUCCESS)
@@ -122,7 +122,7 @@ class MappingInfo:
         """
         if not self.mapping:
             return {}
-        result = {}
+        result: Dict[str, List[str]] = {}
         for key, entry in self.mapping.items():
             typ = entry.get("type", "unknown")
             result.setdefault(typ, []).append(key)

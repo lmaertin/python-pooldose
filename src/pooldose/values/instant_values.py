@@ -83,7 +83,7 @@ class InstantValues:
                 }
             }
         """
-        structured_data = {}
+        structured_data: Dict[str, Dict[str, Any]] = {}
 
         # Process each mapping entry
         for mapping_key, mapping_entry in self._mapping.items():

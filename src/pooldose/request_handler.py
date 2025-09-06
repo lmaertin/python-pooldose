@@ -6,7 +6,7 @@ import logging
 import re
 import socket
 import ssl
-from typing import Any, Optional
+from typing import Any, Optional, Tuple, Union
 
 import aiohttp
 
@@ -37,9 +37,17 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         self.api_version = None
         self._connected = False
         # Configure SSL context
-        self._ssl_context = None
+        self._ssl_context: Union[ssl.SSLContext, bool, None] = None
         if self.use_ssl:
             self._ssl_context = ssl.create_default_context() if self.ssl_verify else False
+
+    def _get_ssl_connector(self) -> Optional[aiohttp.TCPConnector]:
+        """Get SSL connector for aiohttp sessions."""
+        if self.use_ssl:
+            # Ensure we pass the correct type to TCPConnector
+            ssl_context: Union[bool, ssl.SSLContext] = self._ssl_context if self._ssl_context is not None else False
+            return aiohttp.TCPConnector(ssl=ssl_context)
+        return None
 
     async def connect(self) -> RequestStatus:
         """
@@ -109,7 +117,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         result = {}
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.get(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -131,7 +139,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             _LOGGER.warning("Error fetching core params: %s", err)
             return None
 
-    async def get_debug_config(self):
+    async def get_debug_config(self) -> Tuple[RequestStatus, Optional[Any]]:
         """
         Asynchronously fetches the debug configuration from the server.
 
@@ -147,7 +155,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/debug/config")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.get(url, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -180,7 +188,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         payload = {"SOFTWAREVERSION": sw_version}
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -193,7 +201,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             _LOGGER.error("Failed to fetch infoRelease: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def get_wifi_station(self):
+    async def get_wifi_station(self) -> Tuple[RequestStatus, Optional[Any]]:
         """
         Asynchronously retrieves WiFi station information from the device.
 
@@ -211,7 +219,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/network/wifi/getStation")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -235,7 +243,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             return RequestStatus.NO_DATA, None
         return RequestStatus.SUCCESS, data
 
-    async def get_access_point(self):
+    async def get_access_point(self) -> Tuple[RequestStatus, Optional[Any]]:
         """
         Asynchronously retrieves the WiFi access point information from the device.
 
@@ -252,7 +260,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/network/wifi/getAccessPoint")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -270,7 +278,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             _LOGGER.error("Failed to fetch access point info: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def get_network_info(self):
+    async def get_network_info(self) -> Tuple[RequestStatus, Optional[Any]]:
         """
         Asynchronously fetches network information from the specified host's API endpoint.
 
@@ -287,7 +295,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/network/info/getInfo")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -300,7 +308,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             _LOGGER.error("Failed to fetch network info: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def get_values_raw(self):
+    async def get_values_raw(self) -> Tuple[RequestStatus, Optional[Any]]:
         """
         Fetch raw instant values from the device.
         Returns (RequestStatus, data).
@@ -308,7 +316,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/DWI/getInstantValues")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -324,12 +332,12 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                 return RequestStatus.LAST_DATA, self.last_data
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def set_value(self, device_id: dict, path: str, value: Any, value_type: str) -> bool:
+    async def set_value(self, device_id: str, path: str, value: Any, value_type: str) -> bool:
         """
         Asynchronously sets a value for a specific device and path using the API.
 
         Args:
-            device_id (dict): The identifier of the device to set the value for.
+            device_id (str): The identifier of the device to set the value for.
             path (str): The path within the device to set the value.
             value (Any): The value to set.
             value_type (str): The type of the value (e.g., "int", "float", "str").
@@ -357,7 +365,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         }
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -427,7 +435,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
 
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
@@ -450,7 +458,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/system/reboot")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = aiohttp.TCPConnector(ssl=self._ssl_context) if self.use_ssl else None
+            connector = self._get_ssl_connector()
             async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()

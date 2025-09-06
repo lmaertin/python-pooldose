@@ -59,7 +59,7 @@ class MockPooldoseClient:
                 self._mock_data = json.load(file)
 
             # Extract device key and device info
-            if 'devicedata' in self._mock_data:
+            if self._mock_data and 'devicedata' in self._mock_data:
                 device_keys = [k for k in self._mock_data['devicedata'].keys()
                               if k.endswith('_DEVICE')]
                 if device_keys:
