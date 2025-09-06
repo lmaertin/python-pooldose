@@ -1,4 +1,5 @@
 """Integration tests for DeviceAnalyzer CLI functionality."""
+# pylint: disable=redefined-outer-name,protected-access,line-too-long
 
 from unittest.mock import AsyncMock, MagicMock, patch
 

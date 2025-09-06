@@ -1,4 +1,5 @@
 """Tests for DeviceAnalyzer functionality."""
+# pylint: disable=redefined-outer-name,protected-access,line-too-long,too-few-public-methods,too-many-public-methods
 
 from unittest.mock import AsyncMock, MagicMock
 
@@ -180,7 +181,9 @@ class TestDeviceAnalyzer:
         short_key = analyzer._extract_short_key(full_key, "PDPR1H1HAW100", "FW539187")
         assert short_key == "DIFFERENT_PREFIX_w_1ekeigkin"
 
-    def test_extract_possible_values_from_labels(self, mock_request_handler, sample_device_language):
+    def test_extract_possible_values_from_labels(
+        self, mock_request_handler, sample_device_language
+    ):
         """Test extraction of possible values from device language."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         possible_values = analyzer._extract_possible_values_from_labels(
@@ -195,7 +198,9 @@ class TestDeviceAnalyzer:
         ]
         assert possible_values == expected_values
 
-    def test_extract_possible_values_combo(self, mock_request_handler, sample_device_language):
+    def test_extract_possible_values_combo(
+        self, mock_request_handler, sample_device_language
+    ):
         """Test extraction of possible values for combo items."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         possible_values = analyzer._extract_possible_values_from_labels(
@@ -208,7 +213,9 @@ class TestDeviceAnalyzer:
         ]
         assert possible_values == expected_values
 
-    def test_extract_possible_values_no_matches(self, mock_request_handler, sample_device_language):
+    def test_extract_possible_values_no_matches(
+        self, mock_request_handler, sample_device_language
+    ):
         """Test extraction of possible values with no matches."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         possible_values = analyzer._extract_possible_values_from_labels(
@@ -287,7 +294,9 @@ class TestDeviceAnalyzer:
         value = analyzer._get_widget_value(widget_data)
         assert value == "simple_value"
 
-    def test_find_widget_label_found(self, mock_request_handler, sample_device_language):
+    def test_find_widget_label_found(
+        self, mock_request_handler, sample_device_language
+    ):
         """Test finding widget label when match exists."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         label = analyzer._find_widget_label(
@@ -297,7 +306,9 @@ class TestDeviceAnalyzer:
         )
         assert label == "pH"
 
-    def test_find_widget_label_not_found(self, mock_request_handler, sample_device_language):
+    def test_find_widget_label_not_found(
+        self, mock_request_handler, sample_device_language
+    ):
         """Test finding widget label when no match exists."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         label = analyzer._find_widget_label(
@@ -308,11 +319,16 @@ class TestDeviceAnalyzer:
         assert label == "N/A"
 
     @pytest.mark.asyncio
-    async def test_analyze_device_success(self, mock_request_handler, sample_instant_values,
-                                        sample_device_language):
+    async def test_analyze_device_success(
+        self, mock_request_handler, sample_instant_values, sample_device_language
+    ):
         """Test successful device analysis."""
-        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, sample_instant_values)
-        mock_request_handler.get_device_language.return_value = (RequestStatus.SUCCESS, sample_device_language)
+        mock_request_handler.get_values_raw.return_value = (
+            RequestStatus.SUCCESS, sample_instant_values
+        )
+        mock_request_handler.get_device_language.return_value = (
+            RequestStatus.SUCCESS, sample_device_language
+        )
 
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info, widgets, status = await analyzer.analyze_device()
@@ -357,10 +373,16 @@ class TestDeviceAnalyzer:
         assert widgets == []
 
     @pytest.mark.asyncio
-    async def test_analyze_device_failed_labels(self, mock_request_handler, sample_instant_values):
+    async def test_analyze_device_failed_labels(
+        self, mock_request_handler, sample_instant_values
+    ):
         """Test device analysis when label fetch fails."""
-        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, sample_instant_values)
-        mock_request_handler.get_device_language.return_value = (RequestStatus.UNKNOWN_ERROR, {})
+        mock_request_handler.get_values_raw.return_value = (
+            RequestStatus.SUCCESS, sample_instant_values
+        )
+        mock_request_handler.get_device_language.return_value = (
+            RequestStatus.UNKNOWN_ERROR, {}
+        )
 
         analyzer = DeviceAnalyzer(mock_request_handler)
         device_info, widgets, status = await analyzer.analyze_device()
@@ -373,12 +395,18 @@ class TestDeviceAnalyzer:
         for widget in widgets:
             assert widget.label == "N/A"
 
-    def test_process_widgets(self, mock_request_handler, sample_instant_values, sample_device_language):
+    def test_process_widgets(
+        self, mock_request_handler, sample_instant_values, sample_device_language
+    ):
         """Test widget processing."""
         analyzer = DeviceAnalyzer(mock_request_handler)
-        device_info = DeviceInfo("01220000095B_DEVICE", "PDPR1H1HAW100", "FW539187")
+        device_info = DeviceInfo(
+            "01220000095B_DEVICE", "PDPR1H1HAW100", "FW539187"
+        )
 
-        widgets = analyzer._process_widgets(sample_instant_values, device_info, sample_device_language)
+        widgets = analyzer._process_widgets(
+            sample_instant_values, device_info, sample_device_language
+        )
 
         assert len(widgets) == 4
 

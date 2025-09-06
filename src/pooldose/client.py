@@ -57,7 +57,7 @@ class PooldoseClient:
     async def connect(self) -> RequestStatus:
         """
         Asynchronously connect to the device and initialize all components.
-        
+
         Returns:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
@@ -107,7 +107,7 @@ class PooldoseClient:
                 "api_version_is": None,
                 "api_version_should": API_VERSION_SUPPORTED,
             }
-        
+
         result = {
             "api_version_is": self._request_handler.api_version,
             "api_version_should": API_VERSION_SUPPORTED,
@@ -121,7 +121,7 @@ class PooldoseClient:
 
         return RequestStatus.SUCCESS, result
 
-    async def _load_device_info(self) -> RequestStatus:
+    async def _load_device_info(self) -> RequestStatus:  # pylint: disable=too-many-branches
         """
         Load device information from the request handler.
         This method should be called after a successful connection.
@@ -223,7 +223,7 @@ class PooldoseClient:
         try:
             if self._request_handler is None:
                 return RequestStatus.NO_DATA, None
-                
+
             status, raw_data = await self._request_handler.get_values_raw()
             if status != RequestStatus.SUCCESS or raw_data is None:
                 return status, None
@@ -244,7 +244,7 @@ class PooldoseClient:
     async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
         """
         Get instant values in structured JSON format with types as top-level keys.
-        
+
         Returns:
             Tuple[RequestStatus, Dict[str, Any]]: Status and structured data dict.
         """

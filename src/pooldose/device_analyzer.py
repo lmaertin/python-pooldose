@@ -215,7 +215,7 @@ class DeviceAnalyzer:
         if instant_data is None:
             print("No instant data received")
             return None, [], RequestStatus.NO_DATA
-            
+
         device_info = self._extract_device_info(instant_data)
         if not device_info:
             print("Failed to extract device information")
@@ -314,7 +314,7 @@ class DeviceAnalyzer:
         self._print_widgets(filtered_widgets)
         self._print_footer(widgets, filtered_widgets, show_all)
 
-    def _print_header(self, device_info: DeviceInfo, widgets: List[WidgetInfo],
+    def _print_header(self, device_info: DeviceInfo, widgets: List[WidgetInfo],  # pylint: disable=unused-argument
                      filtered_widgets: List[WidgetInfo], filter_info: str) -> None:
         """Print analysis header."""
         print("\n" + "=" * SEPARATOR_LENGTH)
