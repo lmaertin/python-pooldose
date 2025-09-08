@@ -19,40 +19,48 @@
     "key": "w_1f0it2vcf",
     "type": "sensor",
     "conversion": {
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ALCALYNE|": "alcalyne",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ACID|": "acid"
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ALCALYNE|": "alcalyne",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ACID|": "acid"
     }
   },
   "peristaltic_ph_dosing": {
     "key": "w_1f0iteoja",
     "type": "sensor",
     "conversion": {
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_OFF|": "off",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_PROPORTIONAL|": "proportional",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_ON_OFF|": "on_off",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_TIMED|": "timed"
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_OFF_|": "off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_ON_OFF|": "on_off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_TIMED|": "timed"
     }
+  },
+  "ofa_ph_value": {
+    "key": "w_1g1l138q8",
+    "type": "sensor"
   },
   "orp_type_dosing": {
     "key": "w_1f0it326i",
     "type": "sensor",
     "conversion": {
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_LOW_|": "low",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_HIGH|": "high"
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_LOW_|": "low",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_HIGH|": "high"
     }
   },
   "peristaltic_orp_dosing": {
     "key": "w_1f0iteqrl",
     "type": "sensor",
     "conversion": {
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_OFF|": "off",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_PROPORTIONAL|": "proportional",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_ON_OFF|": "on_off",
-        "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_TIMED|": "timed"
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_OFF|": "off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_ON_OFF|": "on_off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_TIMED|": "timed"
     }
   },
+  "ofa_orp_value": {
+    "key": "w_1g1kvclje",
+    "type": "sensor"
+  },
   "pump_running": {
-    "key": "w_1f1fng00q",
+    "key": "w_1f0iqe0vh",
     "type": "binary_sensor"
   },
   "ph_level_ok": {
@@ -64,7 +72,7 @@
     "type": "binary_sensor"
   },
   "flow_rate_ok": {
-    "key": "w_1f0iolq38",
+    "key": "w_1f0iqmg8c",
     "type": "binary_sensor"
   },
   "alarm_relay": {
@@ -92,19 +100,19 @@
     "type": "switch"
   },
   "pump_detection": {
-    "key": "w_1hn0h4fmb",
+    "key": "w_1f2jpqa6e",
     "type": "switch"
   },
   "water_meter_unit": {
-        "key": "w_1f3dfp59r",
-        "type": "select",
-        "options": {
-            "8": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_",
-            "9": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__"
-        },
-        "conversion": {
-            "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_": "L",
-            "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__": "m³"
-        }
-    }   
+    "key": "w_1f3dfp59r",
+    "type": "select",
+    "options": {
+      "8": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_",
+      "9": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__"
+    },
+    "conversion": {
+      "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_": "L",
+      "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__": "m³"
+    }
+  }
 }
