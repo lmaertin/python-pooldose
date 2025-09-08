@@ -924,8 +924,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.6.5)
+### Latest Release (0.6.6)
 
-- **Device Analyzer**: New CLI command `--analyze` for comprehensive device analysis and support discovery
-- **Code Quality**: Perfect Pylint 10.00/10 score with complete PEP-561 compliance
-- **Enhanced Documentation**: Added device analysis guide for unsupported device discovery
+- **Mapping**: Fixed for PDPR1H1HAR1V0_FW539224**
