@@ -122,7 +122,7 @@ class PooldoseClient:
 
         return RequestStatus.SUCCESS, result
 
-    async def _load_device_info(self) -> RequestStatus:  # pylint: disable=too-many-branches
+    async def _load_device_info(self) -> RequestStatus:  # pylint: disable=too-many-branches, too-many-statements
         """
         Load device information from the request handler.
         This method should be called after a successful connection.
