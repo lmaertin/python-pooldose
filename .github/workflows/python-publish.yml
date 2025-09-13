@@ -28,7 +28,6 @@ jobs:
         with:
           name: release-dists
           path: dist/
-          overwrite: true
 
   pypi-publish:
     runs-on: ubuntu-latest

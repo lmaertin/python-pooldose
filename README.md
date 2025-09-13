@@ -924,7 +924,7 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.6.7)
+### Latest Release (0.6.8)
 
 - **Client**: Implemented alternate method to retrieve MAC address of device
 - **Mapping**: Further fixes for PDPR1H1HAR1V0_FW539224
