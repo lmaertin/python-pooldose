@@ -26,7 +26,7 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
-    def __init__(self, host: str, timeout: int = 30, *, include_sensitive_data: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:  # pylint: disable=too-many-arguments
+    def __init__(self, host: str, timeout: int = 30, *, include_sensitive_data: bool = False, include_mac_lookup: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:  # pylint: disable=too-many-arguments
         """
         Initialize the Pooldose client.
 
@@ -41,6 +41,7 @@ class PooldoseClient:
         self._host = host
         self._timeout = timeout
         self._include_sensitive_data = include_sensitive_data
+        self._include_mac_lookup = include_mac_lookup
         self._use_ssl = use_ssl
         self._port = port
         self._ssl_verify = ssl_verify
@@ -193,14 +194,15 @@ class PooldoseClient:
         if self._include_sensitive_data:
             _LOGGER.info("Included WiFi and AP keys (use include_sensitive_data=False to exclude)")
 
-        # MAC address via getmac library
-        if self.device_info["IP"]:
-            self.device_info["MAC"] = get_mac_address(ip=self.device_info["IP"])
-            if not self.device_info["MAC"]:
-                _LOGGER.warning("Failed to fetch MAC address via getmac library for IP: %s", self.device_info["IP"])
-        else:
-            _LOGGER.warning("IP address not set, cannot fetch MAC address via getmac library")
-            self.device_info["MAC"] = None
+        # Optionally: MAC address via getmac library (using arp which may not work on all network topologies)
+        if self._include_mac_lookup:
+            if self.device_info["IP"]:
+                self.device_info["MAC"] = get_mac_address(ip=self.device_info["IP"])
+                if not self.device_info["MAC"]:
+                    _LOGGER.warning("Failed to fetch MAC address via getmac library for IP: %s", self.device_info["IP"])
+            else:
+                _LOGGER.warning("IP address not set, cannot fetch MAC address via getmac library")
+                self.device_info["MAC"] = None
 
         return RequestStatus.SUCCESS
 

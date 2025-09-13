@@ -119,6 +119,7 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
 
     client = PooldoseClient(
         host=host,
+        include_mac_lookup=True,
         use_ssl=use_ssl,
         port=port if port != 0 else None,
         timeout=30

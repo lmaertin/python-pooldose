@@ -122,7 +122,8 @@ client = PooldoseClient(
     use_ssl=True,
     port=8443,
     ssl_verify=True,  # Verify SSL certificates
-    include_sensitive_data=False
+    include_sensitive_data=False,
+    include_mac_lookup=False
 )
 ```
 
@@ -746,7 +747,7 @@ Mapping Discovery Process:
 #### Constructor
 
 ```python
-PooldoseClient(host, timeout=30, include_sensitive_data=False, use_ssl=False, port=None, ssl_verify=True)
+PooldoseClient(host, timeout=30, include_sensitive_data=False, include_mac_lookup=False, use_ssl=False, port=None, ssl_verify=True)
 ```
 
 **Parameters:**
@@ -754,6 +755,7 @@ PooldoseClient(host, timeout=30, include_sensitive_data=False, use_ssl=False, po
 - `host` (str): The hostname or IP address of the device
 - `timeout` (int): Request timeout in seconds (default: 30)
 - `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
+- `include_mac_lookup` (bool): Whether to include MAC lookup via ARP (default: False)
 - `use_ssl` (bool): Whether to use HTTPS instead of HTTP (default: False)
 - `port` (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS (default: None)
 - `ssl_verify` (bool): Whether to verify SSL certificates when using HTTPS (default: True)
@@ -913,7 +915,6 @@ Data Classification:
 │ • Serial Number │    │                 │    │                 │
 │ • Sensor Values │    │                 │    │                 │
 │ • IP Address    │    │                 │    │                 │
-│ • MAC Address   │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
         │                       │                       │
         ▼                       ▼                       ▼
@@ -924,8 +925,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.6.8)
+### Latest Release (0.6.9)
 
-- **Client**: Implemented alternate method to retrieve MAC address of device
-- **Mapping**: Further fixes for PDPR1H1HAR1V0_FW539224
-- **Values**: Added conversion for binary sensors
+- **Client**: Optional MAC lookup with include_mac_lookup flag

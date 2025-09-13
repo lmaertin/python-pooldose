@@ -16,7 +16,7 @@ HOST = "192.168.178.137"  # Replace with your device's IP address
 
 async def main() -> None:
     """Demonstrate all PooldoseClient calls."""
-    client = PooldoseClient(host=HOST)
+    client = PooldoseClient(host=HOST, include_mac_lookup=True)
 
     # Connect
     client_status = await client.connect()
@@ -25,8 +25,6 @@ async def main() -> None:
         return
 
     print(f"Connected to Pooldose device at {HOST}")
-    print(f"Device: {client.device_info.get('name', 'Unknown')}")
-    print(f"Model: {client.device_info.get('model', 'Unknown')}")
 
     # Static values
     print("\nFetching static values...")
