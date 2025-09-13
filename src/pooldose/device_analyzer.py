@@ -67,7 +67,7 @@ class DeviceAnalyzer:
                 if key in SKIP_KEYS:
                     continue
 
-                # Pattern: {MODEL}_{FW_CODE}_w_{SHORT_ID} or {MODEL}_{FW_CODE}_Elapsed_{...}
+                # Pattern: {MODEL}_{FW_CODE}_w_{SHORT_ID}
                 match = re.match(r"^([A-Z0-9]+)_(FW[A-Z0-9]+)_", key)
                 if match:
                     model = match.group(1)
@@ -390,8 +390,9 @@ class DeviceAnalyzer:
 
         return detail_strings
 
-    def _print_footer(self, widgets: List[WidgetInfo], filtered_widgets: List[WidgetInfo],
-                     show_all: bool) -> None:
+    def _print_footer(self, widgets: List[WidgetInfo],
+                      filtered_widgets: List[WidgetInfo],
+                      show_all: bool) -> None:
         """Print analysis footer."""
         print(f"\n{'='*SEPARATOR_LENGTH}")
         print("ANALYSIS COMPLETE")

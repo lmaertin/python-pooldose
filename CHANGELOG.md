@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.7] - 2025-09-13
+
+### Enhanced
+
+- **Client**: Implemented alternate method to retrieve MAC address of device. Before the MAC address of the router connected to the device has been returned.
+- **Mapping**: Further fixes for PDPR1H1HAR1V0_FW539224
+
+### Added
+
+- **Values**: Added conversion for binary sensors
+
 ## [0.6.6] - 2025-09-08
 
 ### Enhanced

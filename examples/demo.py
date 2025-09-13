@@ -37,6 +37,7 @@ async def main() -> None:
 
     display_static_values(static_values)
     print(f"  IP: {static_values.sensor_ip}")
+    print(f"  MAC: {static_values.sensor_mac}")
 
     # Structured instant values
     print("\nFetching instant values...")

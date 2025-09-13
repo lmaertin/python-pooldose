@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Utility functions for demo scripts."""
 
-# pylint: disable=too-many-branches,too-many-locals
+# pylint: disable=too-many-branches,too-many-locals,line-too-long
 
 
 def _display_data_type(data_dict, type_name, title):

@@ -60,8 +60,12 @@
     "type": "sensor"
   },
   "pump_running": {
-    "key": "w_1f0iqe0vh",
-    "type": "binary_sensor"
+    "key": "w_1f1fng00q",
+    "type": "binary_sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f1fng00q_OFF|": "F",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f1fng00q_ON|": "O"
+    }
   },
   "ph_level_ok": {
     "key": "w_1f0ioo093",
@@ -100,8 +104,12 @@
     "type": "switch"
   },
   "pump_detection": {
-    "key": "w_1f2jpqa6e",
-    "type": "switch"
+    "key": "w_1hn0vte5j",
+    "type": "binary_sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1hn0vte5j_DISABLED|": "F",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1hn0vte5j_ENABLED|": "O"
+    }
   },
   "water_meter_unit": {
     "key": "w_1f3dfp59r",

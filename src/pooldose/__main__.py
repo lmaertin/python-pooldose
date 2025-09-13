@@ -12,6 +12,8 @@ from pooldose.device_analyzer import DeviceAnalyzer
 from pooldose.mock_client import MockPooldoseClient
 from pooldose.request_handler import RequestHandler
 
+# pylint: disable=line-too-long
+
 # Import demo utilities if available
 try:
     from examples.demo_utils import (display_static_values,
@@ -25,6 +27,8 @@ except ImportError:
             ("Serial", static_values.sensor_serial_number),
             ("Model", static_values.sensor_model),
             ("Firmware", static_values.sensor_fw_version),
+            ("IP", static_values.sensor_ip),
+            ("MAC", static_values.sensor_mac)
         ]
         print("\nDevice Information:")
         for label, value in device_info:

@@ -8,6 +8,7 @@ from pooldose.request_status import RequestStatus
 from pooldose.values.instant_values import InstantValues
 from pooldose.values.static_values import StaticValues
 
+# pylint: disable=line-too-long
 
 class TestPooldoseClient:
     """Test PooldoseClient functionality."""

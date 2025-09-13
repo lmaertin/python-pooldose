@@ -6,6 +6,7 @@ import pytest
 from pooldose.request_status import RequestStatus
 from pooldose.values.instant_values import InstantValues
 
+# pylint: disable=line-too-long
 
 @pytest.fixture
 def mock_request_handler():

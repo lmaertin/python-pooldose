@@ -189,7 +189,7 @@ class InstantValues:
             if entry_type == "sensor":
                 return self._process_sensor_value(raw_entry, attributes, name)
             elif entry_type == "binary_sensor":
-                return self._process_binary_sensor_value(raw_entry, name)
+                return self._process_binary_sensor_value(raw_entry, attributes, name)
             elif entry_type == "switch":
                 return self._process_switch_value(raw_entry, name)
             elif entry_type == "number":
@@ -224,15 +224,19 @@ class InstantValues:
 
         return (value, unit)
 
-    def _process_binary_sensor_value(self, raw_entry: Dict[str, Any], name: str) -> Union[bool, None]:
-        """Process binary sensor value and return bool."""
+    def _process_binary_sensor_value(self, raw_entry: Dict[str, Any], attributes: Dict[str, Any], name: str) -> Union[bool, None]:
+        """Process binary sensor value and return bool, with optional conversion mapping."""
         if not isinstance(raw_entry, dict):
             _LOGGER.warning("Invalid raw entry type for binary sensor '%s': expected dict, got %s", name, type(raw_entry))
             return None
 
         value = raw_entry.get("current")
-        if value is None:
-            return None
+
+        # Apply conversion mapping if defined in mapping
+        if value is not None and "conversion" in attributes:
+            conversion = attributes["conversion"]
+            if isinstance(conversion, dict) and str(value) in conversion:
+                value = conversion[str(value)]
 
         # Convert string values to boolean
         if isinstance(value, str):

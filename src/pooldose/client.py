@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import Any, Dict, Optional, Tuple
+from getmac import get_mac_address
 
 from pooldose.constants import get_default_device_info
 from pooldose.mappings.mapping_info import MappingInfo
@@ -164,7 +165,6 @@ class PooldoseClient:
             _LOGGER.warning("Failed to fetch WiFi station info: %s", status)
         else:
             self.device_info["WIFI_SSID"] = wifi_station.get("SSID")
-            self.device_info["MAC"] = wifi_station.get("MAC")
             self.device_info["IP"] = wifi_station.get("IP")
             # Only include WiFi key if explicitly requested
             if self._include_sensitive_data:
@@ -192,6 +192,15 @@ class PooldoseClient:
 
         if self._include_sensitive_data:
             _LOGGER.info("Included WiFi and AP keys (use include_sensitive_data=False to exclude)")
+
+        # MAC address via getmac library
+        if self.device_info["IP"]:
+            self.device_info["MAC"] = get_mac_address(ip=self.device_info["IP"])
+            if not self.device_info["MAC"]:
+                _LOGGER.warning("Failed to fetch MAC address via getmac library for IP: %s", self.device_info["IP"])
+        else:
+            _LOGGER.warning("IP address not set, cannot fetch MAC address via getmac library")
+            self.device_info["MAC"] = None
 
         return RequestStatus.SUCCESS
 

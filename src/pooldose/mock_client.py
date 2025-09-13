@@ -109,8 +109,11 @@ class MockPooldoseClient:
             "DEVICE_ID": self._device_key,
             "MODEL": model or "MOCK_MODEL",
             "MODEL_ID": model or "MOCK_MODEL",
-            "FW_CODE": (fw_code.replace('FW', '') if fw_code and fw_code.startswith('FW')
-                       else fw_code or "MOCK_FW"),
+            "FW_CODE": (
+                fw_code.replace('FW', '')
+                if fw_code and fw_code.startswith('FW')
+                else fw_code or "MOCK_FW"
+            ),
             "API_VERSION": API_VERSION_SUPPORTED,
             "IP": "127.0.0.1",  # Mock IP
         })

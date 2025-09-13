@@ -2,6 +2,7 @@
 
 import pytest
 
+# pylint: disable=line-too-long
 
 class TestInstantValues:  # pylint: disable=too-many-public-methods
     """Test InstantValues functionality."""
@@ -158,7 +159,7 @@ class TestInstantValues:  # pylint: disable=too-many-public-methods
     def test_process_binary_sensor_value_invalid_entry(self, instant_values_fixture):
         """Test processing binary sensor value with invalid entry."""
         # pylint: disable=protected-access
-        value = instant_values_fixture._process_binary_sensor_value("invalid", "test")
+        value = instant_values_fixture._process_binary_sensor_value("invalid", {}, "test")
         assert value is None
 
     def test_process_switch_value_bool(self, instant_values_fixture):
