@@ -925,6 +925,9 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.6.9)
+### Latest Release (0.7.0)
 
-- **Client**: Optional MAC lookup with include_mac_lookup flag
+- **Connection Handling**: Improved session management for more reliable connections
+- **RequestHandler**: Centralized session management with internal _get_session method
+- **Performance**: Reduced connection overhead for multiple consecutive API calls
+- **Error Handling**: Better cleanup of HTTP sessions in error cases

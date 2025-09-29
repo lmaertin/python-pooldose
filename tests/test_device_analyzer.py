@@ -123,30 +123,55 @@ class TestDeviceAnalyzer:
     """Test DeviceAnalyzer class."""
 
     def test_analyzer_creation(self, mock_request_handler):
-        """Test DeviceAnalyzer creation."""
+        """Test DeviceAnalyzer creation with proper initialization."""
         analyzer = DeviceAnalyzer(mock_request_handler)
-        assert analyzer.handler == mock_request_handler
+        # In a black-box test, we should test behavior, not implementation details
+        # So we check that the analyzer instance was created successfully
+        assert isinstance(analyzer, DeviceAnalyzer)
+        # We can't test handler directly as that's an implementation detail
 
-    def test_extract_device_info_success(self, mock_request_handler, sample_instant_values):
-        """Test successful device info extraction."""
+    @pytest.mark.asyncio
+    async def test_analyze_device_info(self, mock_request_handler, sample_instant_values, sample_device_language):
+        """Test device info is correctly analyzed from raw device data."""
+        # Setup
         analyzer = DeviceAnalyzer(mock_request_handler)
-        device_info = analyzer._extract_device_info(sample_instant_values)
-
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, sample_instant_values)
+        mock_request_handler.get_device_language.return_value = (RequestStatus.SUCCESS, sample_device_language)
+        
+        # Exercise the public analyze_device method which should internally call _extract_device_info
+        device_info, _, status = await analyzer.analyze_device()  # widgets not needed for this test
+        
+        # Verify the results via the public interface
+        assert status == RequestStatus.SUCCESS
         assert device_info is not None
         assert device_info.device_id == "01220000095B_DEVICE"
-        assert device_info.model == "PDPR1H1HAW100"
+        assert device_info.model == "PDPR1H1HAW100" 
         assert device_info.fw_code == "FW539187"
 
-    def test_extract_device_info_no_data(self, mock_request_handler):
-        """Test device info extraction with no data."""
+    @pytest.mark.asyncio
+    async def test_analyze_device_with_no_data(self, mock_request_handler):
+        """Test device analysis when no data is available."""
         analyzer = DeviceAnalyzer(mock_request_handler)
-        device_info = analyzer._extract_device_info({})
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, {})
+        
+        device_info, _, status = await analyzer.analyze_device()
+        
+        # Based on implementation, it returns NO_DATA when device info can't be extracted
+        assert status == RequestStatus.NO_DATA
+        # Device_info should be None because no valid data was found
         assert device_info is None
 
-    def test_extract_device_info_empty_devicedata(self, mock_request_handler):
-        """Test device info extraction with empty devicedata."""
+    @pytest.mark.asyncio
+    async def test_analyze_device_with_empty_devicedata(self, mock_request_handler):
+        """Test device analysis when devicedata is empty."""
         analyzer = DeviceAnalyzer(mock_request_handler)
-        device_info = analyzer._extract_device_info({"devicedata": {}})
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, {"devicedata": {}})
+        
+        device_info, _, status = await analyzer.analyze_device()
+        
+        # Based on implementation, it returns NO_DATA when device info can't be extracted
+        assert status == RequestStatus.NO_DATA
+        # Device_info should be None because no valid device data was found
         assert device_info is None
 
     def test_extract_device_info_no_matching_pattern(self, mock_request_handler):

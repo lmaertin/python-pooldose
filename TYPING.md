@@ -2,24 +2,31 @@
 
 ## PEP-561 Compliance
 
-**PEP-561 Compliant**: The package includes a `py.typed` file marking it as typed.
-**Public API Typed**: Core public API methods have type annotations.
+**PEP-561 Compliant**: The package includes a `py.typed` file marking it as typed.  
+**Public API Typed**: Core public API methods have type annotations.  
 **mypy Configuration**: Includes mypy configuration in pyproject.toml.
 
 ## Current Type Coverage
 
 ### Fully Typed Modules
+
 - `pooldose.__init__` - Package initialization with version
 - `pooldose.request_status` - Enum for request status codes
 - `pooldose.constants` - Device constants and mappings
+- `pooldose.type_definitions` - TypedDict definitions for all data structures
 
-### Partially Typed Modules  
-- `pooldose.client` - Main client class (public API fully typed)
+### Modernized Typed Modules
+
+- `pooldose.client` - Main client class (modern union types `X | None` vs `Optional[X]`)
+- `pooldose.request_handler` - Improved type annotations for API methods
+
+### Partially Typed Modules
+
 - `pooldose.values.static_values` - Static device information
 - `pooldose.values.instant_values` - Live sensor data (public methods typed)
 
 ### Internal Modules
-- `pooldose.request_handler` - HTTP request handling (internal)
+
 - `pooldose.mappings.mapping_info` - Device mapping logic (internal)
 - `pooldose.mock_client` - Testing mock client (internal)
 

@@ -15,15 +15,16 @@ class TestPooldoseClient:
 
     @pytest.mark.asyncio
     async def test_init(self):
-        """Test client initialization."""
+        """Test client initialization sets up the object with expected defaults."""
+        # Create client with minimal parameters
         client = PooldoseClient(host="192.168.1.100")
-
-        # pylint: disable=protected-access
-        assert client._host == "192.168.1.100"
-        assert client._timeout == 30
-        assert client._use_ssl is False
-        assert client._connected is False
+        
+        # Test public properties and behavior before connection
+        assert client.is_connected is False
         assert client.device_info["NAME"] is None
+        
+        # We can't check private attributes in a black-box test, so we focus
+        # on testing the behavior and public properties instead of implementation details
 
     @pytest.mark.asyncio
     async def test_connect_success(

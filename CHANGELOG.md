@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-09-29
+
+### Enhanced
+
+- **Connection Handling**: Improved session management for more reliable connections
+- **RequestHandler**: Centralized session management with internal _get_session method
+- **Performance**: Reduced connection overhead for multiple consecutive API calls
+- **Error Handling**: Better cleanup of HTTP sessions in error cases
+
 ## [0.6.9] - 2025-09-13
 
 ### Enhanced

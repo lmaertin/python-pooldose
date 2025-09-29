@@ -10,6 +10,13 @@ from typing import Any, Optional, Tuple, Union
 
 import aiohttp
 
+from pooldose.type_definitions import (
+    AccessPointDict,
+    DebugConfigDict,
+    NetworkInfoDict,
+    WiFiStationDict,
+)
+
 from pooldose.request_status import RequestStatus
 
 # pylint: disable=line-too-long,no-else-return
@@ -25,7 +32,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     Only softwareVersion, and apiversion are loaded from params.js.
     """
 
-    def __init__(self, host: str, timeout: int = 10, *, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True):  # pylint: disable=too-many-arguments
+    def __init__(self, host: str, timeout: int = 10, *, websession: Optional[aiohttp.ClientSession] = None, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True):  # pylint: disable=too-many-arguments
         self.host = host
         self.timeout = timeout
         self.use_ssl = use_ssl
@@ -36,6 +43,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         self.software_version = None
         self.api_version = None
         self._connected = False
+        # External session from Home Assistant (or None)
+        self._websession = websession
         # Configure SSL context
         self._ssl_context: Union[ssl.SSLContext, bool, None] = None
         if self.use_ssl:
@@ -48,6 +57,24 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             ssl_context: Union[bool, ssl.SSLContext] = self._ssl_context if self._ssl_context is not None else False
             return aiohttp.TCPConnector(ssl=ssl_context)
         return None
+        
+    async def _get_session(self) -> Tuple[aiohttp.ClientSession, bool]:
+        """
+        Get a session for HTTP requests.
+
+        Returns:
+            Tuple of (session, close_when_done)
+                - session: The aiohttp.ClientSession to use for requests
+                - close_when_done: True if this is an internal session that should be closed when done
+        """
+        if self._websession:
+            # Use external session
+            return self._websession, False
+        
+        # Create a new session with SSL connector if needed
+        connector = self._get_ssl_connector()
+        session = aiohttp.ClientSession(connector=connector)
+        return session, True
 
     async def connect(self) -> RequestStatus:
         """
@@ -139,7 +166,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             _LOGGER.warning("Error fetching core params: %s", err)
             return None
 
-    async def get_debug_config(self) -> Tuple[RequestStatus, Optional[Any]]:
+    async def get_debug_config(self) -> Tuple[RequestStatus, Optional[DebugConfigDict]]:
         """
         Asynchronously fetches the debug configuration from the server.
 
@@ -147,7 +174,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         Handles HTTP errors and timeouts, and returns the request status along with the response data.
 
         Returns:
-            Tuple[RequestStatus, Optional[dict]]: 
+            Tuple[RequestStatus, Optional[dict]]:
                 - RequestStatus.SUCCESS and the configuration data if the request is successful.
                 - RequestStatus.NO_DATA and None if no data is found in the response.
                 - RequestStatus.UNKNOWN_ERROR and None if an error occurs during the request.
@@ -155,8 +182,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/debug/config")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.get(url, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -164,10 +191,13 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.error("No data found for debug config")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Error fetching debug config: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
-
+            
     async def get_info_release(self, sw_version: str):
         """
         Asynchronously fetches release information for a given software version from the API.
@@ -188,8 +218,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         payload = {"SOFTWAREVERSION": sw_version}
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -197,11 +227,14 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.error("No data found for infoRelease")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Failed to fetch infoRelease: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def get_wifi_station(self) -> Tuple[RequestStatus, Optional[Any]]:
+    async def get_wifi_station(self) -> Tuple[RequestStatus, Optional[WiFiStationDict]]:
         """
         Asynchronously retrieves WiFi station information from the device.
 
@@ -219,8 +252,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/network/wifi/getStation")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -228,6 +261,9 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.error("No data found for WiFi station info")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             text = str(err)
             text = text.replace("\\\\n", "").replace("\\\\t", "")
@@ -243,7 +279,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             return RequestStatus.NO_DATA, None
         return RequestStatus.SUCCESS, data
 
-    async def get_access_point(self) -> Tuple[RequestStatus, Optional[Any]]:
+    async def get_access_point(self) -> Tuple[RequestStatus, Optional[AccessPointDict]]:
         """
         Asynchronously retrieves the WiFi access point information from the device.
 
@@ -260,8 +296,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/network/wifi/getAccessPoint")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     text = await resp.text()
@@ -274,11 +310,14 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.error("No data found for access point info")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Failed to fetch access point info: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def get_network_info(self) -> Tuple[RequestStatus, Optional[Any]]:
+    async def get_network_info(self) -> Tuple[RequestStatus, Optional[NetworkInfoDict]]:
         """
         Asynchronously fetches network information from the specified host's API endpoint.
 
@@ -295,8 +334,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/network/info/getInfo")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -304,6 +343,9 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.error("No data found for network info")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Failed to fetch network info: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
@@ -316,8 +358,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/DWI/getInstantValues")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -326,6 +368,9 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.error("No data found for instant values")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.warning("Error fetching instant values: %s", err)
             if self.last_data is not None:

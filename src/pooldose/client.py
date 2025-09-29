@@ -4,8 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
+
+import aiohttp
 from getmac import get_mac_address
+
+from pooldose.type_definitions import (
+    APIVersionResponse,
+    DeviceInfoDict,
+    StructuredValuesDict,
+)
 
 from pooldose.constants import get_default_device_info
 from pooldose.mappings.mapping_info import MappingInfo
@@ -26,14 +34,17 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
-    def __init__(self, host: str, timeout: int = 30, *, include_sensitive_data: bool = False, include_mac_lookup: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:  # pylint: disable=too-many-arguments
+    def __init__(self, host: str, timeout: int = 30, *, websession: Optional[aiohttp.ClientSession] = None, include_sensitive_data: bool = False, include_mac_lookup: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:  # pylint: disable=too-many-arguments
         """
         Initialize the Pooldose client.
 
         Args:
             host (str): The host address of the Pooldose device.
             timeout (int): Timeout for API requests in seconds.
+            websession (Optional[aiohttp.ClientSession]): Optional external ClientSession for HTTP requests.
+                If provided, will be used for all API calls (mainly for Home Assistant integration).
             include_sensitive_data (bool): If True, fetch WiFi and AP keys.
+            include_mac_lookup (bool): If True, try to determine device MAC address from IP using getmac library.
             use_ssl (bool): If True, use HTTPS instead of HTTP.
             port (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS.
             ssl_verify (bool): If True, verify SSL certificates. Only used when use_ssl=True.
@@ -46,19 +57,19 @@ class PooldoseClient:
         self._port = port
         self._ssl_verify = ssl_verify
         self._last_data = None
-        self._request_handler: Optional[RequestHandler] = None
+        self._websession = websession
+        self._request_handler: RequestHandler | None = None
 
         # Initialize device info with default or placeholder values
-        self.device_info = get_default_device_info()
+        self.device_info: DeviceInfoDict = get_default_device_info()
 
         # Mapping-Status und Mapping-Cache
         self._mapping_status = None
-        self._mapping_info: Optional[MappingInfo] = None
+        self._mapping_info: MappingInfo | None = None
         self._connected = False
 
     async def connect(self) -> RequestStatus:
-        """
-        Asynchronously connect to the device and initialize all components.
+        """Asynchronously connect to the device and initialize all components.
 
         Returns:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
@@ -67,6 +78,7 @@ class PooldoseClient:
         self._request_handler = RequestHandler(
             self._host,
             self._timeout,
+            websession=self._websession if hasattr(self, '_websession') else None,
             use_ssl=self._use_ssl,
             port=self._port,
             ssl_verify=self._ssl_verify
@@ -93,7 +105,7 @@ class PooldoseClient:
             raise RuntimeError("Client not connected. Call connect() first.")
         return self._request_handler
 
-    def check_apiversion_supported(self) -> Tuple[RequestStatus, Dict[str, Any]]:
+    def check_apiversion_supported(self) -> Tuple[RequestStatus, APIVersionResponse]:
         """
         Check if the loaded API version matches the supported version.
 
@@ -252,7 +264,7 @@ class PooldoseClient:
             _LOGGER.warning("Error creating InstantValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
+    async def instant_values_structured(self) -> Tuple[RequestStatus, StructuredValuesDict]:
         """
         Get instant values in structured JSON format with types as top-level keys.
 

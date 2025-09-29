@@ -173,6 +173,7 @@ class TestPooldoseClientSSL:
         mock_handler_class.assert_called_once_with(
             "example.com",
             15,
+            websession=None,
             use_ssl=True,
             port=8443,
             ssl_verify=False
@@ -194,6 +195,7 @@ class TestPooldoseClientSSL:
         mock_handler_class.assert_called_once_with(
             "example.com",
             20,
+            websession=None,
             use_ssl=False,
             port=None,
             ssl_verify=True
