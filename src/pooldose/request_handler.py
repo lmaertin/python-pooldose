@@ -57,7 +57,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             ssl_context: Union[bool, ssl.SSLContext] = self._ssl_context if self._ssl_context is not None else False
             return aiohttp.TCPConnector(ssl=ssl_context)
         return None
-        
+
     async def _get_session(self) -> Tuple[aiohttp.ClientSession, bool]:
         """
         Get a session for HTTP requests.
@@ -70,7 +70,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         if self._websession:
             # Use external session
             return self._websession, False
-        
+
         # Create a new session with SSL connector if needed
         connector = self._get_ssl_connector()
         session = aiohttp.ClientSession(connector=connector)
@@ -79,7 +79,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     async def connect(self) -> RequestStatus:
         """
         Asynchronously connect to the device and initialize connection parameters.
-        
+
         Returns:
             RequestStatus: SUCCESS if connected successfully, otherwise appropriate error status.
         """
@@ -119,10 +119,10 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     def _build_url(self, path: str) -> str:
         """
         Build the full URL for an API endpoint.
-        
+
         Args:
             path (str): The API endpoint path (e.g., "/api/v1/debug/config")
-            
+
         Returns:
             str: The complete URL
         """
@@ -197,7 +197,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Error fetching debug config: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
-            
+
     async def get_info_release(self, sw_version: str):
         """
         Asynchronously fetches release information for a given software version from the API.
@@ -241,7 +241,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         Sends a POST request to the device's WiFi station API endpoint and returns the status and data.
 
         Returns:
-            Tuple[RequestStatus, Optional[dict]]: 
+            Tuple[RequestStatus, Optional[dict]]:
                 - RequestStatus.SUCCESS and the response data if successful.
                 - RequestStatus.NO_DATA and None if no data is found.
                 - RequestStatus.UNKNOWN_ERROR and None if an error occurs.
@@ -426,10 +426,10 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     def _extract_device_id(self, instant_values_data: dict) -> str | None:
         """
         Extract the device ID from instant values data.
-        
+
         Args:
             instant_values_data (dict): The raw data from get_values_raw()
-            
+
         Returns:
             str | None: The device ID (e.g., "0123456789_DEVICE") or None if not found
         """
@@ -448,12 +448,12 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         """
         Asynchronously fetches device language/labels from the API.
         Always uses English language as it's guaranteed to be available.
-        
+
         Args:
             device_id (str | None): The device ID. If None, will try to get it from last_data or fetch it.
-            
+
         Returns:
-            Tuple[RequestStatus, Optional[dict]]: 
+            Tuple[RequestStatus, Optional[dict]]:
                 - RequestStatus.SUCCESS and the language data if successful.
                 - RequestStatus.NO_DATA and None if no data is found.
                 - RequestStatus.UNKNOWN_ERROR and None if an error occurs.

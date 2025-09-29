@@ -137,15 +137,15 @@ class TestDeviceAnalyzer:
         analyzer = DeviceAnalyzer(mock_request_handler)
         mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, sample_instant_values)
         mock_request_handler.get_device_language.return_value = (RequestStatus.SUCCESS, sample_device_language)
-        
+
         # Exercise the public analyze_device method which should internally call _extract_device_info
         device_info, _, status = await analyzer.analyze_device()  # widgets not needed for this test
-        
+
         # Verify the results via the public interface
         assert status == RequestStatus.SUCCESS
         assert device_info is not None
         assert device_info.device_id == "01220000095B_DEVICE"
-        assert device_info.model == "PDPR1H1HAW100" 
+        assert device_info.model == "PDPR1H1HAW100"
         assert device_info.fw_code == "FW539187"
 
     @pytest.mark.asyncio
@@ -153,9 +153,9 @@ class TestDeviceAnalyzer:
         """Test device analysis when no data is available."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, {})
-        
+
         device_info, _, status = await analyzer.analyze_device()
-        
+
         # Based on implementation, it returns NO_DATA when device info can't be extracted
         assert status == RequestStatus.NO_DATA
         # Device_info should be None because no valid data was found
@@ -166,9 +166,9 @@ class TestDeviceAnalyzer:
         """Test device analysis when devicedata is empty."""
         analyzer = DeviceAnalyzer(mock_request_handler)
         mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, {"devicedata": {}})
-        
+
         device_info, _, status = await analyzer.analyze_device()
-        
+
         # Based on implementation, it returns NO_DATA when device info can't be extracted
         assert status == RequestStatus.NO_DATA
         # Device_info should be None because no valid device data was found
