@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2025-10-10
+
+### Added
+
+- **New Device**: Added support for VA DOS EXACT (Model PDPR1H1HAR1V1, FW FW539224)
+
+### Enhanced
+
+- **Fix**: Removed Chlor Sensor from PDPR1H1HAR1V0, as this is not supported.
+
 ## [0.7.0] - 2025-09-29
 
 ### Enhanced

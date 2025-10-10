@@ -843,10 +843,11 @@ The `instant_values_structured()` method returns data organized by type:
 
 This client has been tested with:
 
-- **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW***, FW: 53****)
-- **VA dos BASIC Chlor - pH/ORP Wi-Fi** (Model: PDPR1H1HAR***, FW: 53****)
+- **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: FW539187)
+- **VA DOS BASIC Chlor - pH/ORP Wi-Fi** (Model: PDPR1H1HAR1V0, FW FW539224)
+- **VA DOS EXACT** (Model: PDPR1H1HAR1V1, FW FW539224)
 
-Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW***_FW53****.json`).
+Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAR1V1_FW539224.json`).
 
 > **Note:** The JSON files in the mappings directory define the device-specific data keys and their human-readable names for different PoolDose models and firmware versions.
 
@@ -925,9 +926,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.0)
+### Latest Release (0.7.1)
 
-- **Connection Handling**: Improved session management for more reliable connections
-- **RequestHandler**: Centralized session management with internal _get_session method
-- **Performance**: Reduced connection overhead for multiple consecutive API calls
-- **Error Handling**: Better cleanup of HTTP sessions in error cases
+- **New Device**: Added support for VA DOS CONTROL (Model PDPR1H1HAR1V1, FW FW539224)

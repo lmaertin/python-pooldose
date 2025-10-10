@@ -11,10 +11,6 @@
     "key": "w_1f0invtg9",
     "type": "sensor"
   },
-  "cl": {
-    "key": "w_1f0io42cq",
-    "type": "sensor"
-  },
   "ph_type_dosing": {
     "key": "w_1f0it2vcf",
     "type": "sensor",

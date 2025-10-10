@@ -258,6 +258,9 @@ class PooldoseClient:
             device_raw_data = raw_data.get("devicedata", {}).get(device_id, {})
             model_id = str(self.device_info.get("MODEL_ID", ""))
             fw_code = str(self.device_info.get("FW_CODE", ""))
+            if model_id == 'PDPR1H1HAR1V1':
+                #due to firmware bug, use mapping of version 0
+                model_id = 'PDPR1H1HAR1V0'
             prefix = f"{model_id}_FW{fw_code}_"
             return RequestStatus.SUCCESS, InstantValues(device_raw_data, mapping, prefix, device_id, self._request_handler)
         except (KeyError, TypeError, ValueError) as err:
