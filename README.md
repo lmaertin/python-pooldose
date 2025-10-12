@@ -844,7 +844,7 @@ The `instant_values_structured()` method returns data organized by type:
 This client has been tested with:
 
 - **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW***, FW: 53****)
-- **VA dos BASIC Chlor - pH/ORP Wi-Fi** (Model: PDPR1H1HAR***, FW: 53****)
+- **VÁGNER POOL VA DOS BASIC** (Model: PDPR1H1HAR***, FW: 53****)
 
 Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW***_FW53****.json`).
 
