@@ -1,8 +1,10 @@
 # python-pooldose
 
-Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for pools and spas.
+Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for pools and spas. Some devices from [VÁGNER POOL](https://www.vagnerpool.com/web/en/) are compatible as well.
 
 This client uses an undocumented local HTTP API. It provides live readings for pool sensors such as temperature, pH, ORP/Redox, as well as status information and control over the dosing logic.
+
+> **Disclaimer:** Use at your own risk. No liability for damages or malfunctions.
 
 ## Features
 
@@ -288,7 +290,7 @@ With this information, you can:
 - Share the widget structure for mapping development
 - Help expand device support for the community
 
-The device analyzer makes python-pooldose extensible and helps build support for the growing ecosystem of SEKO PoolDose devices.
+The device analyzer makes python-pooldose extensible and helps build support for the growing ecosystem of SEKO PoolDose or VÁGNER POOL devices.
 
 ## Examples
 
@@ -843,11 +845,11 @@ The `instant_values_structured()` method returns data organized by type:
 
 This client has been tested with:
 
-- **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW100, FW: FW539187)
-- **VA DOS BASIC Chlor - pH/ORP Wi-Fi** (Model: PDPR1H1HAR1V0, FW FW539224)
-- **VA DOS EXACT** (Model: PDPR1H1HAR1V1, FW FW539224)
+- **SEKO PoolDose Double** (Model: PDPR1H1HAW100, FW: 539187)
+- **VÁGNER POOL VA DOS BASIC** (Model: PDHC1H1HAR1V0, FW: 539224)
+- **VÁGNER POOL VA DOS EXACT** (Model: PDHC1H1HAR1V1, FW: 539224)
 
-Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAR1V1_FW539224.json`).
+Other SEKO or VÁGNER POOL models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
 
 > **Note:** The JSON files in the mappings directory define the device-specific data keys and their human-readable names for different PoolDose models and firmware versions.
 
@@ -926,6 +928,9 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.1)
+### Latest Release (0.7.0)
 
-- **New Device**: Added support for VA DOS CONTROL (Model PDPR1H1HAR1V1, FW FW539224)
+- **Connection Handling**: Improved session management for more reliable connections
+- **RequestHandler**: Centralized session management with internal _get_session method
+- **Performance**: Reduced connection overhead for multiple consecutive API calls
+- **Error Handling**: Better cleanup of HTTP sessions in error cases
