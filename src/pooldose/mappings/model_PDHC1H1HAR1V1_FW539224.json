@@ -12,7 +12,11 @@
     "type": "sensor"
   },
   "cl": {
-    "key": "w_1f0io42cq",
+    "key": "w_1gribhndo",
+    "type": "sensor"
+  },
+  "flowrate": {
+    "key": "w_1g1l040fa",
     "type": "sensor"
   },
   "ph_type_dosing": {
@@ -105,12 +109,28 @@
     "key": "w_1f0ir59fo",
     "type": "binary_sensor"
   },
+  "alarm_ofa_ph": {
+    "key": "w_1f0iqoek2",
+    "type": "binary_sensor"
+  },
+  "alarm_ofa_orp": {
+    "key": "w_1f0iqrv04",
+    "type": "binary_sensor"
+  },
+  "alarm_ofa_cl": {
+    "key": "w_1f0iqs0hr",
+    "type": "binary_sensor"
+  },
   "relay_aux1_ph": {
     "key": "w_1gmgkbmap",
     "type": "binary_sensor"
   },
   "relay_aux2_orpcl": {
     "key": "w_1gmgkfe9s",
+    "type": "binary_sensor"
+  },
+  "relay_aux3": {
+    "key": "w_1gmgkflcj",
     "type": "binary_sensor"
   },
   "ph_target": {
@@ -135,6 +155,18 @@
     "conversion": {
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1hn0vte5j_DISABLED|": "F",
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1hn0vte5j_ENABLED|": "O"
+    }
+  },
+  "flowrate_unit": {
+    "key": "w_1f0j30vam",
+    "type": "select",
+    "options": {
+      "50": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_M3_H",
+      "47": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_L_S"
+    },
+    "conversion": {
+      "PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_M3_H": "m3/h",
+      "PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_L_S": "L/s"
     }
   },
   "water_meter_unit": {
