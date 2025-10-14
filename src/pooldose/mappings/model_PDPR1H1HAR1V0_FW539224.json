@@ -87,6 +87,14 @@
     "key": "w_1gmgkfe9s",
     "type": "binary_sensor"
   },
+  "alarm_ofa_ph": {
+    "key": "w_1f0iqoek2",
+    "type": "binary_sensor"
+  },
+  "alarm_ofa_orp": {
+    "key": "w_1f0iqrv04",
+    "type": "binary_sensor"
+  },
   "ph_target": {
     "key": "w_1f0irf02j",
     "type": "number"
