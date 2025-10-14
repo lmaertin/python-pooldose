@@ -74,3 +74,8 @@ Thumbs.db
 
 # Project specific
 references/*
+instantvalues.json
+analysis.json
+output.json
+results.json
+mydata.json
