@@ -5,6 +5,7 @@ import sys
 
 from demo_utils import display_structured_data, display_static_values
 from pooldose.client import PooldoseClient, RequestStatus
+from pooldose.mock_client import MockPooldoseClient
 
 # Set UTF-8 encoding for output
 if sys.stdout.encoding != 'utf-8':
@@ -12,19 +13,31 @@ if sys.stdout.encoding != 'utf-8':
 
 # pylint: disable=line-too-long,too-many-branches,too-many-statements
 
+USE_MOCK_CLIENT = True
+
 HOST = "192.168.178.137"  # Replace with your device's IP address
+
+FILE = "instantvalues.json"  # Replace with your JSON file path
+MODEL_ID = "PDHC1H1HAR1V1"
+FW_CODE = "539224"
 
 async def main() -> None:
     """Demonstrate all PooldoseClient calls."""
-    client = PooldoseClient(host=HOST, include_mac_lookup=True)
-
+    # Choose between real client and mock client
+    if USE_MOCK_CLIENT:
+        print(f"Using MockPooldoseClient with JSON file {FILE}")
+        client = MockPooldoseClient(json_file_path=FILE, model_id=MODEL_ID, fw_code=FW_CODE, include_sensitive_data=True)
+    else:
+        print(f"Using real PooldoseClient with network connection. Host: {HOST}")
+        client = PooldoseClient(host=HOST, include_mac_lookup=True)
+    
     # Connect
     client_status = await client.connect()
     if client_status != RequestStatus.SUCCESS:
         print(f"Error connecting to PooldoseClient: {client_status}")
         return
 
-    print(f"Connected to Pooldose device at {HOST}")
+    print(f"Connected to Pooldose device.")
 
     # Static values
     print("\nFetching static values...")

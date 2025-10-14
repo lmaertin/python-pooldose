@@ -27,6 +27,8 @@ class MockPooldoseClient:
     def __init__(
         self,
         json_file_path: Union[str, Path],
+        model_id: str,
+        fw_code: str,
         *,
         timeout: int = 30,
         include_sensitive_data: bool = False
@@ -40,6 +42,8 @@ class MockPooldoseClient:
             include_sensitive_data: If True, include sensitive data in responses
         """
         self.json_file_path = Path(json_file_path)
+        self.model_id = model_id
+        self.fw_code = fw_code
         self._timeout = timeout
         self._include_sensitive_data = include_sensitive_data
         self._mock_data = None
@@ -88,31 +92,17 @@ class MockPooldoseClient:
         # Extract serial number from device key (remove _DEVICE suffix)
         serial_number = self._device_key.replace('_DEVICE', '')
 
-        # Try to determine model and firmware from data keys
-        device_data = self._mock_data['devicedata'][self._device_key]
-        model = None
-        fw_code = None
-
-        # Look for model/firmware pattern in keys
-        for key in device_data.keys():
-            if key.startswith('PDPR1H1'):
-                parts = key.split('_')
-                if len(parts) >= 3:
-                    model = parts[0]
-                    fw_code = parts[1]
-                    break
-
         # Update device info
         self.device_info.update({
-            "NAME": f"Mock {model or 'POOLDOSE'} Device",
+            "NAME": f"Mock {self.model_id or 'POOLDOSE'} Device",
             "SERIAL_NUMBER": serial_number,
             "DEVICE_ID": self._device_key,
-            "MODEL": model or "MOCK_MODEL",
-            "MODEL_ID": model or "MOCK_MODEL",
+            "MODEL": self.model_id or "MOCK_MODEL",
+            "MODEL_ID": self.model_id or "MOCK_MODEL",
             "FW_CODE": (
-                fw_code.replace('FW', '')
-                if fw_code and fw_code.startswith('FW')
-                else fw_code or "MOCK_FW"
+                self.fw_code.replace('FW', '')
+                if self.fw_code and self.fw_code.startswith('FW')
+                else self.fw_code or "MOCK_FW"
             ),
             "API_VERSION": API_VERSION_SUPPORTED,
             "IP": "127.0.0.1",  # Mock IP
@@ -179,6 +169,10 @@ class MockPooldoseClient:
                 return RequestStatus.UNKNOWN_ERROR, None
 
             device_data = self._mock_data['devicedata'][self._device_key]
+
+            if self.device_info["MODEL_ID"] == 'PDHC1H1HAR1V1' and self.device_info["FW_CODE"] == '539224':
+                #due to identifier issue in device firmware, use mapping prefix of PDPR1H1HAR1V0
+                self.device_info["MODEL_ID"] = 'PDPR1H1HAR1V0'
 
             # Filter out non-sensor data
             filtered_data = {
