@@ -310,7 +310,16 @@ class InstantValues:
         return value
 
     async def set_number(self, key: str, value: Any) -> bool:
-        """Set number value with validation."""
+        """
+        Set number value with validation.
+
+        Args:
+            key: The key to set the value for.
+            value: The value to set. Can be a single value or a list of values.
+
+        Returns:
+            bool: True if the value was set successfully, False otherwise.
+        """
         if key not in self._mapping or self._mapping[key].get("type") != "number":
             _LOGGER.warning("Key '%s' is not a valid number", key)
             return False
@@ -324,19 +333,24 @@ class InstantValues:
         try:
             _, _, min_val, max_val, step = current_info
 
-            # Validate range (only if min/max are defined)
-            if min_val is not None and max_val is not None:
-                if not min_val <= value <= max_val:
-                    _LOGGER.warning("Value %s is out of range for %s. Valid range: %s - %s", value, key, min_val, max_val)
-                    return False
+            # Handle both single values and arrays
+            values_to_validate = value if isinstance(value, list) else [value]
 
-            # Validate step (for float values)
-            if isinstance(value, float) and step and min_val is not None:
-                epsilon = 1e-9
-                n = (value - min_val) / step
-                if abs(round(n) - n) > epsilon:
-                    _LOGGER.warning("Value %s is not a valid step for %s. Step: %s", value, key, step)
-                    return False
+            # Validate each value
+            for val in values_to_validate:
+                # Validate range (only if min/max are defined)
+                if min_val is not None and max_val is not None:
+                    if not min_val <= val <= max_val:
+                        _LOGGER.warning("Value %s is out of range for %s. Valid range: %s - %s", val, key, min_val, max_val)
+                        return False
+
+                # Validate step (for float values)
+                if isinstance(val, float) and step and min_val is not None:
+                    epsilon = 1e-9
+                    n = (val - min_val) / step
+                    if abs(round(n) - n) > epsilon:
+                        _LOGGER.warning("Value %s is not a valid step for %s. Step: %s", val, key, step)
+                        return False
 
             success = await self._set_value(key, value)
             if success:
@@ -409,9 +423,18 @@ class InstantValues:
 
             # Handle different types
             if entry_type == "number":
-                if not isinstance(device_value, (int, float)):
-                    _LOGGER.warning("Invalid type for number '%s': expected int/float, got %s", name, type(device_value))
-                    return False
+                # Handle both single values and arrays
+                if isinstance(device_value, list):
+                    # Validate each value in the array
+                    for val in device_value:
+                        if not isinstance(val, (int, float)):
+                            _LOGGER.warning("Invalid type for number '%s': expected int/float, got %s", name, type(val))
+                            return False
+                else:
+                    # Single value validation
+                    if not isinstance(device_value, (int, float)):
+                        _LOGGER.warning("Invalid type for number '%s': expected int/float, got %s", name, type(device_value))
+                        return False
                 result = await self._request_handler.set_value(self._device_id, full_key, device_value, "NUMBER")
 
             elif entry_type == "switch":

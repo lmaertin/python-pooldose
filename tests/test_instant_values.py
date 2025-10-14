@@ -116,6 +116,29 @@ class TestInstantValues:  # pylint: disable=too-many-public-methods
         assert result is False
 
     @pytest.mark.asyncio
+    async def test_set_number_array_success(self, instant_values_fixture):
+        """Test setting number with array of values successfully."""
+        result = await instant_values_fixture.set_number("target_ph", [7.0, 7.2])
+        assert result is True
+        # Cache should be cleared
+        # pylint: disable=protected-access
+        assert "target_ph" not in instant_values_fixture._cache
+
+    @pytest.mark.asyncio
+    async def test_set_number_array_out_of_range(self, instant_values_fixture):
+        """Test setting number array with value out of range."""
+        result = await instant_values_fixture.set_number("target_ph", [7.0, 9.0])
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_set_number_array_single_element(self, instant_values_fixture):
+        """Test setting number with single-element array."""
+        result = await instant_values_fixture.set_number("target_ph", [7.2])
+        assert result is True
+        # pylint: disable=protected-access
+        assert "target_ph" not in instant_values_fixture._cache
+
+    @pytest.mark.asyncio
     async def test_set_switch_success(self, instant_values_fixture):
         """Test setting switch value successfully."""
         result = await instant_values_fixture.set_switch("pump_switch", False)
