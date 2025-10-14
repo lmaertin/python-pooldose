@@ -384,7 +384,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         Args:
             device_id (str): The identifier of the device to set the value for.
             path (str): The path within the device to set the value.
-            value (Any): The value to set.
+            value (Any): The value to set. Can be a single value or a list of values.
+                        If a list is provided, multiple value entries will be created.
             value_type (str): The type of the value (e.g., "int", "float", "str").
 
         Returns:
@@ -398,14 +399,29 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             Warnings for client errors and errors for timeout issues.
         """
         url = self._build_url("/api/v1/DWI/setInstantValues")
+
+        # Construct value array based on whether value is a list or single value
+        if isinstance(value, list):
+            # Multiple values - create entry for each value in the list
+            value_array = [
+                {
+                    "value": v,
+                    "type": value_type.upper()
+                }
+                for v in value
+            ]
+        else:
+            # Single value - create single entry (backward compatible)
+            value_array = [
+                {
+                    "value": value,
+                    "type": value_type.upper()
+                }
+            ]
+
         payload = {
             device_id: {
-                path: [
-                    {
-                        "value": value,
-                        "type": value_type.upper()
-                    }
-                ]
+                path: value_array
             }
         }
         try:

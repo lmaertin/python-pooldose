@@ -184,3 +184,178 @@ class TestSessionManagement:
 
             # Verify the session was closed despite the exception
             mock_session.close.assert_awaited_once()
+
+
+class TestSetValue:
+    """Tests for the set_value method with single and array value support."""
+
+    @pytest.mark.asyncio
+    async def test_set_value_single_value(self):
+        """Test setting a single value (backward compatibility)."""
+        handler = RequestHandler("192.168.1.1")
+
+        # Mock the session and response
+        mock_response = AsyncMock()
+        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_response.__aexit__ = AsyncMock()
+        mock_response.raise_for_status = AsyncMock()
+
+        with patch('aiohttp.ClientSession') as mock_session_class:
+            mock_session_instance = AsyncMock()
+            mock_session_instance.post = MagicMock(return_value=mock_response)
+            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aexit__ = AsyncMock()
+            mock_session_class.return_value = mock_session_instance
+
+            # Call set_value with a single value
+            result = await handler.set_value("DEVICE_ID", "path/to/value", 7.5, "NUMBER")
+
+            # Verify the result
+            assert result is True
+
+            # Verify the payload structure
+            call_args = mock_session_instance.post.call_args
+            payload = call_args.kwargs['json']
+
+            # Expected structure: {device_id: {path: [{"value": 7.5, "type": "NUMBER"}]}}
+            assert "DEVICE_ID" in payload
+            assert "path/to/value" in payload["DEVICE_ID"]
+            assert len(payload["DEVICE_ID"]["path/to/value"]) == 1
+            assert payload["DEVICE_ID"]["path/to/value"][0]["value"] == 7.5
+            assert payload["DEVICE_ID"]["path/to/value"][0]["type"] == "NUMBER"
+
+    @pytest.mark.asyncio
+    async def test_set_value_array_of_values(self):
+        """Test setting multiple values using an array."""
+        handler = RequestHandler("192.168.1.1")
+
+        # Mock the session and response
+        mock_response = AsyncMock()
+        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_response.__aexit__ = AsyncMock()
+        mock_response.raise_for_status = AsyncMock()
+
+        with patch('aiohttp.ClientSession') as mock_session_class:
+            mock_session_instance = AsyncMock()
+            mock_session_instance.post = MagicMock(return_value=mock_response)
+            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aexit__ = AsyncMock()
+            mock_session_class.return_value = mock_session_instance
+
+            # Call set_value with an array of values
+            result = await handler.set_value("DEVICE_ID", "path/to/value", [5.5, 8.0], "NUMBER")
+
+            # Verify the result
+            assert result is True
+
+            # Verify the payload structure
+            call_args = mock_session_instance.post.call_args
+            payload = call_args.kwargs['json']
+
+            # Expected structure: {device_id: {path: [{"value": 5.5, "type": "NUMBER"}, {"value": 8.0, "type": "NUMBER"}]}}
+            assert "DEVICE_ID" in payload
+            assert "path/to/value" in payload["DEVICE_ID"]
+            assert len(payload["DEVICE_ID"]["path/to/value"]) == 2
+            assert payload["DEVICE_ID"]["path/to/value"][0]["value"] == 5.5
+            assert payload["DEVICE_ID"]["path/to/value"][0]["type"] == "NUMBER"
+            assert payload["DEVICE_ID"]["path/to/value"][1]["value"] == 8.0
+            assert payload["DEVICE_ID"]["path/to/value"][1]["type"] == "NUMBER"
+
+    @pytest.mark.asyncio
+    async def test_set_value_array_single_element(self):
+        """Test setting an array with a single element."""
+        handler = RequestHandler("192.168.1.1")
+
+        # Mock the session and response
+        mock_response = AsyncMock()
+        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_response.__aexit__ = AsyncMock()
+        mock_response.raise_for_status = AsyncMock()
+
+        with patch('aiohttp.ClientSession') as mock_session_class:
+            mock_session_instance = AsyncMock()
+            mock_session_instance.post = MagicMock(return_value=mock_response)
+            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aexit__ = AsyncMock()
+            mock_session_class.return_value = mock_session_instance
+
+            # Call set_value with a single-element array
+            result = await handler.set_value("DEVICE_ID", "path/to/value", [7.5], "NUMBER")
+
+            # Verify the result
+            assert result is True
+
+            # Verify the payload structure
+            call_args = mock_session_instance.post.call_args
+            payload = call_args.kwargs['json']
+
+            # Expected structure: {device_id: {path: [{"value": 7.5, "type": "NUMBER"}]}}
+            assert "DEVICE_ID" in payload
+            assert "path/to/value" in payload["DEVICE_ID"]
+            assert len(payload["DEVICE_ID"]["path/to/value"]) == 1
+            assert payload["DEVICE_ID"]["path/to/value"][0]["value"] == 7.5
+            assert payload["DEVICE_ID"]["path/to/value"][0]["type"] == "NUMBER"
+
+    @pytest.mark.asyncio
+    async def test_set_value_string_type(self):
+        """Test setting a string value."""
+        handler = RequestHandler("192.168.1.1")
+
+        # Mock the session and response
+        mock_response = AsyncMock()
+        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_response.__aexit__ = AsyncMock()
+        mock_response.raise_for_status = AsyncMock()
+
+        with patch('aiohttp.ClientSession') as mock_session_class:
+            mock_session_instance = AsyncMock()
+            mock_session_instance.post = MagicMock(return_value=mock_response)
+            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aexit__ = AsyncMock()
+            mock_session_class.return_value = mock_session_instance
+
+            # Call set_value with a string value
+            result = await handler.set_value("DEVICE_ID", "path/to/value", "O", "STRING")
+
+            # Verify the result
+            assert result is True
+
+            # Verify the payload structure
+            call_args = mock_session_instance.post.call_args
+            payload = call_args.kwargs['json']
+
+            # Verify type is uppercased
+            assert payload["DEVICE_ID"]["path/to/value"][0]["type"] == "STRING"
+            assert payload["DEVICE_ID"]["path/to/value"][0]["value"] == "O"
+
+    @pytest.mark.asyncio
+    async def test_set_value_array_strings(self):
+        """Test setting multiple string values using an array."""
+        handler = RequestHandler("192.168.1.1")
+
+        # Mock the session and response
+        mock_response = AsyncMock()
+        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_response.__aexit__ = AsyncMock()
+        mock_response.raise_for_status = AsyncMock()
+
+        with patch('aiohttp.ClientSession') as mock_session_class:
+            mock_session_instance = AsyncMock()
+            mock_session_instance.post = MagicMock(return_value=mock_response)
+            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aexit__ = AsyncMock()
+            mock_session_class.return_value = mock_session_instance
+
+            # Call set_value with an array of string values
+            result = await handler.set_value("DEVICE_ID", "path/to/value", ["O", "F"], "STRING")
+
+            # Verify the result
+            assert result is True
+
+            # Verify the payload structure
+            call_args = mock_session_instance.post.call_args
+            payload = call_args.kwargs['json']
+
+            assert len(payload["DEVICE_ID"]["path/to/value"]) == 2
+            assert payload["DEVICE_ID"]["path/to/value"][0]["value"] == "O"
+            assert payload["DEVICE_ID"]["path/to/value"][1]["value"] == "F"
