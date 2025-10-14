@@ -6,7 +6,7 @@ authors = [{ name = "Lukas Maertin", email = "pypi@lukas-maertin.de" }]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["aiohttp", "aiofiles", "getmac"]
+dependencies = ["aiohttp", "aiofiles", "getmac", "requests"]
 
 [project.urls]
 Homepage = "https://github.com/lmaertin/python-pooldose"

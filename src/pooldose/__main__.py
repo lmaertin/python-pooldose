@@ -3,8 +3,13 @@
 
 import argparse
 import asyncio
+import json
 import sys
 from pathlib import Path
+from typing import Optional
+
+import requests
+import urllib3
 
 from pooldose import __version__
 from pooldose.client import PooldoseClient, RequestStatus
@@ -49,7 +54,7 @@ except ImportError:
                     print(f"  {key}: {value}")
 
 
-async def run_device_analyzer(host: str, use_ssl: bool, port: int, show_all: bool = False) -> None:
+async def run_device_analyzer(host: str, use_ssl: bool, port: int, show_all: bool = False, out_file: Optional[str] = None) -> None:
     """Run the DeviceAnalyzer for unknown devices."""
     print(f"Analyzing unknown device at {host}")
     if use_ssl:
@@ -100,6 +105,36 @@ async def run_device_analyzer(host: str, use_ssl: bool, port: int, show_all: boo
         # Display results
         if device_info is not None:
             analyzer.display_analysis(device_info, widgets, show_all=show_all)
+
+            # Save to file if requested
+            if out_file:
+                try:
+                    output_data = {
+                        "device_info": {
+                            "device_id": device_info.device_id,
+                            "model": device_info.model,
+                            "fw_code": device_info.fw_code,
+                            "software_version": handler.software_version,
+                            "api_version": handler.api_version
+                        },
+                        "widgets": [
+                            {
+                                "key": w.key,
+                                "short_key": w.short_key,
+                                "label": w.label,
+                                "raw_value": w.raw_value,
+                                "details": w.details
+                            }
+                            for w in widgets
+                            if show_all or not w.details.get("hidden", False)
+                        ]
+                    }
+                    with open(out_file, 'w', encoding='utf-8') as f:
+                        json.dump(output_data, f, indent=2, ensure_ascii=False)
+                    print(f"\n✓ Analysis saved to: {out_file}")
+                except OSError as e:
+                    print(f"\n✗ Error saving to file: {e}")
+                    sys.exit(1)
         else:
             print("Failed to analyze device - no device info available")
 
@@ -109,7 +144,7 @@ async def run_device_analyzer(host: str, use_ssl: bool, port: int, show_all: boo
         print(f"Error during analysis: {e}")
 
 
-async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
+async def run_real_client(host: str, use_ssl: bool, port: int, out_file: Optional[str] = None) -> None:
     """Run the real PooldoseClient."""
     print(f"Connecting to PoolDose device at {host}")
     if use_ssl:
@@ -144,6 +179,27 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
         if instant_status == RequestStatus.SUCCESS:
             display_structured_data(instant_data)
 
+            # Save to file if requested
+            if out_file:
+                try:
+                    output_data = {
+                        "static_values": {
+                            "name": static_values.sensor_name,
+                            "serial": static_values.sensor_serial_number,
+                            "model": static_values.sensor_model,
+                            "firmware": static_values.sensor_fw_version,
+                            "ip": static_values.sensor_ip,
+                            "mac": static_values.sensor_mac
+                        } if static_status == RequestStatus.SUCCESS else {},
+                        "instant_values": instant_data
+                    }
+                    with open(out_file, 'w', encoding='utf-8') as f:
+                        json.dump(output_data, f, indent=2, ensure_ascii=False)
+                    print(f"\n✓ Output saved to: {out_file}")
+                except OSError as e:
+                    print(f"\n✗ Error saving to file: {e}")
+                    sys.exit(1)
+
         print("\nConnection completed successfully!")
 
     except (ConnectionError, TimeoutError, OSError) as e:
@@ -152,7 +208,7 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
         print(f"Error during connection: {e}")
 
 
-async def run_mock_client(json_file: str) -> None:
+async def run_mock_client(json_file: str, out_file: Optional[str] = None) -> None:
     """Run the MockPooldoseClient."""
     json_path = Path(json_file)
     if not json_path.exists():
@@ -185,12 +241,72 @@ async def run_mock_client(json_file: str) -> None:
         if instant_status.name == "SUCCESS":
             display_structured_data(instant_data)
 
+            # Save to file if requested
+            if out_file:
+                try:
+                    output_data = {
+                        "static_values": {
+                            "name": static_values.sensor_name,
+                            "serial": static_values.sensor_serial_number,
+                            "model": static_values.sensor_model,
+                            "firmware": static_values.sensor_fw_version,
+                            "ip": static_values.sensor_ip,
+                            "mac": static_values.sensor_mac
+                        } if static_status.name == "SUCCESS" else {},
+                        "instant_values": instant_data
+                    }
+                    with open(out_file, 'w', encoding='utf-8') as f:
+                        json.dump(output_data, f, indent=2, ensure_ascii=False)
+                    print(f"\n✓ Output saved to: {out_file}")
+                except OSError as e:
+                    print(f"\n✗ Error saving to file: {e}")
+                    sys.exit(1)
+
         print("\nMock demo completed successfully!")
 
     except (FileNotFoundError, ValueError, OSError) as e:
         print(f"File or data error: {e}")
     except Exception as e:  # pylint: disable=broad-except
         print(f"Error during mock demo: {e}")
+
+
+def extract_json(host: str, use_ssl: bool, port: int, out_file: str) -> None:
+    """Extract JSON data from device and save to file."""
+    protocol = "https" if use_ssl else "http"
+    url = f"{protocol}://{host}:{port}/api/v1/DWI/getInstantValues"
+
+    print(f"Extracting JSON data from {url}")
+
+    try:
+        # Suppress SSL warnings for self-signed certificates
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        # Make POST request to device
+        response = requests.post(url, timeout=30, verify=False)
+        response.raise_for_status()
+
+        # Get JSON data
+        data = response.json()
+
+        # Save to file
+        with open(out_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+        print(f"✓ Successfully saved JSON data to: {out_file}")
+        print(f"✓ Response size: {len(json.dumps(data))} bytes")
+
+    except requests.exceptions.RequestException as e:
+        print(f"✗ HTTP error: {e}")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"✗ JSON decode error: {e}")
+        sys.exit(1)
+    except OSError as e:
+        print(f"✗ File write error: {e}")
+        sys.exit(1)
+    except Exception as e:  # pylint: disable=broad-except
+        print(f"✗ Unexpected error: {e}")
+        sys.exit(1)
 
 
 def main() -> None:
@@ -205,11 +321,20 @@ Examples:
   # Connect with HTTPS
   python -m pooldose --host 192.168.1.100 --ssl --port 443
 
+  # Extract JSON data from device
+  python -m pooldose --host 192.168.1.100 --extract-json
+
+  # Extract JSON to custom file
+  python -m pooldose --host 192.168.1.100 --extract-json -o mydata.json
+
   # Analyze unknown device (visible widgets only)
   python -m pooldose --host 192.168.1.100 --analyze
 
   # Analyze unknown device (all widgets including hidden)
   python -m pooldose --host 192.168.1.100 --analyze-all
+
+  # Save analysis output to file
+  python -m pooldose --host 192.168.1.100 --analyze -o analysis.json
 
   # Use mock client with JSON file
   python -m pooldose --mock path/to/your/data.json
@@ -243,6 +368,21 @@ Examples:
         default=0,
         help="Custom port (default: 80 for HTTP, 443 for HTTPS)"
     )
+
+    # Output options
+    parser.add_argument(
+        "-o", "--out-file",
+        type=str,
+        metavar="FILE",
+        help="Save output to file (JSON format for analysis, raw for extract-json)"
+    )
+
+    # Command options
+    parser.add_argument(
+        "--extract-json",
+        action="store_true",
+        help="Extract raw JSON data from device /api/v1/DWI/getInstantValues endpoint"
+    )
     parser.add_argument(
         "--analyze",
         action="store_true",
@@ -269,6 +409,14 @@ Examples:
     if args.analyze and not args.host:
         parser.error("--analyze requires --host to be specified")
 
+    # Validation: --extract-json requires --host
+    if args.extract_json and not args.host:
+        parser.error("--extract-json requires --host to be specified")
+
+    # Set default out_file for --extract-json if not specified
+    if args.extract_json and not args.out_file:
+        args.out_file = "instantvalues.json"
+
     # Set UTF-8 encoding for output
     if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding != 'utf-8':
         sys.stdout.reconfigure(encoding='utf-8')
@@ -280,16 +428,22 @@ Examples:
         if args.host:
             # Real device mode
             port = args.port if args.port != 0 else (443 if args.ssl else 80)
-            if args.analyze:
+
+            if args.extract_json:
+                # Extract JSON mode
+                extract_json(args.host, args.ssl, port, args.out_file)
+            elif args.analyze:
                 # Device analysis mode
                 asyncio.run(run_device_analyzer(
-                    args.host, args.ssl, port, show_all=args.analyze_all))
+                    args.host, args.ssl, port, show_all=args.analyze_all,
+                    out_file=args.out_file))
             else:
                 # Normal client mode
-                asyncio.run(run_real_client(args.host, args.ssl, port))
+                asyncio.run(run_real_client(args.host, args.ssl, port,
+                                           out_file=args.out_file))
         elif args.mock:
             # Mock mode
-            asyncio.run(run_mock_client(args.mock))
+            asyncio.run(run_mock_client(args.mock, out_file=args.out_file))
 
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")

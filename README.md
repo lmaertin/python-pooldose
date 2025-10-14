@@ -11,6 +11,8 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 - **Dictionary-style access** to instant values
 - **Structured data API** with type-based organization
 - **Device analyzer** for discovering unsupported device capabilities
+- **JSON data extraction** from device API with CLI command
+- **File output support** for saving analysis and connection data
 - **PEP-561 compliant** with full type hints for Home Assistant integrations
 - **Command-line interface** for direct device interaction and testing
 - **Secure by default** - WiFi passwords excluded unless explicitly requested
@@ -178,11 +180,44 @@ pooldose --host 192.168.1.100 --analyze
 pooldose --host 192.168.1.100 --analyze-all
 ```
 
+### Extract JSON Data
+
+Extract raw JSON data directly from the device API endpoint:
+
+```bash
+# Extract to default file (instantvalues.json)
+pooldose --host 192.168.1.100 --extract-json
+
+# Extract to custom file
+pooldose --host 192.168.1.100 --extract-json -o mydata.json
+
+# Extract with HTTPS
+pooldose --host 192.168.1.100 --ssl --extract-json
+```
+
+### Save Output to File
+
+Use the `-o` or `--out-file` option to save analysis or connection output to a JSON file:
+
+```bash
+# Save device analysis to file
+pooldose --host 192.168.1.100 --analyze -o analysis.json
+
+# Save normal connection output to file
+pooldose --host 192.168.1.100 -o output.json
+
+# Save mock mode output to file
+pooldose --mock data.json -o results.json
+```
+
 ### Mock Mode with JSON Files
 
 ```bash
 # Use JSON file for testing
 pooldose --mock path/to/your/data.json
+
+# Save mock mode output to file
+pooldose --mock path/to/your/data.json -o output.json
 ```
 
 ### Alternative Module Execution
@@ -195,6 +230,9 @@ python -m pooldose --host 192.168.1.100
 
 # Device analysis
 python -m pooldose --host 192.168.1.100 --analyze
+
+# Extract JSON data
+python -m pooldose --host 192.168.1.100 --extract-json
 
 # Mock mode
 python -m pooldose --mock data.json
