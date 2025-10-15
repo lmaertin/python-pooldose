@@ -4,8 +4,8 @@ This document provides a comprehensive overview of all options and conversions u
 
 ## Overview
 
-The mapping file contains 25 unique label/combo references:
-- **21 LABEL references** (used in sensor and binary_sensor conversions)
+The mapping file contains 26 unique label/combo references:
+- **22 LABEL references** (used in sensor and binary_sensor conversions)
 - **4 COMBO references** (used in select options and conversions)
 
 ## Label References (with pipe delimiters)
@@ -160,12 +160,12 @@ During the analysis, one inconsistency was found and corrected:
 
 ## Summary Statistics
 
-- Total entries in mapping: 26
+- Total entries in mapping: 34
 - Entries with conversions: 10
 - Entries with select options: 2
-- Total unique LABEL references: 21
+- Total unique LABEL references: 22
 - Total unique COMBO references: 4
-- Total unique references: 25
+- Total unique references: 26
 
 ## strings.json Template
 
@@ -190,6 +190,7 @@ For reference, here's a template showing all label/combo references and their su
   "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_OFF|": "OFF",
   "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_ON_OFF|": "ON_OFF",
   "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_PROPORTIONAL|": "PROPORTIONAL",
+  "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_TIMED|": "TIMED",
   "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_TIMED|": "TIMED",
   "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f1fng00q_OFF|": "OFF",
   "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f1fng00q_ON|": "ON",
