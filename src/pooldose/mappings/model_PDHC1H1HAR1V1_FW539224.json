@@ -82,7 +82,7 @@
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_OFF|": "off",
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_PROPORTIONAL|": "proportional",
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_ON_OFF|": "on_off",
-      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_TIMED|": "timed"
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_TIMED|": "timed"
     }
   },
   "pump_running": {
