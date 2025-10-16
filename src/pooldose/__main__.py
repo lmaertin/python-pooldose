@@ -117,6 +117,7 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
     else:
         print(f"Using HTTP on port {port}")
 
+    # pylint: disable=no-value-for-parameter
     client = PooldoseClient(
         host=host,
         include_mac_lookup=True,
@@ -152,7 +153,7 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
         print(f"Error during connection: {e}")
 
 
-async def run_mock_client(json_file: str) -> None:
+async def run_mock_client(json_file: str, model_id: str = None, fw_code: str = None) -> None:
     """Run the MockPooldoseClient."""
     json_path = Path(json_file)
     if not json_path.exists():
@@ -161,10 +162,16 @@ async def run_mock_client(json_file: str) -> None:
 
     print(f"Loading mock data from: {json_file}")
 
-    client = MockPooldoseClient(
-        json_file_path=json_path,
-        include_sensitive_data=True
-    )
+    client_kwargs = {
+        "json_file_path": json_path,
+        "include_sensitive_data": True
+    }
+    if model_id is not None:
+        client_kwargs["model_id"] = model_id
+    if fw_code is not None:
+        client_kwargs["fw_code"] = fw_code
+
+    client = MockPooldoseClient(**client_kwargs)
 
     try:
         # Connect
@@ -231,6 +238,20 @@ Examples:
         help="Path to JSON file for mock mode"
     )
 
+    # Additional mock parameters
+    parser.add_argument(
+        "--model-id",
+        type=str,
+        default=None,
+        help="Optional: Model ID for mock client (overrides JSON)"
+    )
+    parser.add_argument(
+        "--fw-code",
+        type=str,
+        default=None,
+        help="Optional: Firmware code for mock client (overrides JSON)"
+    )
+
     # Connection options
     parser.add_argument(
         "--ssl",
@@ -289,7 +310,11 @@ Examples:
                 asyncio.run(run_real_client(args.host, args.ssl, port))
         elif args.mock:
             # Mock mode
-            asyncio.run(run_mock_client(args.mock))
+            asyncio.run(run_mock_client(
+                args.mock,
+                model_id=args.model_id,
+                fw_code=args.fw_code
+            ))
 
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")

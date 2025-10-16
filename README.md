@@ -30,7 +30,7 @@ This client uses an undocumented local HTTP API. It provides live readings for p
    │   ├── WiFi Station Info (optional)
    │   ├── Access Point Info (optional)
    │   └── Network Info
-   └── Load Mapping JSON (based on MODEL_ID + FW_CODE)
+        └── Load mapping JSON (based on model_id + fw_code)
 
 2. Get Static Values
    └── Device information and configuration
@@ -234,8 +234,8 @@ The analyzer provides comprehensive information about your device:
 ```
 === DEVICE ANALYSIS ===
 Device: 01234567890A_DEVICE
-Model: PDPR1H1HAW***  
-Firmware: FW53****
+Model ID: PDZZ1H1HATEST1V1  
+Firmware Code: 654321
 
 === WIDGETS (Visible UI Elements) ===
 
@@ -279,8 +279,8 @@ pooldose --host 192.168.1.100 --analyze
 
 # Output shows:
 # Device: 01987654321B_DEVICE  
-# Model: PDPR2H2XYZ***        ← New model not yet supported
-# Firmware: FW54****          ← New firmware version
+# Model ID: PDZZ1H1HATEST1V1     ← New model not yet supported
+# Firmware Code: 654321            ← New firmware version
 # 
 # Widgets discovered: 15 sensors, 8 controls, 12 settings
 ```
@@ -376,8 +376,13 @@ You can use the mock client with custom JSON files via the command line:
 # Use mock client with JSON file
 pooldose --mock path/to/your/data.json
 
+
+# Use mock client with model and firmware code (Beispiel mit Fantasiewerten)
+pooldose --mock path/to/your/data.json --model-id PDZZ1H1HATEST1V1 --fw-code 654321
+
 # Or as Python module
 python -m pooldose --mock path/to/your/data.json
+python -m pooldose --mock path/to/your/data.json --model-id PDZZ1H1HATEST1V1 --fw-code 654321
 ```
 
 ### JSON Data Format
@@ -720,13 +725,13 @@ Mapping Discovery Process:
          │
          ▼
 ┌─────────────────┐
-│ Get MODEL_ID    │ ──────► PDPR1H1HAW***
-│ Get FW_CODE     │ ──────► 53****
+│ Get Model ID    │ ──────► PDZZ1H1HATEST1V1
+│ Get Firmware Code     │ ──────► 654321
 └─────────────────┘
          │
          ▼
 ┌─────────────────┐
-│ Load JSON File  │ ──────► model_PDPR1H1HAW***_FW53****.json
+│ Load JSON file  │ ──────► model_PDZZ1H1HATEST1V1_FW654321.json
 └─────────────────┘
          │
          ▼
