@@ -29,10 +29,6 @@
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_TIMED|": "timed"
     }
   },
-  "ofa_ph_value": {
-    "key": "w_1g1l138q8",
-    "type": "sensor"
-  },
   "orp_type_dosing": {
     "key": "w_1f0it326i",
     "type": "sensor",
@@ -50,10 +46,6 @@
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_ON_OFF|": "on_off",
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_TIMED|": "timed"
     }
-  },
-  "ofa_orp_value": {
-    "key": "w_1g1kvclje",
-    "type": "sensor"
   },
   "pump_running": {
     "key": "w_1f1fng00q",
@@ -75,16 +67,20 @@
     "key": "w_1f0iqmg8c",
     "type": "binary_sensor"
   },
-  "alarm_relay": {
+  "relay_alarm": {
     "key": "w_1f0ir59fo",
     "type": "binary_sensor"
   },
-  "relay_aux1_ph": {
+  "relay_aux1": {
     "key": "w_1gmgkbmap",
     "type": "binary_sensor"
   },
-  "relay_aux2_orpcl": {
+  "relay_aux2": {
     "key": "w_1gmgkfe9s",
+    "type": "binary_sensor"
+  },
+  "relay_aux3": {
+    "key": "w_1gmgkflcj",
     "type": "binary_sensor"
   },
   "alarm_ofa_ph": {
@@ -119,12 +115,74 @@
     "key": "w_1f3dfp59r",
     "type": "select",
     "options": {
-      "8": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_",
-      "9": "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__"
+      "8": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_|",
+      "9": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__|"
     },
     "conversion": {
-      "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_": "L",
-      "PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__": "m³"
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_|": "L",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__|": "m³"
     }
+  },
+  "input_reed_type": {
+    "key": "w_1gqhf8s0i",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1gqhf8s0i_REED_N_C_|",
+      "1": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1gqhf8s0i_REED_N_O_|",
+      "2": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1gqhf8s0i_LEVEL_3|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1gqhf8s0i_REED_N_C_|": "normally closed",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1gqhf8s0i_REED_N_O_|": "normally open",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1gqhf8s0i_LEVEL_3|": "level 3"
+    }
+  },
+  "flow_rate_value": {
+    "key": "w_1f0iv4ls4",
+    "type": "number"
+  },
+  "setpoint_ph": {
+    "key": "w_1f0j0a7cf",
+    "type": "number"
+  },
+  "setpoint_orp": {
+    "key": "w_1f0j0jd2a",
+    "type": "number"
+  },
+  "time1_on_timed_pump1": {
+    "key": "w_1f0j11av3",
+    "type": "number"
+  },
+  "time1_off_timed_pump1": {
+    "key": "w_1f0j11cd6",
+    "type": "number"
+  },
+  "time2_on_timed_pump2": {
+    "key": "w_1gqhejosq",
+    "type": "number"
+  },
+  "time2_off_timed_pump2": {
+    "key": "w_1gqhejsbt",
+    "type": "number"
+  },
+  "time3_on_timed_pump3": {
+    "key": "w_1gqhejutn",
+    "type": "number"
+  },
+  "time3_off_timed_pump3": {
+    "key": "w_1gqhek18o",
+    "type": "number"
+  },
+  "pulse_k_factor": {
+    "key": "w_1f0j230o6",
+    "type": "number"
+  },
+  "power_on_delay": {
+    "key": "w_1fka6s5ed",
+    "type": "number"
+  },
+  "flow_delay": {
+    "key": "w_1fka6s9e3",
+    "type": "number"
   }
 }
