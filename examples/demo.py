@@ -3,6 +3,7 @@
 import asyncio
 import sys
 
+
 from demo_utils import display_structured_data, display_static_values
 from pooldose.client import PooldoseClient, RequestStatus
 from pooldose.mock_client import MockPooldoseClient
@@ -13,13 +14,17 @@ if sys.stdout.encoding != 'utf-8':
 
 # pylint: disable=line-too-long,too-many-branches,too-many-statements
 
-USE_MOCK_CLIENT = True
+# Try to import config from demo_config.py (should be in .gitignore)
+try:
+    from demo_config import HOST, FILE, MODEL_ID, FW_CODE
+except ImportError:
+    # Fallback defaults
+    USE_MOCK_CLIENT = False
+    HOST = "kommspot"
+    FILE = None
+    MODEL_ID = None
+    FW_CODE = None
 
-HOST = "192.168.178.137"  # Replace with your device's IP address
-
-FILE = "instantvalues.json"  # Replace with your JSON file path
-MODEL_ID = "PDHC1H1HAR1V1"
-FW_CODE = "539224"
 
 async def main() -> None:
     """Demonstrate all PooldoseClient calls."""
