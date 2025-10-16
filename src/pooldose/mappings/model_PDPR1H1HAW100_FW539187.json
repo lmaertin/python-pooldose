@@ -29,13 +29,9 @@
     "conversion": {
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_OFF|": "off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_PROPORTIONAL|": "proportional",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_ON_OFF|": "on_off",
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_ON_OFF|": "on / off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklj6euj_TIMED|": "timed"
     }
-  },
-  "ofa_ph_value": {
-    "key": "w_1eo1ttmft",
-    "type": "sensor"
   },
   "orp_type_dosing": {
     "key": "w_1eklgnolb",
@@ -51,13 +47,9 @@
     "conversion": {
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_OFF|": "off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_PROPORTIONAL|": "proportional",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_ON_OFF|": "on_off",
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_ON_OFF|": "on / off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eo1s18s8_TIMED|": "timed"
     }
-  },
-  "ofa_orp_value": {
-    "key": "w_1eo1tui1d",
-    "type": "sensor"
   },
   "ph_calibration_type": {
     "key": "w_1eklh8gb7",
@@ -65,8 +57,8 @@
     "conversion": {
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_OFF|": "off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_REFERENCE|": "reference",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_1_POINT|": "1_point",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_2_POINTS|": "2_points"
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_1_POINT|": "1 point",
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_2_POINTS|": "2 points"
     }
   },
   "ph_calibration_offset": {
@@ -83,7 +75,7 @@
     "conversion": {
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_OFF|": "off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_REFERENCE|": "reference",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_1_POINT|": "1_point"
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_1_POINT|": "1 point"
     }
   },
   "orp_calibration_offset": {
@@ -110,15 +102,15 @@
     "key": "w_1eo04nc5n",
     "type": "binary_sensor"
   },
-  "alarm_relay": {
+  "relay_alarm": {
     "key": "w_1eklffdl0",
     "type": "binary_sensor"
   },
-  "relay_aux1_ph": {
+  "relay_aux1": {
     "key": "w_1eoi2rv4h",
     "type": "binary_sensor"
   },
-  "relay_aux2_orpcl": {
+  "relay_aux2": {
     "key": "w_1eoi2s16b",
     "type": "binary_sensor"
   },
@@ -162,7 +154,7 @@
       "1": "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_LITER"
     },
     "conversion": {
-      "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_M_": "m³",
+      "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_M_": "m3",
       "PDPR1H1HAW100_FW539187_COMBO_w_1eklinki6_LITER": "L"
     }
   }
