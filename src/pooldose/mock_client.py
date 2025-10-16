@@ -177,7 +177,7 @@ class MockPooldoseClient:
             # Filter out non-sensor data
             filtered_data = {
                 k: v for k, v in device_data.items()
-                if k.startswith(self.device_info["MODEL_ID"]) and isinstance(v, dict)
+                if k.startswith(self.device_info["MODEL_ID"]) and (isinstance(v, dict) or isinstance(v, bool))
             }
 
             instant_values = InstantValues(
