@@ -16,7 +16,7 @@ if sys.stdout.encoding != 'utf-8':
 
 # Try to import config from demo_config.py (should be in .gitignore)
 try:
-    from demo_config import HOST, FILE, MODEL_ID, FW_CODE
+    from demo_config import HOST, USE_MOCK_CLIENT, FILE, MODEL_ID, FW_CODE
 except ImportError:
     # Fallback defaults
     USE_MOCK_CLIENT = False
