@@ -30,19 +30,17 @@ async def main() -> None:
     """Demonstrate all PooldoseClient calls."""
     # Choose between real client and mock client
     if USE_MOCK_CLIENT:
-        print(f"Using MockPooldoseClient with JSON file {FILE}")
+        print("Using MockPooldoseClient with JSON file", FILE)
         client = MockPooldoseClient(json_file_path=FILE, model_id=MODEL_ID, fw_code=FW_CODE, include_sensitive_data=True)
     else:
-        print(f"Using real PooldoseClient with network connection. Host: {HOST}")
-        client = PooldoseClient(host=HOST, include_mac_lookup=True)
-    
+        print("Using real PooldoseClient with network connection. Host:", HOST)
+        client = PooldoseClient(host=HOST, include_mac_lookup=True)  # pylint: disable=no-value-for-parameter
     # Connect
     client_status = await client.connect()
     if client_status != RequestStatus.SUCCESS:
         print(f"Error connecting to PooldoseClient: {client_status}")
         return
-
-    print(f"Connected to Pooldose device.")
+    print("Connected to Pooldose device.")
 
     # Static values
     print("\nFetching static values...")

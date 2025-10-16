@@ -1,5 +1,7 @@
 """Mock client for SEKO Pooldose that uses JSON files instead of real devices."""
 
+# pylint: disable=too-many-instance-attributes,line-too-long,too-many-arguments,too-many-positional-arguments
+
 from __future__ import annotations
 
 import json
@@ -29,7 +31,6 @@ class MockPooldoseClient:
         json_file_path: Union[str, Path],
         model_id: str,
         fw_code: str,
-        *,
         timeout: int = 30,
         include_sensitive_data: bool = False
     ) -> None:
@@ -171,19 +172,22 @@ class MockPooldoseClient:
             device_data = self._mock_data['devicedata'][self._device_key]
 
             if self.device_info["MODEL_ID"] == 'PDHC1H1HAR1V1' and self.device_info["FW_CODE"] == '539224':
-                #due to identifier issue in device firmware, use mapping prefix of PDPR1H1HAR1V0
+                # due to identifier issue in device firmware, use mapping prefix of PDPR1H1HAR1V0
                 self.device_info["MODEL_ID"] = 'PDPR1H1HAR1V0'
 
             # Filter out non-sensor data
             filtered_data = {
                 k: v for k, v in device_data.items()
-                if k.startswith(self.device_info["MODEL_ID"]) and (isinstance(v, dict) or isinstance(v, bool))
+                if k.startswith(self.device_info["MODEL_ID"]) and isinstance(v, (dict, bool))
             }
 
             instant_values = InstantValues(
                 device_data=filtered_data,
                 mapping=self._mapping_info.mapping,
-                prefix=f"{self.device_info['MODEL_ID']}_FW{self.device_info['FW_CODE']}_",
+                prefix=(
+                    f"{self.device_info['MODEL_ID']}_FW"
+                    f"{self.device_info['FW_CODE']}_"
+                ),
                 device_id=self._device_key,
                 request_handler=None  # No real request handler in mock
             )
