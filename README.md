@@ -214,40 +214,6 @@ The device analyzer is a powerful feature that helps discover and analyze PoolDo
 - **Troubleshooting**: Understanding how your device exposes data and controls
 - **Widget Exploration**: Discovering all available sensors, controls, and settings
 
-### How to request support for a new device
-
-If your device is not yet supported, please help us by creating a GitHub issue and providing the following information:
-
-1. **Run low-level analysis and share the output files:**
-    - Use the following curl commands. 
-    - Replace the IP address and DeviceId (get the id from the header of the instantvalues.json file, e.g., '012345679_DEVICE') as needed:
-    
-    - Download debug config info:
-      ```bash
-      curl http://<YOUR_DEVICE_IP>/api/v1/debug/config/info -o debuginfo.json
-      ```
-      **Important:** Before uploading, open `debuginfo.json` and remove any WiFi credentials.
-    - Download instant values
-      ```bash
-      curl --location --request POST http://<YOUR_DEVICE_IP>/api/v1/DWI/getInstantValues -o instantvalues.json
-      ```
-    - Download device language strings
-      ```bash
-      curl --location http://<YOUR_DEVICE_IP>/api/v1/DWI/getDeviceLanguage --data-raw '{"DeviceId":"YOUR_DEVICE_ID","LANG":"en"}' -o strings.json
-      ```
-2. **Optional: Run the analyzer and share the output:**
-    - Run this command if you set up python-pooldose already:
-      ```bash
-      pooldose --host <YOUR_DEVICE_IP> --analyze
-      ```
-    - Copy and paste the full output into your issue (remove any sensitive data).
-
-3. **Create a GitHub issue:**
-    - Attach the the 3 JSON files from above.
-    - Optionally attach the analyzer output if available.
-    - This will help us add support for your device faster!
-
-
 ### Basic Device Analysis
 
 ```bash
@@ -325,6 +291,39 @@ With this information, you can:
 - Help expand device support for the community
 
 The device analyzer makes python-pooldose extensible and helps build support for the growing ecosystem of SEKO PoolDose or VÁGNER POOL devices.
+
+### How to request support for a new device
+
+If your device is not yet supported, please help us by creating a GitHub issue and providing the following information:
+
+1. **Run low-level analysis and share the output files:**
+    - Use the following curl commands. 
+    - Replace the IP address and DeviceId (get the id from the header of the instantvalues.json file, e.g., '012345679_DEVICE') as needed:
+    
+    - Download debug config info:
+      ```bash
+      curl http://<YOUR_DEVICE_IP>/api/v1/debug/config/info -o debuginfo.json
+      ```
+      **Important:** Before uploading, open `debuginfo.json` and remove any WiFi credentials.
+    - Download instant values
+      ```bash
+      curl --location --request POST http://<YOUR_DEVICE_IP>/api/v1/DWI/getInstantValues -o instantvalues.json
+      ```
+    - Download device language strings
+      ```bash
+      curl --location http://<YOUR_DEVICE_IP>/api/v1/DWI/getDeviceLanguage --data-raw '{"DeviceId":"YOUR_DEVICE_ID","LANG":"en"}' -o strings.json
+      ```
+2. **Optional: Run the analyzer and share the output:**
+    - Run this command if you set up python-pooldose already:
+      ```bash
+      pooldose --host <YOUR_DEVICE_IP> --analyze
+      ```
+    - Copy and paste the full output into your issue (remove any sensitive data).
+
+3. **Create a GitHub issue:**
+    - Attach the the 3 JSON files from above.
+    - Optionally attach the analyzer output if available.
+    - This will help us add support for your device faster!
 
 ## Examples
 
