@@ -214,6 +214,41 @@ The device analyzer is a powerful feature that helps discover and analyze PoolDo
 - **Troubleshooting**: Understanding how your device exposes data and controls
 - **Widget Exploration**: Discovering all available sensors, controls, and settings
 
+### How to request support for a new device
+
+If your device is not yet supported, please help us by creating a GitHub issue and providing the following information:
+
+1. **Run the analyzer and share the output:**
+    - Use the command:
+      ```bash
+      pooldose --host <your-device-ip> --analyze
+      ```
+    - Copy and paste the full output into your issue (remove any sensitive data).
+
+2. **Run low-level analysis and share the output files:**
+    - Use the following curl commands. 
+    - Replace the IP address and DeviceId (get the id from the header of the instantvalues.json file, e.g., '012345679_DEVICE') as needed:
+    
+    - Download debug config info:
+      ```bash
+      curl http://<YOUR_DEVICE_IP>/api/v1/debug/config/info -o debuginfo.json
+      ```
+      **Important:** Before uploading, open `debuginfo.json` and remove any WiFi credentials.
+    - Download instant values
+      ```bash
+      curl --location --request POST http://<YOUR_DEVICE_IP>/api/v1/DWI/getInstantValues -o instantvalues.json
+      ```
+    - Download device language strings
+      ```bash
+      curl --location http://<YOUR_DEVICE_IP>/api/v1/DWI/getDeviceLanguage --data-raw '{"DeviceId":"YOUR_DEVICE_ID","LANG":"en"}' -o strings.json
+      ```
+
+3. **Create a GitHub issue:**
+    - Attach the analyzer output.
+    - Attach the the 3 JSON files from above.
+    - This will help us add support for your device faster!
+
+
 ### Basic Device Analysis
 
 ```bash
