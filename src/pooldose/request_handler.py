@@ -6,7 +6,7 @@ import logging
 import re
 import socket
 import ssl
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union, List, Dict
 
 import aiohttp
 
@@ -384,19 +384,15 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         """
         url = self._build_url("/api/v1/DWI/setInstantValues")
         # Support: if value is a list/tuple and value_type is NUMBER, send multiple objects
-        if value_type.upper() == "NUMBER" and isinstance(value, (list, tuple)):
-            value_objs = [
-                {"value": v, "type": value_type.upper()} for v in value
-            ]
+        vt = value_type.upper()
+        payload_value: Union[Dict[str, Any], List[Dict[str, Any]]]
+        if vt == "NUMBER" and isinstance(value, (list, tuple)):
+            payload_value = [{"value": v, "type": vt} for v in value]
         else:
-            value_objs = [
-                {"value": value, "type": value_type.upper()}
-            ]
-        payload = {
-            device_id: {
-                path: value_objs
-            }
-        }
+            # Single value should be sent as a single object (not an array)
+            payload_value = {"value": value, "type": vt}
+
+        payload = {device_id: {path: payload_value}}
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
             connector = self._get_ssl_connector()

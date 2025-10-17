@@ -3,7 +3,6 @@
 import logging
 from typing import Any, Dict, Tuple, Union
 
-from pooldose.request_handler import RequestHandler
 
 # pylint: disable=line-too-long,too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-return-statements,too-many-branches,no-else-return,too-many-public-methods
 
@@ -17,22 +16,28 @@ class InstantValues:
     back to the device using a RequestHandler.
     """
 
-    def __init__(self, device_data: Dict[str, Any], mapping: Dict[str, Any], prefix: str, device_id: str, request_handler: RequestHandler):
-        """
-        Initialize InstantValues.
+    def __init__(
+        self,
+        device_data: Dict[str, Any],
+        mapping: Dict[str, Any],
+        prefix: str,
+        device_id: str,
+        request_handler: Any,
+    ) -> None:
+        """Initialize InstantValues.
 
         Args:
-            device_data (Dict[str, Any]): Raw device data from API.
-            mapping (Dict[str, Any]): Mapping configuration.
-            prefix (str): Key prefix for device data lookup.
-            device_id (str): Device ID.
-            request_handler (RequestHandler): API request handler.
+            device_data: Raw device data from API.
+            mapping: Mapping configuration.
+            prefix: Key prefix for device data lookup.
+            device_id: Device ID.
+            request_handler: API request handler (or mock shim).
         """
-        self._device_data = device_data  # Raw format: {"PDPR1H1HAW100_FW539187_w_1eommf39k": {...}, ...}
+        self._device_data = device_data
         self._mapping = mapping
         self._prefix = prefix
         self._device_id = device_id
-        self._request_handler = request_handler
+        self._request_handler: Any = request_handler
         self._cache: Dict[str, Any] = {}
 
     def __getitem__(self, key: str) -> Any:
@@ -274,7 +279,6 @@ class InstantValues:
         if not isinstance(raw_entry, dict):
             _LOGGER.warning("Invalid raw entry type for number '%s': expected dict, got %s", name, type(raw_entry))
             return (None, None, None, None, None)
-
         # Check for special field in mapping
         attributes = self._mapping.get(name, {})
         value_key = attributes.get("field", "current")
@@ -284,13 +288,14 @@ class InstantValues:
         resolution = raw_entry.get("resolution")
 
         # Special handling for minT/maxT fields: split abs_min/abs_max range
-        if value_key == "minT":
-            abs_max = abs_max/2
-        elif value_key == "maxT":
-            abs_min = abs_max/2 + resolution
+        if value_key == "minT" and isinstance(abs_max, (int, float)):
+            abs_max = abs_max / 2
+        elif value_key == "maxT" and isinstance(abs_max, (int, float)) and isinstance(resolution, (int, float)):
+            abs_min = abs_max / 2 + resolution
+
         # Get unit
         units = raw_entry.get("magnitude", [""])
-        unit = units[0] if units and units[0].lower() not in ("undefined", "ph") else None
+        unit = units[0] if isinstance(units, (list, tuple)) and units and str(units[0]).lower() not in ("undefined", "ph") else None
 
         return (value, unit, abs_min, abs_max, resolution)
 
@@ -345,11 +350,13 @@ class InstantValues:
                 if abs(round(n) - n) > epsilon:
                     _LOGGER.warning("Value %s is not a valid step for %s. Step: %s", value, key, step)
                     return False
-            attributes = self._mapping.get(key)
+
+            attributes = self._mapping.get(key, {})
             key_device = attributes.get("key", key)
             full_key = f"{self._prefix}{key_device}"
             field = attributes.get("field")
             if field in ("minT", "maxT"):
+                # Safe call with Dict[str, Any] guaranteed
                 corresponding = self._get_corresponding_value(key, field, attributes)
                 min_val_set, max_val_set = (value, corresponding) if field == "minT" else (corresponding, value)
                 if min_val_set is None or max_val_set is None:
@@ -374,7 +381,7 @@ class InstantValues:
             _LOGGER.warning("Key '%s' is not a valid switch", key)
             return False
         try:
-            attributes = self._mapping.get(key)
+            attributes = self._mapping.get(key, {})  # Use empty dict as default to avoid None
             key_device = attributes.get("key", key)
             full_key = f"{self._prefix}{key_device}"
             if not isinstance(value, bool):
@@ -426,7 +433,7 @@ class InstantValues:
             _LOGGER.warning("Error setting select '%s': %s", key, err)
             return False
 
-    def _get_corresponding_value(self, name: str, field: str, attributes: dict) -> any:
+    def _get_corresponding_value(self, name: str, field: str, attributes: Dict[str, Any]) -> Any:
         """
         Returns the value of the corresponding field (minT/maxT) for the given mapping.
         """
@@ -438,12 +445,14 @@ class InstantValues:
                 return val[0] if isinstance(val, tuple) else val
         # Fallback: get from raw device entry if not found in mapping
         raw_entry = self._find_device_entry(name)
-        if raw_entry and corresponding_field in raw_entry:
+        if raw_entry is None:
+            return None
+
+        if corresponding_field in raw_entry:
             return raw_entry[corresponding_field]
         # Final fallback: use absMin for minT, absMax for maxT
-        if raw_entry:
-            if corresponding_field == "minT":
-                return raw_entry.get("absMin")
-            elif corresponding_field == "maxT":
-                return raw_entry.get("absMax")
+        if corresponding_field == "minT":
+            return raw_entry.get("absMin")
+        elif corresponding_field == "maxT":
+            return raw_entry.get("absMax")
         return None

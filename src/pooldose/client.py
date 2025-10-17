@@ -4,16 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any, Dict
 
 import aiohttp
 from getmac import get_mac_address
 
-from pooldose.type_definitions import (
-    APIVersionResponse,
-    DeviceInfoDict,
-    StructuredValuesDict,
-)
 
 from pooldose.constants import get_default_device_info
 from pooldose.mappings.mapping_info import MappingInfo
@@ -61,7 +56,7 @@ class PooldoseClient:
         self._request_handler: RequestHandler | None = None
 
         # Initialize device info with default or placeholder values
-        self.device_info: DeviceInfoDict = get_default_device_info()
+        self.device_info: Dict[str, Any] = get_default_device_info()
 
         # Mapping-Status und Mapping-Cache
         self._mapping_status = None
@@ -105,7 +100,7 @@ class PooldoseClient:
             raise RuntimeError("Client not connected. Call connect() first.")
         return self._request_handler
 
-    def check_apiversion_supported(self) -> Tuple[RequestStatus, APIVersionResponse]:
+    def check_apiversion_supported(self) -> Tuple[RequestStatus, Dict[str, Optional[str]]]:
         """
         Check if the loaded API version matches the supported version.
 
@@ -155,12 +150,16 @@ class PooldoseClient:
             self.device_info["SERIAL_NUMBER"] = gateway.get("DID")
             self.device_info["NAME"] = gateway.get("NAME")
             self.device_info["SW_VERSION"] = gateway.get("FW_REL")
-        if (device := debug_config.get("DEVICES")[0]) is not None:
-            self.device_info["DEVICE_ID"] = device.get("DID")
-            self.device_info["MODEL"] = device.get("NAME")
-            self.device_info["MODEL_ID"] = device.get("PRODUCT_CODE")
-            self.device_info["FW_VERSION"] = device.get("FW_REL")
-            self.device_info["FW_CODE"] = device.get("FW_CODE")
+
+        devices = debug_config.get("DEVICES")
+        if devices and len(devices) > 0:
+            device = devices[0]
+            if device is not None:
+                self.device_info["DEVICE_ID"] = device.get("DID")
+                self.device_info["MODEL"] = device.get("NAME")
+                self.device_info["MODEL_ID"] = device.get("PRODUCT_CODE")
+                self.device_info["FW_VERSION"] = device.get("FW_REL")
+                self.device_info["FW_CODE"] = device.get("FW_CODE")
         await asyncio.sleep(0.5)
 
         # Load mapping information
@@ -231,6 +230,7 @@ class PooldoseClient:
             tuple: (RequestStatus, StaticValues|None) - Status and static values object.
         """
         try:
+            # Device info is already Dict[str, Any]
             return RequestStatus.SUCCESS, StaticValues(self.device_info)
         except (ValueError, TypeError, KeyError) as err:
             _LOGGER.warning("Error creating StaticValues: %s", err)
@@ -267,7 +267,7 @@ class PooldoseClient:
             _LOGGER.warning("Error creating InstantValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def instant_values_structured(self) -> Tuple[RequestStatus, StructuredValuesDict]:
+    async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
         """
         Get instant values in structured JSON format with types as top-level keys.
 
@@ -287,3 +287,29 @@ class PooldoseClient:
         except (KeyError, TypeError, ValueError) as err:
             _LOGGER.error("Error creating structured instant values: %s", err)
             return RequestStatus.UNKNOWN_ERROR, {}
+
+    # Convenience setters -------------------------------------------------
+    async def set_switch(self, key: str, value: bool) -> bool:
+        """Set a mapped switch value without manually fetching InstantValues.
+
+        This convenience wrapper fetches the current InstantValues and
+        delegates the operation to its typed setter. Returns True on success.
+        """
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        return await iv.set_switch(key, value)
+
+    async def set_number(self, key: str, value: Any) -> bool:
+        """Set a mapped numeric value without manually fetching InstantValues."""
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        return await iv.set_number(key, value)
+
+    async def set_select(self, key: str, value: Any) -> bool:
+        """Set a mapped select option without manually fetching InstantValues."""
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        return await iv.set_select(key, value)

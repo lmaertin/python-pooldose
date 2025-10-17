@@ -1,13 +1,13 @@
 """Mock client for SEKO Pooldose that uses JSON files instead of real devices."""
 
-# pylint: disable=too-many-instance-attributes,line-too-long,too-many-arguments,too-many-positional-arguments
+# pylint: disable=too-many-instance-attributes,line-too-long,too-many-arguments,too-many-positional-arguments,duplicate-code
 
 from __future__ import annotations
 
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pooldose.constants import get_default_device_info
 from pooldose.mappings.mapping_info import MappingInfo
@@ -18,6 +18,20 @@ from pooldose.values.static_values import StaticValues
 _LOGGER = logging.getLogger(__name__)
 
 API_VERSION_SUPPORTED = "v1/"
+
+
+class _MockRequestHandlerShim:  # pylint: disable=too-few-public-methods
+    """Shim that forwards InstantValues.set_value calls to the mock client.
+
+    Defined at module level so pylint can validate the class (docstring present)
+    and so the same instance can be reused by multiple callers in tests/demos.
+    """
+    def __init__(self, mc: "MockPooldoseClient"):
+        self._mc = mc
+
+    async def set_value(self, device_id, path, value, value_type):
+        """Forward the set_value call to the mock client implementation."""
+        return await self._mc.set_value(device_id, path, value, value_type)
 
 
 class MockPooldoseClient:
@@ -32,7 +46,8 @@ class MockPooldoseClient:
         model_id: str,
         fw_code: str,
         timeout: int = 30,
-        include_sensitive_data: bool = False
+        include_sensitive_data: bool = False,
+    inspect_payload: bool = True,
     ) -> None:
         """
         Initialize the Mock Pooldose client.
@@ -51,11 +66,22 @@ class MockPooldoseClient:
         self._device_key = None
         self._mapping_info = None
 
+    # If True, set_value will return (True, payload_json_str) for inspection
+    # Useful for demos/tests; default is True to make the mock easy to inspect
+        self._inspect_payload = inspect_payload
+
         # Initialize device info with default values
         self.device_info = get_default_device_info()
 
         # Load data immediately
-        self._load_json_data()
+        try:
+            self._load_json_data()
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):
+            # If loading fails here, mock client will report not connected later
+            _LOGGER.debug("Failed to load mock JSON data during init; will try on connect")
+
+        # Keep last built payload for optional inspection
+        self._last_payload: Optional[str] = None
 
     def _load_json_data(self) -> None:
         """Load and parse the JSON data file."""
@@ -198,6 +224,11 @@ class MockPooldoseClient:
             _LOGGER.error("Error creating instant values: %s", e)
             return RequestStatus.UNKNOWN_ERROR, None
 
+    def get_last_payload(self) -> Optional[str]:
+        """Return the last built payload string (if any)."""
+        return self._last_payload
+
+
     async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
         """
         Get structured instant values from mock data.
@@ -221,6 +252,44 @@ class MockPooldoseClient:
     def is_connected(self) -> bool:
         """Check if mock client is 'connected' (has valid data)."""
         return self._mock_data is not None and self._device_key is not None
+
+    # Convenience setters to mirror PooldoseClient API --------------------
+    async def set_switch(self, key: str, value: bool) -> bool:
+        """Set a switch by mapped name using the mock client.
+
+        Returns True on success. The mock stores the last payload for inspection
+        and will optionally return the payload when `inspect_payload=True`.
+        """
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+
+        # Attach module-level shim so InstantValues calls route to this mock.
+        # pylint: disable=protected-access
+        iv._request_handler = _MockRequestHandlerShim(self)
+        # pylint: enable=protected-access
+        result = await iv.set_switch(key, value)
+        return result
+
+    async def set_number(self, key: str, value: Any) -> bool:
+        """Set a numeric mapped value using the mock client."""
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        # pylint: disable=protected-access
+        iv._request_handler = _MockRequestHandlerShim(self)
+        # pylint: enable=protected-access
+        return await iv.set_number(key, value)
+
+    async def set_select(self, key: str, value: Any) -> bool:
+        """Set a select option by mapped name using the mock client."""
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        # pylint: disable=protected-access
+        iv._request_handler = _MockRequestHandlerShim(self)
+        # pylint: enable=protected-access
+        return await iv.set_select(key, value)
 
     def reload_data(self) -> bool:
         """
@@ -255,3 +324,29 @@ class MockPooldoseClient:
         if self._mock_data and self._device_key:
             return self._mock_data['devicedata'][self._device_key]
         return None
+
+    async def set_value(self, device_id: str, path: str, value: Any, value_type: str) -> Union[bool, Tuple[bool, str]]:
+        """
+        Mock setting a value: build the payload string (same shape as RequestHandler) and return it.
+
+        Returns a tuple (success, payload_json_str).
+        """
+        # Build payload: arrays only for NUMBER when multiple values provided
+        vt = value_type.upper()
+        payload_value: Union[Dict[str, Any], List[Dict[str, Any]]]
+        if vt == "NUMBER" and isinstance(value, (list, tuple)):
+            payload_value = [{"value": v, "type": vt} for v in value]
+        else:
+            payload_value = {"value": value, "type": vt}
+
+        payload = {device_id: {path: payload_value}}
+
+        payload_str = json.dumps(payload, ensure_ascii=False)
+        _LOGGER.info("Mock POST payload: %s", payload_str)
+        # Always store last payload for later inspection
+        self._last_payload = payload_str
+        if self._inspect_payload:
+            # Return the payload string for tests/demos that want inspection
+            return True, payload_str
+        # Default: behave like the real RequestHandler and return a boolean
+        return True

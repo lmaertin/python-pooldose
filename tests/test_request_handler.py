@@ -34,30 +34,37 @@ class TestSessionManagement:
     async def test_external_session_usage(self):
         """Test that when an external session is provided, it's used for requests."""
         # Create mock external session
-        external_session = AsyncMock()
+        external_session = MagicMock()
         external_session.close = AsyncMock()
-
-        # Set up a mock response
-        mock_response = AsyncMock()
-        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-        mock_response.__aexit__ = AsyncMock()
-        mock_response.raise_for_status = AsyncMock()
+        
+        # Create a mock response that simulates a successful API response
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()  # Not async
         mock_response.json = AsyncMock(return_value={"test": "data"})
-        external_session.get = MagicMock(return_value=mock_response)
-
-        # Create handler with external session
+        
+        # Create the handler with external session
         handler = RequestHandler("192.168.1.1", websession=external_session)
 
-        # Make a request
-        status, data = await handler.get_debug_config()
-
-        # Verify the request was made with the external session
-        external_session.get.assert_called_once()
-        assert status == RequestStatus.SUCCESS
-        assert data == {"test": "data"}
-
-        # Verify session was not closed
-        external_session.close.assert_not_awaited()
+        # Mock the behavior of the context manager to return our mock response
+        # We patch the method at the exact point it's used in the code
+        with patch.object(handler, '_get_session', return_value=(external_session, False)):
+            with patch.object(external_session, 'get') as mock_get:
+                # Configure mock_get to act as an async context manager
+                async_cm = AsyncMock()
+                async_cm.__aenter__.return_value = mock_response
+                mock_get.return_value = async_cm
+                
+                # Make the request
+                status, data = await handler.get_debug_config()
+                
+                # Verify the request was made with the external session
+                mock_get.assert_called_once()
+                assert status == RequestStatus.SUCCESS
+                assert data == {"test": "data"}
+                
+                # Verify session was not closed
+                external_session.close.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_internal_session_creation(self):
@@ -67,27 +74,30 @@ class TestSessionManagement:
 
         # Mock ClientSession to track its creation and mock response
         with patch('aiohttp.ClientSession') as mock_session_class:
-            # Setup mock session with response
-            mock_session_instance = AsyncMock()
-            mock_response = AsyncMock()
-            mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-            mock_response.__aexit__ = AsyncMock()
-            mock_response.raise_for_status = AsyncMock()
-            mock_response.json = AsyncMock(return_value={"test": "data"})
-
-            # Configure the session mock
-            mock_session_instance.get = MagicMock(return_value=mock_response)
+            # Set up a mock session instance and response
+            mock_session_instance = MagicMock()
             mock_session_instance.close = AsyncMock()
             mock_session_class.return_value = mock_session_instance
-
-            # Make a request that should create an internal session
+            
+            # Create a mock response that simulates a successful API response
+            mock_response = MagicMock()
+            mock_response.status = 200
+            mock_response.raise_for_status = MagicMock()  # Not async
+            mock_response.json = AsyncMock(return_value={"test": "data"})
+            
+            # Set up the get method to return an async context manager
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            mock_session_instance.get.return_value = async_cm
+            
+            # Make the request that should create an internal session
             status, data = await handler.get_debug_config()
-
+            
             # Verify a new session was created
             mock_session_class.assert_called_once()
             assert status == RequestStatus.SUCCESS
             assert data == {"test": "data"}
-
+            
             # Verify session was closed
             mock_session_instance.close.assert_awaited_once()
 

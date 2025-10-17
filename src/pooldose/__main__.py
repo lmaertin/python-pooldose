@@ -5,6 +5,7 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
+from typing import Optional
 
 from pooldose import __version__
 from pooldose.client import PooldoseClient, RequestStatus
@@ -153,7 +154,7 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
         print(f"Error during connection: {e}")
 
 
-async def run_mock_client(json_file: str, model_id: str = None, fw_code: str = None) -> None:
+async def run_mock_client(json_file: str, model_id: Optional[str] = None, fw_code: Optional[str] = None) -> None:
     """Run the MockPooldoseClient."""
     json_path = Path(json_file)
     if not json_path.exists():
@@ -162,16 +163,18 @@ async def run_mock_client(json_file: str, model_id: str = None, fw_code: str = N
 
     print(f"Loading mock data from: {json_file}")
 
-    client_kwargs = {
-        "json_file_path": json_path,
-        "include_sensitive_data": True
-    }
-    if model_id is not None:
-        client_kwargs["model_id"] = model_id
-    if fw_code is not None:
-        client_kwargs["fw_code"] = fw_code
+    # Create explicit arguments for MockPooldoseClient
+    json_file_path = json_path
+    include_sensitive_data = True
+    model_id_val = model_id if model_id is not None else "MOCK_MODEL"
+    fw_code_val = fw_code if fw_code is not None else "MOCK_FW"
 
-    client = MockPooldoseClient(**client_kwargs)
+    client = MockPooldoseClient(
+        json_file_path=json_file_path,
+        model_id=model_id_val,
+        fw_code=fw_code_val,
+        include_sensitive_data=include_sensitive_data,
+    )
 
     try:
         # Connect
