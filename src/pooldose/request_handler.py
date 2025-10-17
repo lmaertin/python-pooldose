@@ -380,32 +380,21 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     async def set_value(self, device_id: str, path: str, value: Any, value_type: str) -> bool:
         """
         Asynchronously sets a value for a specific device and path using the API.
-
-        Args:
-            device_id (str): The identifier of the device to set the value for.
-            path (str): The path within the device to set the value.
-            value (Any): The value to set.
-            value_type (str): The type of the value (e.g., "int", "float", "str").
-
-        Returns:
-            bool: True if the value was set successfully, False otherwise.
-
-        Raises:
-            aiohttp.ClientError: If there is a client error during the request.
-            asyncio.TimeoutError: If the request times out.
-
-        Logs:
-            Warnings for client errors and errors for timeout issues.
+        Supports single values and arrays (for NUMBER type).
         """
         url = self._build_url("/api/v1/DWI/setInstantValues")
+        # Support: if value is a list/tuple and value_type is NUMBER, send multiple objects
+        if value_type.upper() == "NUMBER" and isinstance(value, (list, tuple)):
+            value_objs = [
+                {"value": v, "type": value_type.upper()} for v in value
+            ]
+        else:
+            value_objs = [
+                {"value": value, "type": value_type.upper()}
+            ]
         payload = {
             device_id: {
-                path: [
-                    {
-                        "value": value,
-                        "type": value_type.upper()
-                    }
-                ]
+                path: value_objs
             }
         }
         try:

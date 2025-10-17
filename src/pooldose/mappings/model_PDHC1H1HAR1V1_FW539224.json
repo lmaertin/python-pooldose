@@ -169,6 +169,16 @@
       "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_CHLORINE|": "chlorine"
     }
   },
+  "ofa_ph_lower": {
+    "key": "w_1g1kvba4g",
+    "type": "number",
+    "field": "minT"
+  },
+  "ofa_ph_upper": {
+    "key": "w_1g1kvba4g",
+    "type": "number",
+    "field": "maxT"
+  },
   "alarm_ofa_ph": {
     "key": "w_1f0iqoek2",
     "type": "binary_sensor"
