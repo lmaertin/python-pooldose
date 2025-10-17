@@ -1,6 +1,6 @@
 aiohttp
 aiofiles
-aiofiles-stubs
+types-aiofiles
 getmac
 pytest
 pytest-asyncio
