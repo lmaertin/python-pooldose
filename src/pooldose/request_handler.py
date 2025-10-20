@@ -380,17 +380,14 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     async def set_value(self, device_id: str, path: str, value: Any, value_type: str) -> bool:
         """
         Asynchronously sets a value for a specific device and path using the API.
-        Supports single values and arrays (for NUMBER type).
         """
         url = self._build_url("/api/v1/DWI/setInstantValues")
-        # Support: if value is a list/tuple and value_type is NUMBER, send multiple objects
         vt = value_type.upper()
-        payload_value: Union[Dict[str, Any], List[Dict[str, Any]]]
-        if vt == "NUMBER" and isinstance(value, (list, tuple)):
+        payload_value: List[Dict[str, Any]]
+        if isinstance(value, (list, tuple)):
             payload_value = [{"value": v, "type": vt} for v in value]
         else:
-            # Single value should be sent as a single object (not an array)
-            payload_value = {"value": value, "type": vt}
+            payload_value = [{"value": value, "type": vt}]
 
         payload = {device_id: {path: payload_value}}
         try:

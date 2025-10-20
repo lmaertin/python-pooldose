@@ -61,7 +61,7 @@ class TestSessionManagement:
                 # Verify the request was made with the external session
                 mock_get.assert_called_once()
                 assert status == RequestStatus.SUCCESS
-                assert data == {"test": "data"}
+                assert data == {"test": "data"}  # type: ignore
 
                 # Verify session was not closed
                 external_session.close.assert_not_awaited()
@@ -96,7 +96,7 @@ class TestSessionManagement:
             # Verify a new session was created
             mock_session_class.assert_called_once()
             assert status == RequestStatus.SUCCESS
-            assert data == {"test": "data"}
+            assert data == {"test": "data"}  # type: ignore
 
             # Verify session was closed
             mock_session_instance.close.assert_awaited_once()
@@ -127,7 +127,7 @@ class TestSessionManagement:
 
             # Verify we got the expected result
             assert status == RequestStatus.SUCCESS
-            assert data == {"test": "data"}
+            assert data == {"test": "data"}  # type: ignore
 
             # Verify the session was closed
             mock_session.close.assert_awaited_once()
@@ -156,7 +156,7 @@ class TestSessionManagement:
 
             # Verify we got the expected result
             assert status == RequestStatus.SUCCESS
-            assert data == {"test": "data"}
+            assert data == {"test": "data"}  # type: ignore
 
             # Verify the session was not closed (since it's an external session)
             external_session.close.assert_not_awaited()

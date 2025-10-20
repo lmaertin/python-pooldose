@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [7.5.0] - 2025-10-17
+## [7.5.0] - 2025-10-20
 
 ### Added
 
@@ -17,12 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `InstantValues.set_number` now pairs `minT`/`maxT` fields and sends them as a single `[min,max]` payload when applicable.
-- `RequestHandler.set_value` uses single-object payloads for single values and arrays only for NUMBER lists.
+- `RequestHandler.set_value` now always uses arrays for all value types, even for single values (e.g., `[{"value": 7, "type": "NUMBER"}]`, `[{"value": "O", "type": "STRING"}]`).
  - Mock client behavior adjusted: tests/demos can opt-in to inspect payloads; tests were updated to expect payload inspection by default.
 
 ### Enhanced
 
-- **Fix**: Removed Chlor Sensor from PDPR1H1HAR1V0, as this is not supported.
+- **Fix**: Removed Chlorine Sensor from PDPR1H1HAR1V0, as this is not supported.
 
 ### Fixed
 

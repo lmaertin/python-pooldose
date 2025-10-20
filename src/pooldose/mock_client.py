@@ -331,13 +331,12 @@ class MockPooldoseClient:
 
         Returns a tuple (success, payload_json_str).
         """
-        # Build payload: arrays only for NUMBER when multiple values provided
         vt = value_type.upper()
-        payload_value: Union[Dict[str, Any], List[Dict[str, Any]]]
-        if vt == "NUMBER" and isinstance(value, (list, tuple)):
+        payload_value: List[Dict[str, Any]]
+        if isinstance(value, (list, tuple)):
             payload_value = [{"value": v, "type": vt} for v in value]
         else:
-            payload_value = {"value": value, "type": vt}
+            payload_value = [{"value": value, "type": vt}]
 
         payload = {device_id: {path: payload_value}}
 
