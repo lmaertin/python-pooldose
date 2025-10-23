@@ -22,7 +22,7 @@ if sys.stdout.encoding != 'utf-8':
 
 # Load optional demo configuration from demo_config.py (not checked in)
 try:
-    from demo_config import HOST, USE_MOCK_CLIENT, FILE, MODEL_ID, FW_CODE
+    from demo_config import HOST, USE_MOCK_CLIENT, FILE, MODEL_ID, FW_CODE, DEBUG_PAYLOAD
 except ImportError:
     # Fallback defaults when no config file is present
     USE_MOCK_CLIENT = False
@@ -30,6 +30,7 @@ except ImportError:
     FILE = None
     MODEL_ID = None
     FW_CODE = None
+    DEBUG_PAYLOAD = True
 
 
 async def main() -> None:
@@ -38,10 +39,10 @@ async def main() -> None:
     if USE_MOCK_CLIENT:
         print("Using MockPooldoseClient with JSON file", FILE)
         # Enable payload inspection so the demo can print the mock POST body
-        client = MockPooldoseClient(json_file_path=FILE, model_id=MODEL_ID, fw_code=FW_CODE, include_sensitive_data=True, inspect_payload=True)
+        client = MockPooldoseClient(json_file_path=FILE, model_id=MODEL_ID, fw_code=FW_CODE, include_sensitive_data=True, inspect_payload=DEBUG_PAYLOAD)
     else:
         print("Using real PooldoseClient with network connection. Host:", HOST)
-        client = PooldoseClient(host=HOST, include_mac_lookup=True)  # pylint: disable=no-value-for-parameter
+        client = PooldoseClient(host=HOST, include_mac_lookup=True, debug_payload=DEBUG_PAYLOAD)  # pylint: disable=no-value-for-parameter
     # Connect to the device (real or mock)
     client_status = await client.connect()
     if client_status != RequestStatus.SUCCESS:
@@ -70,23 +71,48 @@ async def main() -> None:
     display_structured_data(structured_data)
 
     # Demonstrate setting values using the client's setters.
-    print("Setting switch 'stop_pool_dosing' -> True")
+    print("\n" + "="*50)
+    print("DEMONSTRATING VALUE SETTERS")
+    print("="*50)
+    
+    print("\nSetting switch 'stop_pool_dosing' -> True")
     ok = await client.set_switch('stop_pool_dosing', True)
     print("Result:", ok)
+    if ok and DEBUG_PAYLOAD and hasattr(client, 'get_last_payload'):
+        last_payload = client.get_last_payload()
+        if last_payload:
+            print("Payload sent:", last_payload)
 
-    print("Setting number 'ph_target' -> 7.2")
+    print("\nSetting number 'ph_target' -> 7.2")
     ok = await client.set_number('ph_target', 7.2)
     print("Result:", ok)
+    if ok and DEBUG_PAYLOAD and hasattr(client, 'get_last_payload'):
+        last_payload = client.get_last_payload()
+        if last_payload:
+            print("Payload sent:", last_payload)
 
-    print("Setting select 'water_meter_unit' -> 'L'")
+    print("\nSetting select 'water_meter_unit' -> 'L'")
     ok = await client.set_select('water_meter_unit', 'L')
     print("Result:", ok)
+    if ok and DEBUG_PAYLOAD and hasattr(client, 'get_last_payload'):
+        last_payload = client.get_last_payload()
+        if last_payload:
+            print("Payload sent:", last_payload)
 
-    print("Setting lower/upper limits of 'ofa_ph' (pairing handled internally)")
+    print("\nSetting lower/upper limits of 'ofa_ph' (pairing handled internally)")
     ok = await client.set_number('ofa_ph_lower', 6.2)
     print("ofa_ph_lower set result:", ok)
+    if ok and DEBUG_PAYLOAD and hasattr(client, 'get_last_payload'):
+        last_payload = client.get_last_payload()
+        if last_payload:
+            print("Payload sent:", last_payload)
+            
     ok = await client.set_number('ofa_ph_upper', 8.1)
     print("ofa_ph_upper set result:", ok)
+    if ok and DEBUG_PAYLOAD and hasattr(client, 'get_last_payload'):
+        last_payload = client.get_last_payload()
+        if last_payload:
+            print("Payload sent:", last_payload)
 
     print("\nDemo completed successfully!")
 

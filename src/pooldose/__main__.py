@@ -110,7 +110,7 @@ async def run_device_analyzer(host: str, use_ssl: bool, port: int, show_all: boo
         print(f"Error during analysis: {e}")
 
 
-async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
+async def run_real_client(host: str, use_ssl: bool, port: int, print_payload: bool = False) -> None:
     """Run the real PooldoseClient."""
     print(f"Connecting to PoolDose device at {host}")
     if use_ssl:
@@ -124,7 +124,8 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
         include_mac_lookup=True,
         use_ssl=use_ssl,
         port=port if port != 0 else None,
-        timeout=30
+        timeout=30,
+        debug_payload=print_payload
     )
 
     try:
@@ -154,7 +155,7 @@ async def run_real_client(host: str, use_ssl: bool, port: int) -> None:
         print(f"Error during connection: {e}")
 
 
-async def run_mock_client(json_file: str, model_id: Optional[str] = None, fw_code: Optional[str] = None) -> None:
+async def run_mock_client(json_file: str, model_id: Optional[str] = None, fw_code: Optional[str] = None, print_payload: bool = False) -> None:
     """Run the MockPooldoseClient."""
     json_path = Path(json_file)
     if not json_path.exists():
@@ -174,6 +175,7 @@ async def run_mock_client(json_file: str, model_id: Optional[str] = None, fw_cod
         model_id=model_id_val,
         fw_code=fw_code_val,
         include_sensitive_data=include_sensitive_data,
+        inspect_payload=print_payload,
     )
 
     try:
@@ -203,8 +205,8 @@ async def run_mock_client(json_file: str, model_id: Optional[str] = None, fw_cod
         print(f"Error during mock demo: {e}")
 
 
-def main() -> None:
-    """Main entry point for command-line interface."""
+def main():  # pylint: disable=too-many-locals
+    """Main CLI function."""
     parser = argparse.ArgumentParser(
         description="Python PoolDose Client - Connect to SEKO PoolDose devices",
         epilog="""
@@ -223,6 +225,12 @@ Examples:
 
   # Use mock client with JSON file
   python -m pooldose --mock path/to/your/data.json
+
+  # Use mock client with payload inspection
+  python -m pooldose --mock path/to/your/data.json --print-payload
+
+  # Connect to real device with payload inspection
+  python -m pooldose --host 192.168.1.100 --print-payload
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -278,6 +286,11 @@ Examples:
         help="Analyze unknown device including hidden widgets (implies --analyze)"
     )
     parser.add_argument(
+        "--print-payload",
+        action="store_true",
+        help="Enable payload debugging logging (for development/debugging only)"
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"python-pooldose {__version__}"
@@ -310,13 +323,14 @@ Examples:
                     args.host, args.ssl, port, show_all=args.analyze_all))
             else:
                 # Normal client mode
-                asyncio.run(run_real_client(args.host, args.ssl, port))
+                asyncio.run(run_real_client(args.host, args.ssl, port, args.print_payload))
         elif args.mock:
             # Mock mode
             asyncio.run(run_mock_client(
                 args.mock,
                 model_id=args.model_id,
-                fw_code=args.fw_code
+                fw_code=args.fw_code,
+                print_payload=args.print_payload
             ))
 
     except KeyboardInterrupt:

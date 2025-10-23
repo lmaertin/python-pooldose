@@ -32,7 +32,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     Only softwareVersion, and apiversion are loaded from params.js.
     """
 
-    def __init__(self, host: str, timeout: int = 10, *, websession: Optional[aiohttp.ClientSession] = None, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True):  # pylint: disable=too-many-arguments
+    def __init__(self, host: str, timeout: int = 10, *, websession: Optional[aiohttp.ClientSession] = None, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True, debug_payload: bool = False):  # pylint: disable=too-many-arguments
         self.host = host
         self.timeout = timeout
         self.use_ssl = use_ssl
@@ -43,6 +43,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         self.software_version = None
         self.api_version = None
         self._connected = False
+        self.debug_payload = debug_payload
+        self._last_payload: Optional[str] = None
         # External session from Home Assistant (or None)
         self._websession = websession
         # Configure SSL context
@@ -101,6 +103,10 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
     def is_connected(self) -> bool:
         """Check if the handler is connected to the device."""
         return self._connected
+
+    def get_last_payload(self) -> Optional[str]:
+        """Get the last payload sent to the device (if debug_payload is enabled)."""
+        return self._last_payload
 
     def check_host_reachable(self) -> bool:
         """
@@ -390,6 +396,11 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             payload_value = [{"value": value, "type": vt}]
 
         payload = {device_id: {path: payload_value}}
+
+        # Store payload for debugging if enabled
+        if self.debug_payload:
+            self._last_payload = json.dumps(payload)
+            _LOGGER.info("Sending payload: %s", self._last_payload)
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
             connector = self._get_ssl_connector()

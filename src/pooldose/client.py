@@ -29,7 +29,7 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
-    def __init__(self, host: str, timeout: int = 30, *, websession: Optional[aiohttp.ClientSession] = None, include_sensitive_data: bool = False, include_mac_lookup: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:  # pylint: disable=too-many-arguments
+    def __init__(self, host: str, timeout: int = 30, *, websession: Optional[aiohttp.ClientSession] = None, include_sensitive_data: bool = False, include_mac_lookup: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True, debug_payload: bool = False) -> None:  # pylint: disable=too-many-arguments
         """
         Initialize the Pooldose client.
 
@@ -43,6 +43,7 @@ class PooldoseClient:
             use_ssl (bool): If True, use HTTPS instead of HTTP.
             port (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS.
             ssl_verify (bool): If True, verify SSL certificates. Only used when use_ssl=True.
+            debug_payload (bool): If True, log and store payloads sent to device for debugging.
         """
         self._host = host
         self._timeout = timeout
@@ -51,6 +52,7 @@ class PooldoseClient:
         self._use_ssl = use_ssl
         self._port = port
         self._ssl_verify = ssl_verify
+        self._debug_payload = debug_payload
         self._last_data = None
         self._websession = websession
         self._request_handler: RequestHandler | None = None
@@ -76,7 +78,8 @@ class PooldoseClient:
             websession=self._websession if hasattr(self, '_websession') else None,
             use_ssl=self._use_ssl,
             port=self._port,
-            ssl_verify=self._ssl_verify
+            ssl_verify=self._ssl_verify,
+            debug_payload=self._debug_payload
         )
         status = await self._request_handler.connect()
         if status != RequestStatus.SUCCESS:
@@ -313,3 +316,9 @@ class PooldoseClient:
         if status != RequestStatus.SUCCESS or iv is None:
             return False
         return await iv.set_select(key, value)
+
+    def get_last_payload(self) -> Optional[str]:
+        """Get the last payload sent to the device (if debug_payload is enabled)."""
+        if self._request_handler:
+            return self._request_handler.get_last_payload()
+        return None

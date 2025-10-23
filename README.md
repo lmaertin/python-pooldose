@@ -966,8 +966,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.5)
+### Latest Release (0.7.6)
 
-- Convenience setters on `PooldoseClient`: `set_switch`, `set_number`, `set_select` for simpler API calls.
-- Improved setter behavior for support lower/upper limit setting of NUMBER types (corresponding value is derived automatically).
-- Mock client can now return and store the concrete POST payload for easier testing and demos.
+- Added `--print-payload` option for debugging HTTP payloads

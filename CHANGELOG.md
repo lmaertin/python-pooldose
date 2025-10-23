@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.6] - 2025-10-23
+
+### Added
+
+- **CLI Debug Flag**: New `--print-payload` option for debugging HTTP payloads
+  - Usage: `pooldose --host 192.168.1.100 --print-payload`
+- **Payload Debugging**: Added `debug_payload` parameter and `get_last_payload()` method
+- **Enhanced Demo**: Updated `examples/demo.py` with payload inspection (only shows payloads when operations succeed)
+
 ## [7.5.0] - 2025-10-20
 
 ### Added

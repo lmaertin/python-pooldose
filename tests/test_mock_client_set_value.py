@@ -73,9 +73,9 @@ def test_set_value_number_single() -> None:
     json_path = create_temp_json_file(TEST_DATA)
     try:
         client = MockPooldoseClient(json_path, model_id="PDPR1H1HAR1V0", fw_code="539224")
-        device_id = client.device_info["DEVICE_ID"]
+        device_id = str(client.device_info["DEVICE_ID"])  # type: ignore[arg-type]
         result = asyncio.run(
-            client.set_value(device_id, "some/widget", 7.5, "NUMBER")
+            client.set_value(device_id, "some/widget", 7.5, "NUMBER")  # type: ignore[arg-type]
         )
         assert result is not False
 
@@ -86,9 +86,9 @@ def test_set_value_number_single() -> None:
             payload = json.loads(payload_str)
         else:
             # Get last payload if result is just bool
-            payload_str = client.get_last_payload()
-            assert payload_str is not None
-            payload = json.loads(payload_str)
+            payload_str_optional = client.get_last_payload()
+            assert payload_str_optional is not None
+            payload = json.loads(payload_str_optional)
 
         assert device_id in payload
         assert "some/widget" in payload[device_id]
@@ -106,9 +106,9 @@ def test_set_value_number_array() -> None:
     json_path = create_temp_json_file(TEST_DATA)
     try:
         client = MockPooldoseClient(json_path, model_id="PDPR1H1HAR1V0", fw_code="539224")
-        device_id = client.device_info["DEVICE_ID"]
+        device_id = str(client.device_info["DEVICE_ID"])  # type: ignore[arg-type]
         result = asyncio.run(
-            client.set_value(device_id, "some/widget", [5.5, 8.0], "NUMBER")
+            client.set_value(device_id, "some/widget", [5.5, 8.0], "NUMBER")  # type: ignore[arg-type]
         )
         assert result is not False
 
@@ -119,7 +119,7 @@ def test_set_value_number_array() -> None:
             payload = json.loads(payload_str)
         else:
             # Get last payload if result is just bool
-            payload_str = client.get_last_payload()
+            payload_str = client.get_last_payload()  # type: ignore[assignment]
             assert payload_str is not None
             payload = json.loads(payload_str)
 
@@ -137,9 +137,9 @@ def test_set_value_string_switch() -> None:
     json_path = create_temp_json_file(TEST_DATA)
     try:
         client = MockPooldoseClient(json_path, model_id="PDPR1H1HAR1V0", fw_code="539224")
-        device_id = client.device_info["DEVICE_ID"]
+        device_id = str(client.device_info["DEVICE_ID"])  # type: ignore[arg-type]
         result = asyncio.run(
-            client.set_value(device_id, "some/widget", "O", "STRING")
+            client.set_value(device_id, "some/widget", "test", "STRING")  # type: ignore[arg-type]
         )
         assert result is not False
 
@@ -150,14 +150,14 @@ def test_set_value_string_switch() -> None:
             payload = json.loads(payload_str)
         else:
             # Get last payload if result is just bool
-            payload_str = client.get_last_payload()
+            payload_str = client.get_last_payload()  # type: ignore[assignment]
             assert payload_str is not None
             payload = json.loads(payload_str)
 
         entries = payload[device_id]["some/widget"]
         assert isinstance(entries, list)
         assert len(entries) == 1
-        assert entries[0]["value"] == "O"
+        assert entries[0]["value"] == "test"
         assert entries[0]["type"] == "STRING"
     finally:
         json_path.unlink()
