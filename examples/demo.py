@@ -74,7 +74,7 @@ async def main() -> None:
     print("\n" + "="*50)
     print("DEMONSTRATING VALUE SETTERS")
     print("="*50)
-    
+
     print("\nSetting switch 'stop_pool_dosing' -> True")
     ok = await client.set_switch('stop_pool_dosing', True)
     print("Result:", ok)
@@ -106,7 +106,7 @@ async def main() -> None:
         last_payload = client.get_last_payload()
         if last_payload:
             print("Payload sent:", last_payload)
-            
+
     ok = await client.set_number('ofa_ph_upper', 8.1)
     print("ofa_ph_upper set result:", ok)
     if ok and DEBUG_PAYLOAD and hasattr(client, 'get_last_payload'):

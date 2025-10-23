@@ -13,7 +13,7 @@ from pooldose.device_analyzer import DeviceAnalyzer
 from pooldose.mock_client import MockPooldoseClient
 from pooldose.request_handler import RequestHandler
 
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, too-many-locals)
 
 # Import demo utilities if available
 try:

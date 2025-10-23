@@ -108,7 +108,7 @@ def test_set_value_number_array() -> None:
         client = MockPooldoseClient(json_path, model_id="PDPR1H1HAR1V0", fw_code="539224")
         device_id = str(client.device_info["DEVICE_ID"])  # type: ignore[arg-type]
         result = asyncio.run(
-            client.set_value(device_id, "some/widget", [5.5, 8.0], "NUMBER")  # type: ignore[arg-type]
+            client.set_value(device_id, "some/widget", [5.5, 8.0], "NUMBER")  # type: ignore[arg-type]  # pylint: disable=line-too-long
         )
         assert result is not False
 
