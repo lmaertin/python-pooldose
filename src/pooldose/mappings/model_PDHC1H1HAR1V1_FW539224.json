@@ -73,7 +73,7 @@
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_TIMED|": "timed"
     }
   },
-  "pump_running": {
+  "pump_alarm": {
     "key": "w_1f1fng00q",
     "type": "binary_sensor",
     "conversion": {
@@ -81,15 +81,15 @@
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f1fng00q_ON|": "O"
     }
   },
-  "ph_level_ok": {
+  "ph_level_alarm": {
     "key": "w_1f0ioo093",
     "type": "binary_sensor"
   },
-  "orp_level_ok": {
+  "orp_level_alarm": {
     "key": "w_1f0ioo2gc",
     "type": "binary_sensor"
   },
-  "flow_rate_ok": {
+  "flow_rate_alarm": {
     "key": "w_1f0iqmg8c",
     "type": "binary_sensor"
   },
@@ -203,11 +203,11 @@
     "key": "w_1f0isio5g",
     "type": "number"
   },
-  "stop_pool_dosing": {
+  "pause_dosing": {
     "key": "w_1f2jpqa6e",
     "type": "switch"
   },
-  "pump_detection": {
+  "pump_monitoring": {
     "key": "w_1hn0vte5j",
     "type": "binary_sensor",
     "conversion": {

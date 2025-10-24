@@ -86,19 +86,19 @@
     "key": "w_1eklhsase",
     "type": "sensor"
   },
-  "pump_running": {
+  "pump_alarm": {
     "key": "w_1ekga097n",
     "type": "binary_sensor"
   },
-  "ph_level_ok": {
+  "ph_level_alarm": {
     "key": "w_1eklf77pm",
     "type": "binary_sensor"
   },
-  "orp_level_ok": {
+  "orp_level_alarm": {
     "key": "w_1eo04bcr2",
     "type": "binary_sensor"
   },
-  "flow_rate_ok": {
+  "flow_rate_alarm": {
     "key": "w_1eo04nc5n",
     "type": "binary_sensor"
   },
@@ -134,11 +134,11 @@
     "key": "w_1eo1unpqb",
     "type": "number"
   },
-  "stop_pool_dosing": {
+  "pause_dosing": {
     "key": "w_1emtltkel",
     "type": "switch"
   },
-  "pump_detection": {
+  "pump_monitoring": {
     "key": "w_1eklft47q",
     "type": "switch"
   },
