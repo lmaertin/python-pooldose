@@ -118,9 +118,17 @@
     "key": "w_1eklfb73r",
     "type": "binary_sensor"
   },
+  "ofa_ph_time": {
+    "key": "w_1eo1ttmft",
+    "type": "sensor"
+  },
   "alarm_ofa_orp": {
     "key": "w_1eo1pabt6",
     "type": "binary_sensor"
+  },
+  "ofa_orp_time": {
+    "key": "w_1eo1tui1d",
+    "type": "sensor"
   },
   "ph_target": {
     "key": "w_1ekeiqfat",
