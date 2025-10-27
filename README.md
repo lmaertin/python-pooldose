@@ -966,6 +966,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.6)
+### Latest Release (0.7.7)
 
 - Added `--print-payload` option for debugging HTTP payloads

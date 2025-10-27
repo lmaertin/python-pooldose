@@ -57,8 +57,8 @@
     "conversion": {
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_OFF|": "off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_REFERENCE|": "reference",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_1_POINT|": "1 point",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_2_POINTS|": "2 points"
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_1_POINT|": "1_point",
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8gb7_2_POINTS|": "2_points"
     }
   },
   "ph_calibration_offset": {
@@ -75,7 +75,7 @@
     "conversion": {
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_OFF|": "off",
       "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_REFERENCE|": "reference",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_1_POINT|": "1 point"
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eklh8i5t_1_POINT|": "1_point"
     }
   },
   "orp_calibration_offset": {
