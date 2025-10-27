@@ -1,8 +1,10 @@
 # python-pooldose
 
-Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for pools and spas. Some devices from VÁGNER POOL are supported as well.
+Unofficial async Python client for [SEKO](https://www.seko.com/) Pooldosing systems. SEKO is a manufacturer of various monitoring and control devices for pools and spas. Some devices from [VÁGNER POOL](https://www.vagnerpool.com/web/en/) are compatible as well.
 
 This client uses an undocumented local HTTP API. It provides live readings for pool sensors such as temperature, pH, ORP/Redox, as well as status information and control over the dosing logic.
+
+> **Disclaimer:** Use at your own risk. No liability for damages or malfunctions.
 
 ## Features
 
@@ -28,7 +30,7 @@ This client uses an undocumented local HTTP API. It provides live readings for p
    │   ├── WiFi Station Info (optional)
    │   ├── Access Point Info (optional)
    │   └── Network Info
-   └── Load Mapping JSON (based on MODEL_ID + FW_CODE)
+        └── Load mapping JSON (based on model_id + fw_code)
 
 2. Get Static Values
    └── Device information and configuration
@@ -232,8 +234,8 @@ The analyzer provides comprehensive information about your device:
 ```
 === DEVICE ANALYSIS ===
 Device: 01234567890A_DEVICE
-Model: PDPR1H1HAW***  
-Firmware: FW53****
+Model ID: PDZZ1H1HATEST1V1  
+Firmware Code: 654321
 
 === WIDGETS (Visible UI Elements) ===
 
@@ -277,8 +279,8 @@ pooldose --host 192.168.1.100 --analyze
 
 # Output shows:
 # Device: 01987654321B_DEVICE  
-# Model: PDPR2H2XYZ***        ← New model not yet supported
-# Firmware: FW54****          ← New firmware version
+# Model ID: PDZZ1H1HATEST1V1     ← New model not yet supported
+# Firmware Code: 654321            ← New firmware version
 # 
 # Widgets discovered: 15 sensors, 8 controls, 12 settings
 ```
@@ -288,7 +290,40 @@ With this information, you can:
 - Share the widget structure for mapping development
 - Help expand device support for the community
 
-The device analyzer makes python-pooldose extensible and helps build support for the growing ecosystem of SEKO PoolDose devices.
+The device analyzer makes python-pooldose extensible and helps build support for the growing ecosystem of SEKO PoolDose or VÁGNER POOL devices.
+
+### How to request support for a new device
+
+If your device is not yet supported, please help us by creating a GitHub issue and providing the following information:
+
+1. **Run low-level analysis and share the output files:**
+    - Use the following curl commands. 
+    - Replace the IP address and DeviceId (get the id from the header of the instantvalues.json file, e.g., '012345679_DEVICE') as needed:
+    
+    - Download debug config info:
+      ```bash
+      curl http://<YOUR_DEVICE_IP>/api/v1/debug/config/info -o debuginfo.json
+      ```
+      **Important:** Before uploading, open `debuginfo.json` and remove any WiFi credentials.
+    - Download instant values
+      ```bash
+      curl --location --request POST http://<YOUR_DEVICE_IP>/api/v1/DWI/getInstantValues -o instantvalues.json
+      ```
+    - Download device language strings
+      ```bash
+      curl --location http://<YOUR_DEVICE_IP>/api/v1/DWI/getDeviceLanguage --data-raw '{"DeviceId":"YOUR_DEVICE_ID","LANG":"en"}' -o strings.json
+      ```
+2. **Optional: Run the analyzer and share the output:**
+    - Run this command if you set up python-pooldose already:
+      ```bash
+      pooldose --host <YOUR_DEVICE_IP> --analyze
+      ```
+    - Copy and paste the full output into your issue (remove any sensitive data).
+
+3. **Create a GitHub issue:**
+    - Attach the the 3 JSON files from above.
+    - Optionally attach the analyzer output if available.
+    - This will help us add support for your device faster!
 
 ## Examples
 
@@ -374,8 +409,13 @@ You can use the mock client with custom JSON files via the command line:
 # Use mock client with JSON file
 pooldose --mock path/to/your/data.json
 
+
+# Use mock client with model and firmware code (Beispiel mit Fantasiewerten)
+pooldose --mock path/to/your/data.json --model-id PDZZ1H1HATEST1V1 --fw-code 654321
+
 # Or as Python module
 python -m pooldose --mock path/to/your/data.json
+python -m pooldose --mock path/to/your/data.json --model-id PDZZ1H1HATEST1V1 --fw-code 654321
 ```
 
 ### JSON Data Format
@@ -718,13 +758,13 @@ Mapping Discovery Process:
          │
          ▼
 ┌─────────────────┐
-│ Get MODEL_ID    │ ──────► PDPR1H1HAW***
-│ Get FW_CODE     │ ──────► 53****
+│ Get Model ID    │ ──────► PDZZ1H1HATEST1V1
+│ Get Firmware Code     │ ──────► 654321
 └─────────────────┘
          │
          ▼
 ┌─────────────────┐
-│ Load JSON File  │ ──────► model_PDPR1H1HAW***_FW53****.json
+│ Load JSON file  │ ──────► model_PDZZ1H1HATEST1V1_FW654321.json
 └─────────────────┘
          │
          ▼
@@ -843,10 +883,11 @@ The `instant_values_structured()` method returns data organized by type:
 
 This client has been tested with:
 
-- **SEKO PoolDose Double/Dual WiFi** (Model: PDPR1H1HAW***, FW: 53****)
-- **VÁGNER POOL VA DOS BASIC** (Model: PDPR1H1HAR***, FW: 53****)
+- **SEKO PoolDose Double** (Model: PDPR1H1HAW100, FW: 539187)
+- **VÁGNER POOL VA DOS BASIC** (Model: PDHC1H1HAR1V0, FW: 539224)
+- **VÁGNER POOL VA DOS EXACT** (Model: PDHC1H1HAR1V1, FW: 539224)
 
-Other SEKO PoolDose models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW***_FW53****.json`).
+Other SEKO or VÁGNER POOL models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
 
 > **Note:** The JSON files in the mappings directory define the device-specific data keys and their human-readable names for different PoolDose models and firmware versions.
 
@@ -925,9 +966,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.0)
+### Latest Release (0.7.6)
 
-- **Connection Handling**: Improved session management for more reliable connections
-- **RequestHandler**: Centralized session management with internal _get_session method
-- **Performance**: Reduced connection overhead for multiple consecutive API calls
-- **Error Handling**: Better cleanup of HTTP sessions in error cases
+- Added `--print-payload` option for debugging HTTP payloads

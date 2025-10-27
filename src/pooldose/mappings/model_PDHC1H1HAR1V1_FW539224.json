@@ -1,0 +1,620 @@
+{
+  "temperature": {
+    "key": "w_1f0io7hq6",
+    "type": "sensor"
+  },
+  "ph": {
+    "key": "w_1f0inr5mg",
+    "type": "sensor"
+  },
+  "orp": {
+    "key": "w_1f0invtg9",
+    "type": "sensor"
+  },
+  "cl": {
+    "key": "w_1gribhndo",
+    "type": "sensor"
+  },
+  "flow_rate": {
+    "key": "w_1g1l040fa",
+    "type": "sensor"
+  },
+  "ph_type_dosing": {
+    "key": "w_1f0it2vcf",
+    "type": "sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ALCALYNE|": "alcalyne",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it2vcf_ACID|": "acid"
+    }
+  },
+  "peristaltic_ph_dosing": {
+    "key": "w_1f0iteoja",
+    "type": "sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_OFF_|": "off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_ON_OFF|": "on_off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteoja_TIMED|": "timed"
+    }
+  },
+  "orp_type_dosing": {
+    "key": "w_1f0it326i",
+    "type": "sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_LOW_|": "low",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it326i_HIGH|": "high"
+    }
+  },
+  "peristaltic_orp_dosing": {
+    "key": "w_1f0iteqrl",
+    "type": "sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_OFF|": "off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_ON_OFF|": "on_off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iteqrl_TIMED|": "timed"
+    }
+  },
+  "cl_type_dosing": {
+    "key": "w_1f0it3458",
+    "type": "sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it3458_LOW_|": "low",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0it3458_HIGH|": "high"
+    }
+  },
+  "peristaltic_cl_dosing": {
+    "key": "w_1f0itlfoj",
+    "type": "sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_OFF|": "off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_ON_OFF|": "on_off",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0itlfoj_TIMED|": "timed"
+    }
+  },
+  "pump_alarm": {
+    "key": "w_1f1fng00q",
+    "type": "binary_sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f1fng00q_OFF|": "F",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f1fng00q_ON|": "O"
+    }
+  },
+  "ph_level_alarm": {
+    "key": "w_1f0ioo093",
+    "type": "binary_sensor"
+  },
+  "orp_level_alarm": {
+    "key": "w_1f0ioo2gc",
+    "type": "binary_sensor"
+  },
+  "flow_rate_alarm": {
+    "key": "w_1f0iqmg8c",
+    "type": "binary_sensor"
+  },
+  "relay_alarm": {
+    "key": "w_1f0ir59fo",
+    "type": "binary_sensor"
+  },
+  "relay_aux1": {
+    "key": "w_1gmgkbmap",
+    "type": "binary_sensor"
+  },
+  "relay_aux2": {
+    "key": "w_1gmgkfe9s",
+    "type": "binary_sensor"
+  },
+  "relay_aux3": {
+    "key": "w_1gmgkflcj",
+    "type": "binary_sensor"
+  },
+  "relay_aux1_type": {
+    "key": "w_1gqhecqs1",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_DISABLE|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_PH|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_TIMED|",
+      "3": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_ALARM|",
+      "4": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_ORP|",
+      "5": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_CHLORINE|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_DISABLE|": "disable",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_PH|": "ph",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_TIMED|": "timed",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_ALARM|": "alarm",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_ORP|": "orp",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhecqs1_CHLORINE|": "chlorine"
+    }
+  },
+  "relay_aux2_type": {
+    "key": "w_1gqhedcrq",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_DISABLE|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_PH|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_TIMED|",
+      "3": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_ALARM|",
+      "4": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_ORP|",
+      "5": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_CHLORINE|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_DISABLE|": "disable",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_PH|": "ph",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_TIMED|": "timed",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_ALARM|": "alarm",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_ORP|": "orp",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedcrq_CHLORINE|": "chlorine"
+    }
+  },
+  "relay_aux3_type": {
+    "key": "w_1gqhedtcn",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_DISABLE|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_PH|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_TIMED|",
+      "3": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_ALARM|",
+      "4": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_ORP|",
+      "5": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_CHLORINE|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_DISABLE|": "disable",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_PH|": "ph",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_TIMED|": "timed",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_ALARM|": "alarm",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_ORP|": "orp",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhedtcn_CHLORINE|": "chlorine"
+    }
+  },
+  "ofa_ph_lower": {
+    "key": "w_1g1kvba4g",
+    "type": "number",
+    "field": "minT"
+  },
+  "ofa_ph_upper": {
+    "key": "w_1g1kvba4g",
+    "type": "number",
+    "field": "maxT"
+  },
+  "alarm_ofa_ph": {
+    "key": "w_1f0iqoek2",
+    "type": "binary_sensor"
+  },
+  "alarm_ofa_orp": {
+    "key": "w_1f0iqrv04",
+    "type": "binary_sensor"
+  },
+  "alarm_ofa_cl": {
+    "key": "w_1f0iqs0hr",
+    "type": "binary_sensor"
+  },
+  "ph_target": {
+    "key": "w_1f0irf02j",
+    "type": "number"
+  },
+  "orp_target": {
+    "key": "w_1f0ishl5i",
+    "type": "number"
+  },
+  "cl_target": {
+    "key": "w_1f0isio5g",
+    "type": "number"
+  },
+  "pause_dosing": {
+    "key": "w_1f2jpqa6e",
+    "type": "switch"
+  },
+  "pump_monitoring": {
+    "key": "w_1hn0vte5j",
+    "type": "binary_sensor",
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1hn0vte5j_DISABLED|": "F",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1hn0vte5j_ENABLED|": "O"
+    }
+  },
+  "flow_rate_unit": {
+    "key": "w_1f0j30vam",
+    "type": "select",
+    "options": {
+      "50": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_M3_H|",
+      "47": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_L_S|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_M3_H|": "m3/h",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_L_S|": "L/s"
+    }
+  },
+  "water_meter_unit": {
+    "key": "w_1f3dfp59r",
+    "type": "select",
+    "options": {
+      "8": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_|",
+      "9": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_|": "L",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__|": "m³"
+    }
+  },
+  "water_meter_total_permanent": {
+    "key": "w_1f0r19sc3",
+    "type": "number"
+  },
+  "water_meter_total_resetable": {
+    "key": "w_1fr0042ir",
+    "type": "number"
+  },
+  "setpoint_ph_type": {
+    "key": "w_1f0j0bfqb",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0bfqb_ALCALYNE|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0bfqb_ACID|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0bfqb_ALCALYNE|": "alcalyne",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0bfqb_ACID|": "acid"
+    }
+  },
+  "ph_type_dosing_method": {
+    "key": "w_1f0j07d2o",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_OFF_|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_PROPORTIONAL|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_ON_OFF|",
+      "3": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_TIMED|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_OFF_|": "off",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_ON_OFF|": "on / off",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j07d2o_TIMED|": "timed"
+    }
+  },
+  "setpoint_orp_type": {
+    "key": "w_1f0j0jgfd",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jgfd_LOW_|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jgfd_HIGH|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jgfd_LOW_|": "low",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jgfd_HIGH|": "high"
+    }
+  },
+  "orp_type_dosing_method": {
+    "key": "w_1f0j0jnv9",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_OFF|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_PROPORTIONAL|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_ON_OFF|",
+      "3": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_TIMED|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_OFF|": "off",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_ON_OFF|": "on / off",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0jnv9_TIMED|": "timed"
+    }
+  },
+  "setpoint_cl_type": {
+    "key": "w_1f0j0q8s4",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0q8s4_LOW_|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0q8s4_HIGH_|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0q8s4_LOW_|": "low",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0q8s4_HIGH_|": "high"
+    }
+  },
+  "cl_type_dosing_method": {
+    "key": "w_1f0j0qe9q",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_OFF|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_PROPORTIONAL|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_ON_OFF|",
+      "3": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_TIMED|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_OFF|": "off",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_PROPORTIONAL|": "proportional",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_ON_OFF|": "on / off",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_TIMED|": "timed"
+    }
+  },
+  "pumps_configuration": {
+    "key": "w_1hn83bpmk",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83bpmk_PH_REDOX_|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83bpmk_PH_CL|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83bpmk_PH_REDOX_|": "pH Redox",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83bpmk_PH_CL|": "pH Cl"
+    }
+  },
+  "chlorine_with_orp_protection": {
+    "key": "w_1hn83brup",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83brup_DISABLED|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83brup_ENABLED|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83brup_DISABLED|": "disabled",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn83brup_ENABLED|": "enabled"
+    }
+  },
+  "peristaltic_pump_3": {
+    "key": "w_1f0j115tn",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j115tn_DISABLED|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j115tn_ENABLED|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j115tn_DISABLED|": "disabled",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j115tn_ENABLED|": "enabled"
+    }
+  },
+  "input_reed_type": {
+    "key": "w_1gqhf3g6d",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhf3g6d_NORMALLY_CLOSED|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhf3g6d_NORMALLY_OPEN|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhf3g6d_LEVEL_3|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhf3g6d_NORMALLY_CLOSED|": "normally closed",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhf3g6d_NORMALLY_OPEN|": "normally open",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1gqhf3g6d_LEVEL_3|": "level 3"
+    }
+  },
+  "circulation_pump_type": {
+    "key": "w_1hn0h4fmb",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn0h4fmb_DISABLED|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn0h4fmb_ENABLED|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn0h4fmb_DISABLED|": "disabled",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1hn0h4fmb_ENABLED|": "enabled"
+    }
+  },
+  "flow_rate_sensor_type": {
+    "key": "w_1f0j1bd2e",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j1bd2e_K_FACTOR_PADDLE_WHEEL|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j1bd2e_WATER_METER_PULSE_SENDER|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j1bd2e_K_FACTOR_PADDLE_WHEEL|": "k-factor paddle wheel",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j1bd2e_WATER_METER_PULSE_SENDER|": "water meter pulse sender"
+    }
+  },
+  "flow_rate_unit_measure": {
+    "key": "w_1f0j30vam",
+    "type": "select",
+    "options": {
+      "50": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_M3_H|",
+      "47": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_L_S|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_M3_H|": "m3/h",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j30vam_L_S|": "L/s"
+    }
+  },
+  "temp_measure_sensor": {
+    "key": "w_1f3dfuoqk",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfuoqk_PT100|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfuoqk_MANUAL_VALUE|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfuoqk_PT100|": "pt100",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfuoqk_MANUAL_VALUE|": "manual value"
+    }
+  },
+  "time_on_ph_pump": {
+    "key": "w_1f0itopg9",
+    "type": "number"
+  },
+  "time_off_ph_pump": {
+    "key": "w_1f0itrut7",
+    "type": "number"
+  },
+  "time_on_chlorine_pump": {
+    "key": "w_1f0itu8ss",
+    "type": "number"
+  },
+  "time_off_chlorine_pump": {
+    "key": "w_1f0ituajd",
+    "type": "number"
+  },
+  "time1_on_timed_pump_aux1": {
+    "key": "w_1f0ive435",
+    "type": "number"
+  },
+  "time1_off_timed_pump_aux1": {
+    "key": "w_1f0ivortt",
+    "type": "number"
+  },
+  "time2_on_aux2_rl": {
+    "key": "w_1gqhd4ato",
+    "type": "number"
+  },
+  "time2_off_aux2_rl": {
+    "key": "w_1gqhd4crb",
+    "type": "number"
+  },
+  "time3_on_aux3_rl": {
+    "key": "w_1gqhd4fo3",
+    "type": "number"
+  },
+  "time3_off_aux3_rl": {
+    "key": "w_1gqhd4h7v",
+    "type": "number"
+  },
+  "temperature_unit": {
+    "key": "w_1f0iv1vlt",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iv1vlt__C|",
+      "1": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iv1vlt__F|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iv1vlt__C|": "°C",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f0iv1vlt__F|": "°F"
+    }
+  },
+  "flow_rate_value": {
+    "key": "w_1f0iv4ls4",
+    "type": "number"
+  },
+  "device_setting": {
+    "key": "w_1f24dsmu0",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f24dsmu0_PH_REDOX_|",
+      "1": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f24dsmu0_PH_REDOX_OXY|",
+      "2": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f24dsmu0_PH_REDOX_CL|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f24dsmu0_PH_REDOX_|": "pH Redox",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f24dsmu0_PH_REDOX_OXY|": "pH Redox Oxy",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1f24dsmu0_PH_REDOX_CL|": "pH Redox Cl"
+    }
+  },
+  "setpoint_ph": {
+    "key": "w_1f0j0a7cf",
+    "type": "number"
+  },
+  "time_on_ph_pump_b": {
+    "key": "w_1f0j03mbq",
+    "type": "number"
+  },
+  "time_off_ph_pump_b": {
+    "key": "w_1f0j05013",
+    "type": "number"
+  },
+  "setpoint_orp": {
+    "key": "w_1f0j0jd2a",
+    "type": "number"
+  },
+  "setpoint_chlorine": {
+    "key": "w_1f0j0q7ae",
+    "type": "number"
+  },
+  "time_on_cl_pump": {
+    "key": "w_1f0j0qanc",
+    "type": "number"
+  },
+  "time_off_cl_pump": {
+    "key": "w_1f0j0qceu",
+    "type": "number"
+  },
+  "time1_on_timed_pump1": {
+    "key": "w_1f0j11av3",
+    "type": "number"
+  },
+  "time1_off_timed_pump1": {
+    "key": "w_1f0j11cd6",
+    "type": "number"
+  },
+  "time2_on_timed_pump2": {
+    "key": "w_1gqhejosq",
+    "type": "number"
+  },
+  "time2_off_timed_pump2": {
+    "key": "w_1gqhejsbt",
+    "type": "number"
+  },
+  "time3_on_timed_pump3": {
+    "key": "w_1gqhejutn",
+    "type": "number"
+  },
+  "time3_off_timed_pump3": {
+    "key": "w_1gqhek18o",
+    "type": "number"
+  },
+  "pulse_k_factor": {
+    "key": "w_1f0j230o6",
+    "type": "number"
+  },
+  "power_on_delay": {
+    "key": "w_1fka6s5ed",
+    "type": "number"
+  },
+  "flow_delay": {
+    "key": "w_1fka6s9e3",
+    "type": "number"
+  },
+  "power_on_delay_status": {
+    "key": "w_1fkkmorfn",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmorfn_DISABLE|",
+      "1": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmorfn_ENABLE|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmorfn_DISABLE|": "disable",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmorfn_ENABLE|": "enable"
+    }
+  },
+  "flow_delay_status": {
+    "key": "w_1fkkmou3k",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmou3k_DISABLE|",
+      "1": "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmou3k_ENABLE|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmou3k_DISABLE|": "disable",
+      "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmou3k_ENABLE|": "enable"
+    }
+  },
+  "h2o2_type_dosing_method": {
+    "key": "w_1f3b1qd09",
+    "type": "select",
+    "options": {
+      "0": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3b1qd09_OFF|",
+      "1": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3b1qd09_ACTIVE|",
+      "2": "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3b1qd09_TIMED|"
+    },
+    "conversion": {
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3b1qd09_OFF|": "off",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3b1qd09_ACTIVE|": "active",
+      "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3b1qd09_TIMED|": "timed"
+    }
+  },
+  "flow_rate_reed_sensor": {
+    "key": "w_1f0iolq38",
+    "type": "binary_sensor"
+  },
+  "circulation_pump": {
+    "key": "w_1f0iqe0vh",
+    "type": "switch"
+  },
+  "level_sensor_1": {
+    "key": "w_1f0iqi4ei",
+    "type": "binary_sensor"
+  },
+  "level_sensor_2": {
+    "key": "w_1f0iqk56q",
+    "type": "binary_sensor"
+  }
+}

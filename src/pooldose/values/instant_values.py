@@ -3,34 +3,41 @@
 import logging
 from typing import Any, Dict, Tuple, Union
 
-from pooldose.request_handler import RequestHandler
 
 # pylint: disable=line-too-long,too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-return-statements,too-many-branches,no-else-return,too-many-public-methods
 
 _LOGGER = logging.getLogger(__name__)
 
 class InstantValues:
-    """
-    Provides dict-like access to instant values from the Pooldose device.
-    Values are dynamically loaded based on the mapping configuration.
+    """Manage instant device values and provide typed setters.
+
+    This class wraps raw device data and a mapping configuration to expose
+    typed accessors (sensor, number, switch, select) and to send updates
+    back to the device using a RequestHandler.
     """
 
-    def __init__(self, device_data: Dict[str, Any], mapping: Dict[str, Any], prefix: str, device_id: str, request_handler: RequestHandler):
-        """
-        Initialize InstantValues.
+    def __init__(
+        self,
+        device_data: Dict[str, Any],
+        mapping: Dict[str, Any],
+        prefix: str,
+        device_id: str,
+        request_handler: Any,
+    ) -> None:
+        """Initialize InstantValues.
 
         Args:
-            device_data (Dict[str, Any]): Raw device data from API.
-            mapping (Dict[str, Any]): Mapping configuration.
-            prefix (str): Key prefix for device data lookup.
-            device_id (str): Device ID.
-            request_handler (RequestHandler): API request handler.
+            device_data: Raw device data from API.
+            mapping: Mapping configuration.
+            prefix: Key prefix for device data lookup.
+            device_id: Device ID.
+            request_handler: API request handler (or mock shim).
         """
-        self._device_data = device_data  # Raw format: {"PDPR1H1HAW100_FW539187_w_1eommf39k": {...}, ...}
+        self._device_data = device_data
         self._mapping = mapping
         self._prefix = prefix
         self._device_id = device_id
-        self._request_handler = request_handler
+        self._request_handler: Any = request_handler
         self._cache: Dict[str, Any] = {}
 
     def __getitem__(self, key: str) -> Any:
@@ -43,8 +50,11 @@ class InstantValues:
         return value
 
     async def __setitem__(self, key: str, value: Any) -> None:
-        """Allow dict-like async write access to instant values."""
-        await self._set_value(key, value)
+        """
+        Disallow direct setting via __setitem__ to enforce type-specific methods.
+        Use set_number, set_switch, or set_select instead.
+        """
+        raise NotImplementedError("Use set_number, set_switch, or set_select for setting values.")
 
     def __contains__(self, key: str) -> bool:
         """Allow 'in' checks for available instant values."""
@@ -64,8 +74,6 @@ class InstantValues:
 
         Returns:
             Dict[str, Any]: Structured data with format:
-            {
-                "sensor": {
                     "temperature": {"value": 25.5, "unit": "°C"},
                     "ph": {"value": 7.2, "unit": None}
                 },
@@ -265,19 +273,29 @@ class InstantValues:
         return bool(value)
 
     def _process_number_value(self, raw_entry: Dict[str, Any], name: str) -> Tuple[Any, Union[str, None], Any, Any, Any]:
-        """Process number value and return (value, unit, min, max, step) tuple."""
+        """Process number value and return (value, unit, min, max, step) tuple.
+        If the mapping for this number type contains an 'attribute', use that as the value key instead of 'current'.
+        """
         if not isinstance(raw_entry, dict):
             _LOGGER.warning("Invalid raw entry type for number '%s': expected dict, got %s", name, type(raw_entry))
             return (None, None, None, None, None)
-
-        value = raw_entry.get("current")
+        # Check for special field in mapping
+        attributes = self._mapping.get(name, {})
+        value_key = attributes.get("field", "current")
+        value = raw_entry.get(value_key)
         abs_min = raw_entry.get("absMin")
         abs_max = raw_entry.get("absMax")
         resolution = raw_entry.get("resolution")
 
+        # Special handling for minT/maxT fields: split abs_min/abs_max range
+        if value_key == "minT" and isinstance(abs_max, (int, float)):
+            abs_max = abs_max / 2
+        elif value_key == "maxT" and isinstance(abs_max, (int, float)) and isinstance(resolution, (int, float)):
+            abs_min = abs_max / 2 + resolution
+
         # Get unit
         units = raw_entry.get("magnitude", [""])
-        unit = units[0] if units and units[0].lower() not in ("undefined", "ph") else None
+        unit = units[0] if isinstance(units, (list, tuple)) and units and str(units[0]).lower() not in ("undefined", "ph") else None
 
         return (value, unit, abs_min, abs_max, resolution)
 
@@ -310,12 +328,11 @@ class InstantValues:
         return value
 
     async def set_number(self, key: str, value: Any) -> bool:
-        """Set number value with validation."""
+        """Set number value with validation and device update."""
         if key not in self._mapping or self._mapping[key].get("type") != "number":
             _LOGGER.warning("Key '%s' is not a valid number", key)
             return False
 
-        # Get current number info for validation
         current_info = self[key]
         if current_info is None:
             _LOGGER.warning("Cannot get current info for number '%s'", key)
@@ -323,14 +340,10 @@ class InstantValues:
 
         try:
             _, _, min_val, max_val, step = current_info
-
-            # Validate range (only if min/max are defined)
             if min_val is not None and max_val is not None:
                 if not min_val <= value <= max_val:
                     _LOGGER.warning("Value %s is out of range for %s. Valid range: %s - %s", value, key, min_val, max_val)
                     return False
-
-            # Validate step (for float values)
             if isinstance(value, float) and step and min_val is not None:
                 epsilon = 1e-9
                 n = (value - min_val) / step
@@ -338,119 +351,108 @@ class InstantValues:
                     _LOGGER.warning("Value %s is not a valid step for %s. Step: %s", value, key, step)
                     return False
 
-            success = await self._set_value(key, value)
-            if success:
-                # Clear cache to force refresh of value
+            attributes = self._mapping.get(key, {})
+            key_device = attributes.get("key", key)
+            full_key = f"{self._prefix}{key_device}"
+            field = attributes.get("field")
+            if field in ("minT", "maxT"):
+                # Safe call with Dict[str, Any] guaranteed
+                corresponding = self._get_corresponding_value(key, field, attributes)
+                min_val_set, max_val_set = (value, corresponding) if field == "minT" else (corresponding, value)
+                if min_val_set is None or max_val_set is None:
+                    _LOGGER.warning("Cannot set both minT and maxT: missing value for one corresponding field.")
+                    return False
+                result = await self._request_handler.set_value(self._device_id, full_key, [min_val_set, max_val_set], "NUMBER")
+            else:
+                if not isinstance(value, (int, float)):
+                    _LOGGER.warning("Invalid type for number '%s': expected int/float, got %s", key, type(value))
+                    return False
+                result = await self._request_handler.set_value(self._device_id, full_key, value, "NUMBER")
+            if result:
                 self._cache.pop(key, None)
-            return success
-
-        except (TypeError, ValueError, IndexError) as err:
-            _LOGGER.warning("Error validating number '%s': %s", key, err)
+            return result
+        except (TypeError, ValueError, IndexError, KeyError, AttributeError) as err:
+            _LOGGER.warning("Error setting number '%s': %s", key, err)
             return False
 
     async def set_switch(self, key: str, value: bool) -> bool:
-        """Set switch value."""
+        """Set switch value with validation and device update."""
         if key not in self._mapping or self._mapping[key].get("type") != "switch":
             _LOGGER.warning("Key '%s' is not a valid switch", key)
             return False
-
-        success = await self._set_value(key, value)
-        if success:
-            # Clear cache to force refresh of value
-            self._cache.pop(key, None)
-        return success
+        try:
+            attributes = self._mapping.get(key, {})  # Use empty dict as default to avoid None
+            key_device = attributes.get("key", key)
+            full_key = f"{self._prefix}{key_device}"
+            if not isinstance(value, bool):
+                _LOGGER.warning("Invalid type for switch '%s': expected bool, got %s", key, type(value))
+                return False
+            value_str = "O" if value else "F"
+            result = await self._request_handler.set_value(self._device_id, full_key, value_str, "STRING")
+            if result:
+                self._cache.pop(key, None)
+            return result
+        except (KeyError, TypeError, AttributeError, ValueError) as err:
+            _LOGGER.warning("Error setting switch '%s': %s", key, err)
+            return False
 
     async def set_select(self, key: str, value: Any) -> bool:
-        """Set select value with validation."""
+        """Set select value with validation and device update."""
         if key not in self._mapping or self._mapping[key].get("type") != "select":
             _LOGGER.warning("Key '%s' is not a valid select", key)
             return False
-
-        # Validate against available converted values (not raw options)
-        mapping_entry = self._mapping[key]
-        options = mapping_entry.get("options", {})
-        conversion = mapping_entry.get("conversion", {})
-
-        # Build list of valid display values
-        valid_values = []
-        for _, option_text in options.items():
-            if option_text in conversion:
-                valid_values.append(conversion[option_text])
-            else:
-                valid_values.append(option_text)
-
-        if value not in valid_values:
-            _LOGGER.warning("Value '%s' is not a valid option for %s. Valid options: %s", value, key, valid_values)
-            return False
-
-        success = await self._set_value(key, value)
-        if success:
-            # Clear cache to force refresh of value
-            self._cache.pop(key, None)
-        return success
-
-    async def _set_value(self, name: str, value: Any) -> bool:
-        """
-        Internal helper to set a value on the device using the request handler.
-        Returns False and logs a warning on error.
-        """
         try:
-            attributes = self._mapping.get(name)
-            if not attributes:
-                _LOGGER.warning("Key '%s' not found in mapping", name)
+            mapping_entry = self._mapping[key]
+            options = mapping_entry.get("options", {})
+            conversion = mapping_entry.get("conversion", {})
+            valid_values = [conversion[option_text] if option_text in conversion else option_text for _, option_text in options.items()]
+            if value not in valid_values:
+                _LOGGER.warning("Value '%s' is not a valid option for %s. Valid options: %s", value, key, valid_values)
                 return False
-
-            entry_type = attributes.get("type")
-            key = attributes.get("key", name)
-            full_key = f"{self._prefix}{key}"
-
-            # Convert value back to device format if needed
+            key_device = mapping_entry.get("key", key)
+            full_key = f"{self._prefix}{key_device}"
             device_value = value
-
-            # Handle different types
-            if entry_type == "number":
-                if not isinstance(device_value, (int, float)):
-                    _LOGGER.warning("Invalid type for number '%s': expected int/float, got %s", name, type(device_value))
-                    return False
-                result = await self._request_handler.set_value(self._device_id, full_key, device_value, "NUMBER")
-
-            elif entry_type == "switch":
-                if not isinstance(value, bool):
-                    _LOGGER.warning("Invalid type for switch '%s': expected bool, got %s", name, type(value))
-                    return False
-                value_str = "O" if value else "F"  # O = True, F = False
-                result = await self._request_handler.set_value(self._device_id, full_key, value_str, "STRING")
-
-            elif entry_type == "select":
-                # For selects, we need to reverse the conversion process
-                if "conversion" in attributes and "options" in attributes:
-                    # Find the option key for the given display value
-                    conversion = attributes["conversion"]
-                    options = attributes["options"]
-
-                    # Reverse lookup: display value -> option text -> option key
+            if "conversion" in mapping_entry and "options" in mapping_entry:
+                for option_key, option_text in options.items():
+                    if option_text in conversion and conversion[option_text] == value:
+                        device_value = int(option_key)
+                        break
+                else:
                     for option_key, option_text in options.items():
-                        if option_text in conversion and conversion[option_text] == value:
+                        if option_text == value:
                             device_value = int(option_key)
                             break
                     else:
-                        # Direct lookup if no conversion chain
-                        for option_key, option_text in options.items():
-                            if option_text == value:
-                                device_value = int(option_key)
-                                break
-                        else:
-                            _LOGGER.warning("Value '%s' not found in options for '%s'", value, name)
-                            return False
-
-                result = await self._request_handler.set_value(self._device_id, full_key, device_value, "NUMBER")
-
-            else:
-                _LOGGER.warning("Unsupported type '%s' for setting value '%s'", entry_type, name)
-                return False
-
+                        _LOGGER.warning("Value '%s' not found in options for '%s'", value, key)
+                        return False
+            result = await self._request_handler.set_value(self._device_id, full_key, device_value, "NUMBER")
+            if result:
+                self._cache.pop(key, None)
             return result
-
         except (KeyError, TypeError, AttributeError, ValueError) as err:
-            _LOGGER.warning("Error setting value '%s': %s", name, err)
+            _LOGGER.warning("Error setting select '%s': %s", key, err)
             return False
+
+    def _get_corresponding_value(self, name: str, field: str, attributes: Dict[str, Any]) -> Any:
+        """
+        Returns the value of the corresponding field (minT/maxT) for the given mapping.
+        """
+        corresponding_field = "maxT" if field == "minT" else "minT"
+        # Search for the mapping entry with the corresponding field
+        for k, v in self._mapping.items():
+            if v.get("type") == "number" and v.get("field") == corresponding_field and v.get("key") == attributes.get("key"):
+                val = self[k]
+                return val[0] if isinstance(val, tuple) else val
+        # Fallback: get from raw device entry if not found in mapping
+        raw_entry = self._find_device_entry(name)
+        if raw_entry is None:
+            return None
+
+        if corresponding_field in raw_entry:
+            return raw_entry[corresponding_field]
+        # Final fallback: use absMin for minT, absMax for maxT
+        if corresponding_field == "minT":
+            return raw_entry.get("absMin")
+        elif corresponding_field == "maxT":
+            return raw_entry.get("absMax")
+        return None

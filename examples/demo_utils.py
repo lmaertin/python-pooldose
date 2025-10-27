@@ -29,7 +29,7 @@ def _display_data_type(data_dict, type_name, title):
         elif type_name in ["switch", "binary_sensor"]:
             value = data.get("value")
             if type_name == "binary_sensor":
-                status = "ACTIVE" if value else "OK"
+                status = "ON" if value else "OFF"
             else:
                 status = "ON" if value else "OFF"
             print(f"  {formatted_key}: {status}")

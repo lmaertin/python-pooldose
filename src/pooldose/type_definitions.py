@@ -91,4 +91,4 @@ class NetworkInfoDict(TypedDict, total=False):
     GROUPNAME: str
 
 # Constants
-SUPPORTED_VALUE_TYPES: Final = Literal["sensor", "switch", "number", "binary_sensor", "select"]
+SUPPORTED_VALUE_TYPES: Final = Literal["sensor", "switch", "number", "binary_sensor", "select"]  # pylint: disable=invalid-name

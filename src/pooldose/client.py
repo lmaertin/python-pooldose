@@ -4,16 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any, Dict
 
 import aiohttp
 from getmac import get_mac_address
 
-from pooldose.type_definitions import (
-    APIVersionResponse,
-    DeviceInfoDict,
-    StructuredValuesDict,
-)
 
 from pooldose.constants import get_default_device_info
 from pooldose.mappings.mapping_info import MappingInfo
@@ -34,7 +29,7 @@ class PooldoseClient:
     All getter methods return (status, data) and log errors.
     """
 
-    def __init__(self, host: str, timeout: int = 30, *, websession: Optional[aiohttp.ClientSession] = None, include_sensitive_data: bool = False, include_mac_lookup: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True) -> None:  # pylint: disable=too-many-arguments
+    def __init__(self, host: str, timeout: int = 30, *, websession: Optional[aiohttp.ClientSession] = None, include_sensitive_data: bool = False, include_mac_lookup: bool = False, use_ssl: bool = False, port: Optional[int] = None, ssl_verify: bool = True, debug_payload: bool = False) -> None:  # pylint: disable=too-many-arguments
         """
         Initialize the Pooldose client.
 
@@ -48,6 +43,7 @@ class PooldoseClient:
             use_ssl (bool): If True, use HTTPS instead of HTTP.
             port (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS.
             ssl_verify (bool): If True, verify SSL certificates. Only used when use_ssl=True.
+            debug_payload (bool): If True, log and store payloads sent to device for debugging.
         """
         self._host = host
         self._timeout = timeout
@@ -56,12 +52,13 @@ class PooldoseClient:
         self._use_ssl = use_ssl
         self._port = port
         self._ssl_verify = ssl_verify
+        self._debug_payload = debug_payload
         self._last_data = None
         self._websession = websession
         self._request_handler: RequestHandler | None = None
 
         # Initialize device info with default or placeholder values
-        self.device_info: DeviceInfoDict = get_default_device_info()
+        self.device_info: Dict[str, Any] = get_default_device_info()
 
         # Mapping-Status und Mapping-Cache
         self._mapping_status = None
@@ -81,7 +78,8 @@ class PooldoseClient:
             websession=self._websession if hasattr(self, '_websession') else None,
             use_ssl=self._use_ssl,
             port=self._port,
-            ssl_verify=self._ssl_verify
+            ssl_verify=self._ssl_verify,
+            debug_payload=self._debug_payload
         )
         status = await self._request_handler.connect()
         if status != RequestStatus.SUCCESS:
@@ -105,7 +103,7 @@ class PooldoseClient:
             raise RuntimeError("Client not connected. Call connect() first.")
         return self._request_handler
 
-    def check_apiversion_supported(self) -> Tuple[RequestStatus, APIVersionResponse]:
+    def check_apiversion_supported(self) -> Tuple[RequestStatus, Dict[str, Optional[str]]]:
         """
         Check if the loaded API version matches the supported version.
 
@@ -155,12 +153,16 @@ class PooldoseClient:
             self.device_info["SERIAL_NUMBER"] = gateway.get("DID")
             self.device_info["NAME"] = gateway.get("NAME")
             self.device_info["SW_VERSION"] = gateway.get("FW_REL")
-        if (device := debug_config.get("DEVICES")[0]) is not None:
-            self.device_info["DEVICE_ID"] = device.get("DID")
-            self.device_info["MODEL"] = device.get("NAME")
-            self.device_info["MODEL_ID"] = device.get("PRODUCT_CODE")
-            self.device_info["FW_VERSION"] = device.get("FW_REL")
-            self.device_info["FW_CODE"] = device.get("FW_CODE")
+
+        devices = debug_config.get("DEVICES")
+        if devices and len(devices) > 0:
+            device = devices[0]
+            if device is not None:
+                self.device_info["DEVICE_ID"] = device.get("DID")
+                self.device_info["MODEL"] = device.get("NAME")
+                self.device_info["MODEL_ID"] = device.get("PRODUCT_CODE")
+                self.device_info["FW_VERSION"] = device.get("FW_REL")
+                self.device_info["FW_CODE"] = device.get("FW_CODE")
         await asyncio.sleep(0.5)
 
         # Load mapping information
@@ -231,6 +233,7 @@ class PooldoseClient:
             tuple: (RequestStatus, StaticValues|None) - Status and static values object.
         """
         try:
+            # Device info is already Dict[str, Any]
             return RequestStatus.SUCCESS, StaticValues(self.device_info)
         except (ValueError, TypeError, KeyError) as err:
             _LOGGER.warning("Error creating StaticValues: %s", err)
@@ -258,13 +261,16 @@ class PooldoseClient:
             device_raw_data = raw_data.get("devicedata", {}).get(device_id, {})
             model_id = str(self.device_info.get("MODEL_ID", ""))
             fw_code = str(self.device_info.get("FW_CODE", ""))
+            if model_id == 'PDHC1H1HAR1V1' and fw_code == '539224':
+                #due to identifier issue in device firmware, use mapping prefix of PDPR1H1HAR1V0
+                model_id = 'PDPR1H1HAR1V0'
             prefix = f"{model_id}_FW{fw_code}_"
             return RequestStatus.SUCCESS, InstantValues(device_raw_data, mapping, prefix, device_id, self._request_handler)
         except (KeyError, TypeError, ValueError) as err:
             _LOGGER.warning("Error creating InstantValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def instant_values_structured(self) -> Tuple[RequestStatus, StructuredValuesDict]:
+    async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
         """
         Get instant values in structured JSON format with types as top-level keys.
 
@@ -284,3 +290,35 @@ class PooldoseClient:
         except (KeyError, TypeError, ValueError) as err:
             _LOGGER.error("Error creating structured instant values: %s", err)
             return RequestStatus.UNKNOWN_ERROR, {}
+
+    # Convenience setters -------------------------------------------------
+    async def set_switch(self, key: str, value: bool) -> bool:
+        """Set a mapped switch value without manually fetching InstantValues.
+
+        This convenience wrapper fetches the current InstantValues and
+        delegates the operation to its typed setter. Returns True on success.
+        """
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        return await iv.set_switch(key, value)
+
+    async def set_number(self, key: str, value: Any) -> bool:
+        """Set a mapped numeric value without manually fetching InstantValues."""
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        return await iv.set_number(key, value)
+
+    async def set_select(self, key: str, value: Any) -> bool:
+        """Set a mapped select option without manually fetching InstantValues."""
+        status, iv = await self.instant_values()
+        if status != RequestStatus.SUCCESS or iv is None:
+            return False
+        return await iv.set_select(key, value)
+
+    def get_last_payload(self) -> Optional[str]:
+        """Get the last payload sent to the device (if debug_payload is enabled)."""
+        if self._request_handler:
+            return self._request_handler.get_last_payload()
+        return None

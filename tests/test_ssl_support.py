@@ -176,7 +176,8 @@ class TestPooldoseClientSSL:
             websession=None,
             use_ssl=True,
             port=8443,
-            ssl_verify=False
+            ssl_verify=False,
+            debug_payload=False
         )
         assert status == RequestStatus.HOST_UNREACHABLE
 
@@ -198,7 +199,8 @@ class TestPooldoseClientSSL:
             websession=None,
             use_ssl=False,
             port=None,
-            ssl_verify=True
+            ssl_verify=True,
+            debug_payload=False
         )
         assert status == RequestStatus.HOST_UNREACHABLE
 

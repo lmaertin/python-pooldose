@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.6] - 2025-10-23
+
+### Added
+
+- **CLI Debug Flag**: New `--print-payload` option for debugging HTTP payloads
+  - Usage: `pooldose --host 192.168.1.100 --print-payload`
+- **Payload Debugging**: Added `debug_payload` parameter and `get_last_payload()` method
+- **Enhanced Demo**: Updated `examples/demo.py` with payload inspection (only shows payloads when operations succeed)
+
+## [7.5.0] - 2025-10-20
+
+### Added
+
+- Convenience setters on the client: `set_switch`, `set_number`, `set_select` to avoid fetching InstantValues manually.
+ - Mock client: now returns and stores the concrete POST payload for inspection (via `inspect_payload` / `get_last_payload`) and provides the same convenience setters as the real client.
+ - Updated `examples/demo.py` to demonstrate usage for both real and mock clients (mock prints payloads when `inspect_payload` is enabled).
+ - **New Device**: Added support for VA DOS EXACT (Model PDPR1H1HAR1V1, FW FW539224)
+
+### Changed
+
+- `InstantValues.set_number` now pairs `minT`/`maxT` fields and sends them as a single `[min,max]` payload when applicable.
+- `RequestHandler.set_value` now always uses arrays for all value types, even for single values (e.g., `[{"value": 7, "type": "NUMBER"}]`, `[{"value": "O", "type": "STRING"}]`).
+ - Mock client behavior adjusted: tests/demos can opt-in to inspect payloads; tests were updated to expect payload inspection by default.
+
+### Enhanced
+
+- **Fix**: Removed Chlorine Sensor from PDPR1H1HAR1V0, as this is not supported.
+
+### Fixed
+
+- Tests updated to expect inspectable mock payloads by default; test suite now passes.
+ - Updated demo and tests; full test suite currently passes (119 tests).
+
+---
 ## [0.7.0] - 2025-09-29
 
 ### Enhanced
