@@ -173,13 +173,13 @@ def test_switch_setter_boolean_only() -> None:
         assert connect_status == RequestStatus.SUCCESS
         # Non-boolean should be rejected
         try:
-            result = asyncio.run(client.set_switch("stop_pool_dosing", "O"))  # type: ignore
+            result = asyncio.run(client.set_switch("pause_dosing", "O"))  # type: ignore
             assert result is False
         except TypeError:
             # Type error is expected for non-boolean input
             pass
         # Boolean should be accepted (mock returns truthy value or tuple)
-        result = asyncio.run(client.set_switch("stop_pool_dosing", True))
+        result = asyncio.run(client.set_switch("pause_dosing", True))
         assert result is not False
     finally:
         json_path.unlink()

@@ -587,7 +587,7 @@
       "|PDPR1H1HAR1V0_FW539224_LABEL_w_1fkkmou3k_ENABLE|": "enable"
     }
   },
-  "type_dosing_h2o2_pump": {
+  "h2o2_type_dosing_method": {
     "key": "w_1f3b1qd09",
     "type": "select",
     "options": {
