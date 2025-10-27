@@ -44,6 +44,9 @@ class ValueDict(TypedDict, total=False):
     raw_value: Any
     status: str
     timestamp: int
+    min: Any
+    max: Any
+    step: Any
 
 # Structured values by type
 class StructuredValuesDict(TypedDict, total=False):

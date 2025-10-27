@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.8] - 2025-10-27
+
+### Enhanced
+
+- **Type Safety**: Complete integration of TypedDict definitions from `type_definitions.py`
+  - `DeviceInfoDict` now used throughout for device information
+  - `APIVersionResponse` properly returned from version checks
+  - `StructuredValuesDict` correctly typed for structured instant values
+  - `ValueDict` extended with min/max/step fields for number types
+- **Home Assistant Compatibility**: Full strict typing compliance for HA integrations
+  - All public API methods use proper TypedDict types
+  - MyPy strict mode passes without any type: ignore comments
+  - PEP-561 compliance maintained and enhanced
+- **Code Quality**: Elegant use of string literals for TypedDict keys
+  - Replaced runtime casting with compile-time type safety
+  - Improved maintainability and readability
+  - Better IDE support and autocompletion
+
+### Fixed
+
+- **StaticValues**: Now accepts DeviceInfoDict directly without casting
+- **InstantValues**: to_structured_dict() returns proper StructuredValuesDict type
+- **Constants**: get_default_device_info() returns correct DeviceInfoDict type
+
 ## [0.7.7] - 2025-10-27
 
 ### Added

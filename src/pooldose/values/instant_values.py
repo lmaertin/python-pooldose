@@ -3,6 +3,8 @@
 import logging
 from typing import Any, Dict, Tuple, Union
 
+from pooldose.type_definitions import StructuredValuesDict
+
 
 # pylint: disable=line-too-long,too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-return-statements,too-many-branches,no-else-return,too-many-public-methods
 
@@ -68,12 +70,14 @@ class InstantValues:
         except KeyError:
             return default
 
-    def to_structured_dict(self) -> Dict[str, Any]:
+    def to_structured_dict(self) -> StructuredValuesDict:
         """
         Convert instant values to structured dictionary format with types as top-level keys.
 
         Returns:
-            Dict[str, Any]: Structured data with format:
+            StructuredValuesDict: Structured data with format:
+            {
+                "sensor": {
                     "temperature": {"value": 25.5, "unit": "°C"},
                     "ph": {"value": 7.2, "unit": None}
                 },
@@ -91,7 +95,7 @@ class InstantValues:
                 }
             }
         """
-        structured_data: Dict[str, Dict[str, Any]] = {}
+        structured_data: StructuredValuesDict = {}
 
         # Process each mapping entry
         for mapping_key, mapping_entry in self._mapping.items():
@@ -104,9 +108,22 @@ class InstantValues:
             if raw_entry is None:
                 continue
 
-            # Initialize type section if needed
-            if entry_type not in structured_data:
-                structured_data[entry_type] = {}
+            # Initialize type section if needed - use string literals for TypedDict
+            if entry_type == "sensor":
+                if "sensor" not in structured_data:
+                    structured_data["sensor"] = {}
+            elif entry_type == "switch":
+                if "switch" not in structured_data:
+                    structured_data["switch"] = {}
+            elif entry_type == "number":
+                if "number" not in structured_data:
+                    structured_data["number"] = {}
+            elif entry_type == "binary_sensor":
+                if "binary_sensor" not in structured_data:
+                    structured_data["binary_sensor"] = {}
+            elif entry_type == "select":
+                if "select" not in structured_data:
+                    structured_data["select"] = {}
 
             # Get the processed value using existing logic
             try:
@@ -114,22 +131,27 @@ class InstantValues:
                 if value_data is None:
                     continue
 
-                # Structure the data based on type
+                # Structure the data based on type - use string literals for TypedDict
                 if entry_type == "sensor":
                     if isinstance(value_data, tuple) and len(value_data) >= 2:
-                        structured_data[entry_type][mapping_key] = {
+                        structured_data["sensor"][mapping_key] = {
                             "value": value_data[0],
                             "unit": value_data[1]
                         }
 
-                elif entry_type in ("binary_sensor", "switch"):
-                    structured_data[entry_type][mapping_key] = {
+                elif entry_type == "binary_sensor":
+                    structured_data["binary_sensor"][mapping_key] = {
+                        "value": value_data
+                    }
+
+                elif entry_type == "switch":
+                    structured_data["switch"][mapping_key] = {
                         "value": value_data
                     }
 
                 elif entry_type == "number":
                     if isinstance(value_data, tuple) and len(value_data) >= 5:
-                        structured_data[entry_type][mapping_key] = {
+                        structured_data["number"][mapping_key] = {
                             "value": value_data[0],
                             "unit": value_data[1],
                             "min": value_data[2],
@@ -138,7 +160,7 @@ class InstantValues:
                         }
 
                 elif entry_type == "select":
-                    structured_data[entry_type][mapping_key] = {
+                    structured_data["select"][mapping_key] = {
                         "value": value_data
                     }
 

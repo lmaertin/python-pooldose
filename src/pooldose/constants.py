@@ -1,9 +1,9 @@
 """Constants for the Pooldose library."""
 
-from typing import Any, Dict, Optional
+from pooldose.type_definitions import DeviceInfoDict
 
 # Default device info structure
-DEFAULT_DEVICE_INFO: Dict[str, Optional[Any]] = {
+DEFAULT_DEVICE_INFO: DeviceInfoDict = {
     "NAME": None,           # Device name
     "SERIAL_NUMBER": None,  # Serial number
     "DEVICE_ID": None,      # Device ID, i.e., SERIAL_NUMBER + "_DEVICE"
@@ -24,6 +24,6 @@ DEFAULT_DEVICE_INFO: Dict[str, Optional[Any]] = {
 }
 
 
-def get_default_device_info() -> Dict[str, Optional[Any]]:
+def get_default_device_info() -> DeviceInfoDict:
     """Return a copy of the default device info structure."""
     return DEFAULT_DEVICE_INFO.copy()

@@ -966,6 +966,9 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.7)
+### Latest Release (0.7.8)
 
-- Added `--print-payload` option for debugging HTTP payloads
+- **Enhanced Type Safety**: Full integration of TypedDict definitions from `type_definitions.py`
+- **Home Assistant Ready**: Strict typing compliance for Home Assistant integrations
+- **Improved API**: DeviceInfoDict, APIVersionResponse, and StructuredValuesDict properly utilized
+- **Better Documentation**: Enhanced type annotations and cleaner code structure

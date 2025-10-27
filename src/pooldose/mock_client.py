@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pooldose.constants import get_default_device_info
+from pooldose.type_definitions import StructuredValuesDict
 from pooldose.mappings.mapping_info import MappingInfo
 from pooldose.request_status import RequestStatus
 from pooldose.values.instant_values import InstantValues
@@ -229,7 +230,7 @@ class MockPooldoseClient:
         return self._last_payload
 
 
-    async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
+    async def instant_values_structured(self) -> Tuple[RequestStatus, StructuredValuesDict]:
         """
         Get structured instant values from mock data.
 

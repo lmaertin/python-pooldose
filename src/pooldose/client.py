@@ -4,20 +4,21 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional, Tuple, Any, Dict
+from typing import Optional, Tuple, Any
 
 import aiohttp
 from getmac import get_mac_address
 
 
 from pooldose.constants import get_default_device_info
+from pooldose.type_definitions import DeviceInfoDict, StructuredValuesDict, APIVersionResponse
 from pooldose.mappings.mapping_info import MappingInfo
 from pooldose.request_handler import RequestHandler
 from pooldose.request_status import RequestStatus
 from pooldose.values.instant_values import InstantValues
 from pooldose.values.static_values import StaticValues
 
-# pylint: disable=line-too-long,too-many-instance-attributes
+# pylint: disable=line-too-long,too-many-instance-attributes, line-too-long
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ class PooldoseClient:
         self._request_handler: RequestHandler | None = None
 
         # Initialize device info with default or placeholder values
-        self.device_info: Dict[str, Any] = get_default_device_info()
+        self.device_info: DeviceInfoDict = get_default_device_info()
 
         # Mapping-Status und Mapping-Cache
         self._mapping_status = None
@@ -103,13 +104,13 @@ class PooldoseClient:
             raise RuntimeError("Client not connected. Call connect() first.")
         return self._request_handler
 
-    def check_apiversion_supported(self) -> Tuple[RequestStatus, Dict[str, Optional[str]]]:
+    def check_apiversion_supported(self) -> Tuple[RequestStatus, APIVersionResponse]:
         """
         Check if the loaded API version matches the supported version.
 
         Returns:
-            tuple: (RequestStatus, dict)
-                - dict contains:
+            tuple: (RequestStatus, APIVersionResponse)
+                - APIVersionResponse contains:
                     "api_version_is": the current API version (or None if not set)
                     "api_version_should": the expected API version
                 - RequestStatus.NO_DATA if not set.
@@ -120,7 +121,7 @@ class PooldoseClient:
                 "api_version_should": API_VERSION_SUPPORTED,
             }
 
-        result = {
+        result: APIVersionResponse = {
             "api_version_is": self._request_handler.api_version,
             "api_version_should": API_VERSION_SUPPORTED,
         }
@@ -233,7 +234,7 @@ class PooldoseClient:
             tuple: (RequestStatus, StaticValues|None) - Status and static values object.
         """
         try:
-            # Device info is already Dict[str, Any]
+            # Device info is DeviceInfoDict and StaticValues now accepts it directly
             return RequestStatus.SUCCESS, StaticValues(self.device_info)
         except (ValueError, TypeError, KeyError) as err:
             _LOGGER.warning("Error creating StaticValues: %s", err)
@@ -270,12 +271,12 @@ class PooldoseClient:
             _LOGGER.warning("Error creating InstantValues: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
 
-    async def instant_values_structured(self) -> Tuple[RequestStatus, Dict[str, Any]]:
+    async def instant_values_structured(self) -> Tuple[RequestStatus, StructuredValuesDict]:
         """
         Get instant values in structured JSON format with types as top-level keys.
 
         Returns:
-            Tuple[RequestStatus, Dict[str, Any]]: Status and structured data dict.
+            Tuple[RequestStatus, StructuredValuesDict]: Status and structured data dict.
         """
         # Get instant values object
         status, instant_values = await self.instant_values()

@@ -1,7 +1,9 @@
 """Static Values for Async API client for SEKO Pooldose."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Optional
+
+from pooldose.type_definitions import DeviceInfoDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -14,15 +16,15 @@ class StaticValues:
     property with a descriptive name. All properties are read-only.
 
     Args:
-        device_info (Dict[str, Any]): The dictionary containing static device information.
+        device_info (DeviceInfoDict): The dictionary containing static device information.
     """
 
-    def __init__(self, device_info: Dict[str, Any]):
+    def __init__(self, device_info: DeviceInfoDict):
         """
         Initialize StaticValues.
 
         Args:
-            device_info (Dict[str, Any]): The dictionary containing static device information.
+            device_info (DeviceInfoDict): The dictionary containing static device information.
         """
         self._device_info = device_info
 
