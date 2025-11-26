@@ -966,8 +966,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.9)
+### Latest Release (0.8.0)
 
-- **Simplified Entity Types**: Moved read-only numeric values (`water_meter_total_permanent`, `water_meter_total_resettable`, `flow_rate_value`) from number to sensor type for better clarity
-- **Streamlined Configuration**: Reduced select entities to essential configuration options only
-- **Enhanced Organization**: Improved distinction between read-only sensors and configurable numbers
+- **Entity Type Refinement**: `flow_rate_value` renamed to `flow_rate`

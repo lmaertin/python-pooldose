@@ -11,6 +11,10 @@
     "key": "w_1f0invtg9",
     "type": "sensor"
   },
+  "flow_rate": {
+    "key": "w_1f0iv4ls4",
+    "type": "sensor"
+  },
   "ph_type_dosing": {
     "key": "w_1f0it2vcf",
     "type": "sensor",
@@ -122,9 +126,5 @@
       "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_LITERS__L_|": "L",
       "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f3dfp59r_CUBIC_METER__M__|": "m³"
     }
-  },
-  "flow_rate_value": {
-    "key": "w_1f0iv4ls4",
-    "type": "sensor"
   }
 }

@@ -290,9 +290,5 @@
       "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_ON_OFF|": "on / off",
       "|PDPR1H1HAR1V0_FW539224_COMBO_w_1f0j0qe9q_TIMED|": "timed"
     }
-  },
-  "flow_rate_value": {
-    "key": "w_1f0iv4ls4",
-    "type": "sensor"
   }
 }
