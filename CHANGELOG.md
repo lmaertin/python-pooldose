@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.9] - 2025-11-26
+
+### Changed
+
+- **Simplified Entity Types**: Reduced complexity by moving read-only numeric values to sensor type
+  - `water_meter_total_permanent` moved from number to sensor
+  - `water_meter_total_resettable` moved from number to sensor
+  - `flow_rate_value` moved from number to sensor
+- **Streamlined Configuration**: Reduced select entities to essential configuration options only
+  - Removed redundant read-only select types
+  - Focused on user-configurable settings for better clarity
+  - Improved entity organization and usability
+
+### Enhanced
+
+- **Entity Organization**: Better alignment between entity types and their actual usage patterns
+- **API Clarity**: More intuitive distinction between read-only sensors and configurable numbers
+
 ## [0.7.8] - 2025-10-27
 
 ### Enhanced

@@ -966,9 +966,8 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.7.8)
+### Latest Release (0.7.9)
 
-- **Enhanced Type Safety**: Full integration of TypedDict definitions from `type_definitions.py`
-- **Home Assistant Ready**: Strict typing compliance for Home Assistant integrations
-- **Improved API**: DeviceInfoDict, APIVersionResponse, and StructuredValuesDict properly utilized
-- **Better Documentation**: Enhanced type annotations and cleaner code structure
+- **Simplified Entity Types**: Moved read-only numeric values (`water_meter_total_permanent`, `water_meter_total_resettable`, `flow_rate_value`) from number to sensor type for better clarity
+- **Streamlined Configuration**: Reduced select entities to essential configuration options only
+- **Enhanced Organization**: Improved distinction between read-only sensors and configurable numbers
