@@ -119,22 +119,22 @@
     "type": "number",
     "field": "maxT"
   },
-  "orp_ph_lower": {
+  "ofa_orp_lower": {
     "key": "w_1g1l13bkn",
     "type": "number",
     "field": "minT"
   },
-  "orp_ph_upper": {
+  "ofa_orp_upper": {
     "key": "w_1g1l13bkn",
     "type": "number",
     "field": "maxT"
   },
-  "cl_ph_lower": {
+  "ofa_cl_lower": {
     "key": "w_1g1l13dke",
     "type": "number",
     "field": "minT"
   },
-  "cl_ph_upper": {
+  "ofa_cl_upper": {
     "key": "w_1g1l13dke",
     "type": "number",
     "field": "maxT"
