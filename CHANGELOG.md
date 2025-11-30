@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2025-11-30
+
+### Changed
+
+- **Unit Standardization**: Chlorine values now consistently return "ppm" instead of "CL2" or "Chlorine"
+  - Applied to both sensor and number types
+  - Improved consistency across all chlorine measurements
+- **Mapping Consistency**: Renamed OFA (Output Final Alarm) threshold mappings for better naming convention
+  - `orp_ph_lower/upper` → `ofa_orp_lower/upper`
+  - `cl_ph_lower/upper` → `ofa_cl_lower/upper`
+  - Now consistent with existing `ofa_ph_lower/upper` naming pattern
+
+### Enhanced
+
+- **Test Coverage**: Added comprehensive tests for chlorine unit conversion
+- **Code Quality**: All tests pass (123 total), mypy and pylint score 10.00/10
+
 ## [0.8.0] - 2025-11-26
 
 ### Changed

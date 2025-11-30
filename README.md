@@ -966,6 +966,7 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.8.0)
+### Latest Release (0.8.1)
 
-- **Entity Type Refinement**: `flow_rate_value` renamed to `flow_rate`
+- **Unit Standardization**: Chlorine values now return "ppm" instead of "CL2"
+- **Mapping Consistency**: OFA threshold mappings renamed for consistency (`ofa_orp_*`, `ofa_cl_*`)
