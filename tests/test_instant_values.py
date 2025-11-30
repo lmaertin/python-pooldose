@@ -20,6 +20,12 @@ class TestInstantValues:  # pylint: disable=too-many-public-methods
         assert value == 25.5
         assert unit == "°C"
 
+    def test_getitem_sensor_chlorine_unit(self, instant_values_fixture):
+        """Test getting chlorine sensor values with ppm unit conversion."""
+        value, unit = instant_values_fixture["chlorine"]
+        assert value == 0.5
+        assert unit == "ppm"
+
     def test_getitem_sensor_with_conversion(self, instant_values_fixture):
         """Test getting sensor values with string conversion."""
         value, unit = instant_values_fixture["ph_type_dosing"]
@@ -33,6 +39,15 @@ class TestInstantValues:  # pylint: disable=too-many-public-methods
         assert unit is None
         assert min_val == 6.0
         assert max_val == 8.0
+        assert step == 0.1
+
+    def test_getitem_number_chlorine_unit(self, instant_values_fixture):
+        """Test getting chlorine number values with ppm unit conversion."""
+        value, unit, min_val, max_val, step = instant_values_fixture["chlorine_target"]
+        assert value == 0.6
+        assert unit == "ppm"
+        assert min_val == 0.3
+        assert max_val == 3.0
         assert step == 0.1
 
     def test_getitem_switch(self, instant_values_fixture):

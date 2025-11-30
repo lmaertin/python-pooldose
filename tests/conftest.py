@@ -61,6 +61,17 @@ def mock_device_data():
             "absMax": 8.0,
             "resolution": 0.1
         },
+        "PDPR1H1HAW100_FW539187_w_1chlorine": {
+            "current": 0.5,
+            "magnitude": ["CL2", "Chlorine"]
+        },
+        "PDPR1H1HAW100_FW539187_w_1chlorine_target": {
+            "current": 0.6,
+            "magnitude": ["Chlorine"],
+            "absMin": 0.3,
+            "absMax": 3.0,
+            "resolution": 0.1
+        },
         "PDPR1H1HAW100_FW539187_w_1switch123": {
             "current": "O"
         },
@@ -89,6 +100,14 @@ def mock_mapping():
         "target_ph": {
             "type": "number",
             "key": "w_1eomph456"
+        },
+        "chlorine": {
+            "type": "sensor",
+            "key": "w_1chlorine"
+        },
+        "chlorine_target": {
+            "type": "number",
+            "key": "w_1chlorine_target"
         },
         "pump_switch": {
             "type": "switch",
