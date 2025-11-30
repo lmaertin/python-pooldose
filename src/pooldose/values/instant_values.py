@@ -251,6 +251,9 @@ class InstantValues:
         # Get unit
         units = raw_entry.get("magnitude", [""])
         unit = units[0] if units and units[0].lower() not in ("undefined", "ph") else None
+        # Convert CL2/Chlorine to ppm
+        if unit and unit.lower() in ("cl2", "chlorine"):
+            unit = "ppm"
 
         return (value, unit)
 
@@ -318,6 +321,9 @@ class InstantValues:
         # Get unit
         units = raw_entry.get("magnitude", [""])
         unit = units[0] if isinstance(units, (list, tuple)) and units and str(units[0]).lower() not in ("undefined", "ph") else None
+        # Convert CL2/Chlorine to ppm
+        if unit and str(unit).lower() in ("cl2", "chlorine"):
+            unit = "ppm"
 
         return (value, unit, abs_min, abs_max, resolution)
 
