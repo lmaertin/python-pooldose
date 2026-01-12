@@ -3,7 +3,14 @@
 import logging
 from typing import Any, Dict, Tuple, Union
 
-from pooldose.type_definitions import StructuredValuesDict
+from pooldose.type_definitions import (
+    StructuredValuesDict,
+    VALUE_TYPE_SENSOR,
+    VALUE_TYPE_SWITCH,
+    VALUE_TYPE_NUMBER,
+    VALUE_TYPE_BINARY_SENSOR,
+    VALUE_TYPE_SELECT,
+)
 
 
 # pylint: disable=line-too-long,too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-return-statements,too-many-branches,no-else-return,too-many-public-methods
@@ -109,19 +116,19 @@ class InstantValues:
                 continue
 
             # Initialize type section if needed - use string literals for TypedDict
-            if entry_type == "sensor":
+            if entry_type == VALUE_TYPE_SENSOR:
                 if "sensor" not in structured_data:
                     structured_data["sensor"] = {}
-            elif entry_type == "switch":
+            elif entry_type == VALUE_TYPE_SWITCH:
                 if "switch" not in structured_data:
                     structured_data["switch"] = {}
-            elif entry_type == "number":
+            elif entry_type == VALUE_TYPE_NUMBER:
                 if "number" not in structured_data:
                     structured_data["number"] = {}
-            elif entry_type == "binary_sensor":
+            elif entry_type == VALUE_TYPE_BINARY_SENSOR:
                 if "binary_sensor" not in structured_data:
                     structured_data["binary_sensor"] = {}
-            elif entry_type == "select":
+            elif entry_type == VALUE_TYPE_SELECT:
                 if "select" not in structured_data:
                     structured_data["select"] = {}
 
@@ -132,24 +139,24 @@ class InstantValues:
                     continue
 
                 # Structure the data based on type - use string literals for TypedDict
-                if entry_type == "sensor":
+                if entry_type == VALUE_TYPE_SENSOR:
                     if isinstance(value_data, tuple) and len(value_data) >= 2:
                         structured_data["sensor"][mapping_key] = {
                             "value": value_data[0],
                             "unit": value_data[1]
                         }
 
-                elif entry_type == "binary_sensor":
+                elif entry_type == VALUE_TYPE_BINARY_SENSOR:
                     structured_data["binary_sensor"][mapping_key] = {
                         "value": value_data
                     }
 
-                elif entry_type == "switch":
+                elif entry_type == VALUE_TYPE_SWITCH:
                     structured_data["switch"][mapping_key] = {
                         "value": value_data
                     }
 
-                elif entry_type == "number":
+                elif entry_type == VALUE_TYPE_NUMBER:
                     if isinstance(value_data, tuple) and len(value_data) >= 5:
                         structured_data["number"][mapping_key] = {
                             "value": value_data[0],
@@ -159,7 +166,7 @@ class InstantValues:
                             "step": value_data[4]
                         }
 
-                elif entry_type == "select":
+                elif entry_type == VALUE_TYPE_SELECT:
                     structured_data["select"][mapping_key] = {
                         "value": value_data
                     }
@@ -216,15 +223,15 @@ class InstantValues:
                 return None
 
             # Process based on entry type
-            if entry_type == "sensor":
+            if entry_type == VALUE_TYPE_SENSOR:
                 return self._process_sensor_value(raw_entry, attributes, name)
-            elif entry_type == "binary_sensor":
+            elif entry_type == VALUE_TYPE_BINARY_SENSOR:
                 return self._process_binary_sensor_value(raw_entry, attributes, name)
-            elif entry_type == "switch":
+            elif entry_type == VALUE_TYPE_SWITCH:
                 return self._process_switch_value(raw_entry, name)
-            elif entry_type == "number":
+            elif entry_type == VALUE_TYPE_NUMBER:
                 return self._process_number_value(raw_entry, name)
-            elif entry_type == "select":
+            elif entry_type == VALUE_TYPE_SELECT:
                 return self._process_select_value(raw_entry, attributes)
             else:
                 _LOGGER.warning("Unknown type '%s' for key '%s'", entry_type, name)
@@ -357,7 +364,7 @@ class InstantValues:
 
     async def set_number(self, key: str, value: Any) -> bool:
         """Set number value with validation and device update."""
-        if key not in self._mapping or self._mapping[key].get("type") != "number":
+        if key not in self._mapping or self._mapping[key].get("type") != VALUE_TYPE_NUMBER:
             _LOGGER.warning("Key '%s' is not a valid number", key)
             return False
 
@@ -405,7 +412,7 @@ class InstantValues:
 
     async def set_switch(self, key: str, value: bool) -> bool:
         """Set switch value with validation and device update."""
-        if key not in self._mapping or self._mapping[key].get("type") != "switch":
+        if key not in self._mapping or self._mapping[key].get("type") != VALUE_TYPE_SWITCH:
             _LOGGER.warning("Key '%s' is not a valid switch", key)
             return False
         try:
@@ -426,7 +433,7 @@ class InstantValues:
 
     async def set_select(self, key: str, value: Any) -> bool:
         """Set select value with validation and device update."""
-        if key not in self._mapping or self._mapping[key].get("type") != "select":
+        if key not in self._mapping or self._mapping[key].get("type") != VALUE_TYPE_SELECT:
             _LOGGER.warning("Key '%s' is not a valid select", key)
             return False
         try:
@@ -468,7 +475,7 @@ class InstantValues:
         corresponding_field = "maxT" if field == "minT" else "minT"
         # Search for the mapping entry with the corresponding field
         for k, v in self._mapping.items():
-            if v.get("type") == "number" and v.get("field") == corresponding_field and v.get("key") == attributes.get("key"):
+            if v.get("type") == VALUE_TYPE_NUMBER and v.get("field") == corresponding_field and v.get("key") == attributes.get("key"):
                 val = self[k]
                 return val[0] if isinstance(val, tuple) else val
         # Fallback: get from raw device entry if not found in mapping

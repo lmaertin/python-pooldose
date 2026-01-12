@@ -899,6 +899,7 @@ This package is **PEP-561 compliant** and fully typed for use in Home Assistant 
 
 **PEP-561 Compliance**: Package includes `py.typed` file marking it as fully typed  
 **Comprehensive Type Annotations**: All public API methods have complete type hints  
+**Type Constants**: Centralized `VALUE_TYPE_*` constants eliminate string literals for entity types  
 **mypy Support**: Built-in mypy configuration for static type checking  
 **Home Assistant Ready**: Compatible with Home Assistant's strict typing requirements  
 
@@ -966,7 +967,6 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.8.1)
+### Latest Release (0.8.2)
 
-- **Unit Standardization**: Chlorine values now return "ppm" instead of "CL2"
-- **Mapping Consistency**: OFA threshold mappings renamed for consistency (`ofa_orp_*`, `ofa_cl_*`)
+- **Type Constants**: centralized runtime constants for platform types

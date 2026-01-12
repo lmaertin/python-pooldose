@@ -9,6 +9,13 @@ from typing import Any, Dict, List, Optional
 import aiofiles
 
 from pooldose.request_handler import RequestStatus
+from pooldose.type_definitions import (
+    VALUE_TYPE_SENSOR,
+    VALUE_TYPE_BINARY_SENSOR,
+    VALUE_TYPE_NUMBER,
+    VALUE_TYPE_SWITCH,
+    VALUE_TYPE_SELECT,
+)
 
 # pylint: disable=line-too-long
 
@@ -139,7 +146,7 @@ class MappingInfo:
             return {}
         result = {}
         for name, entry in self.mapping.items():
-            if entry.get("type") == "sensor":
+            if entry.get("type") == VALUE_TYPE_SENSOR:
                 result[name] = SensorMapping(
                     key=entry["key"],
                     type=entry["type"],
@@ -158,7 +165,7 @@ class MappingInfo:
             return {}
         result = {}
         for name, entry in self.mapping.items():
-            if entry.get("type") == "binary_sensor":
+            if entry.get("type") == VALUE_TYPE_BINARY_SENSOR:
                 result[name] = BinarySensorMapping(
                     key=entry["key"],
                     type=entry["type"],
@@ -176,7 +183,7 @@ class MappingInfo:
             return {}
         result = {}
         for name, entry in self.mapping.items():
-            if entry.get("type") == "number":
+            if entry.get("type") == VALUE_TYPE_NUMBER:
                 result[name] = NumberMapping(
                     key=entry["key"],
                     type=entry["type"],
@@ -194,7 +201,7 @@ class MappingInfo:
             return {}
         result = {}
         for name, entry in self.mapping.items():
-            if entry.get("type") == "switch":
+            if entry.get("type") == VALUE_TYPE_SWITCH:
                 result[name] = SwitchMapping(
                     key=entry["key"],
                     type=entry["type"],
@@ -214,7 +221,7 @@ class MappingInfo:
             return {}
         result = {}
         for name, entry in self.mapping.items():
-            if entry.get("type") == "select":
+            if entry.get("type") == VALUE_TYPE_SELECT:
                 result[name] = SelectMapping(
                     key=entry["key"],
                     type=entry["type"],

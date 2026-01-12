@@ -1,6 +1,6 @@
 """Type definitions for the pooldose package."""
 
-from typing import Any, Dict, Final, List, Literal, Optional, TypedDict
+from typing import Any, Dict, Final, List, Optional, TypedDict
 
 # Device information types
 class DeviceInfoDict(TypedDict, total=False):
@@ -39,14 +39,14 @@ class MappingDict(TypedDict):
 class ValueDict(TypedDict, total=False):
     """Type definition for a value entry."""
     type: str
-    value: Any
+    value: float | int | str
     unit: str
-    raw_value: Any
+    raw_value: float | int | str
     status: str
     timestamp: int
-    min: Any
-    max: Any
-    step: Any
+    min: float | int
+    max: float | int
+    step: float | int
 
 # Structured values by type
 class StructuredValuesDict(TypedDict, total=False):
@@ -93,5 +93,9 @@ class NetworkInfoDict(TypedDict, total=False):
     OWNERID: str
     GROUPNAME: str
 
-# Constants
-SUPPORTED_VALUE_TYPES: Final = Literal["sensor", "switch", "number", "binary_sensor", "select"]  # pylint: disable=invalid-name
+# Platform type constants
+VALUE_TYPE_SENSOR: Final[str] = "sensor"
+VALUE_TYPE_SWITCH: Final[str] = "switch"
+VALUE_TYPE_NUMBER: Final[str] = "number"
+VALUE_TYPE_BINARY_SENSOR: Final[str] = "binary_sensor"
+VALUE_TYPE_SELECT: Final[str] = "select"
