@@ -242,3 +242,73 @@ def complete_client_setup(  # pylint: disable=redefined-outer-name
         "raw_data": mock_raw_data,
         "structured_data": mock_structured_data
     }
+
+
+@pytest.fixture
+def mock_debug_config_aliased_model():
+    """Create mock debug config with a PRODUCT_CODE that requires alias resolution.
+
+    This simulates a device that reports PDPR1H1HAW102 as its PRODUCT_CODE,
+    but uses PDPR1H1HAW100 in its actual data keys and mapping files.
+    """
+    return {
+        "GATEWAY": {
+            "DID": "TEST456",
+            "NAME": "Aliased Device",
+            "FW_REL": "1.7"
+        },
+        "DEVICES": [{
+            "DID": "TEST456_DEVICE",
+            "NAME": "POOLDOSE pH+ORP CF Group Wi-Fi",
+            "PRODUCT_CODE": "PDPR1H1HAW102",
+            "FW_REL": "1.7",
+            "FW_CODE": "539187"
+        }]
+    }
+
+
+@pytest.fixture
+def mock_device_info_aliased():
+    """Create mock device information for an aliased model."""
+    return {
+        "NAME": "Aliased Device",
+        "SERIAL_NUMBER": "TEST456",
+        "DEVICE_ID": "TEST456_DEVICE",
+        "MODEL": "POOLDOSE pH+ORP CF Group Wi-Fi",
+        "MODEL_ID": "PDPR1H1HAW102",
+        "OWNERID": "Owner1",
+        "GROUPNAME": "GroupA",
+        "FW_VERSION": "1.7",
+        "SW_VERSION": "3.00",
+        "API_VERSION": "v1/",
+        "FW_CODE": "539187",
+        "MAC": None,
+        "IP": "192.168.3.158",
+        "WIFI_SSID": "IoT Wi-Fi",
+        "WIFI_KEY": None,
+        "AP_SSID": None,
+        "AP_KEY": None
+    }
+
+
+@pytest.fixture
+def mock_raw_data_aliased():
+    """Create mock raw data using PDPR1H1HAW100 keys (the resolved alias model)."""
+    return {
+        "devicedata": {
+            "TEST456_DEVICE": {
+                "PDPR1H1HAW100_FW539187_w_1eommf39k": {
+                    "current": 17.5,
+                    "magnitude": ["°C"]
+                },
+                "PDPR1H1HAW100_FW539187_w_1ekeigkin": {
+                    "current": 7.3,
+                    "magnitude": ["pH"]
+                },
+                "PDPR1H1HAW100_FW539187_w_1eklenb23": {
+                    "current": 728,
+                    "magnitude": ["mV"]
+                }
+            }
+        }
+    }
