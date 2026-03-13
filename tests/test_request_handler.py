@@ -194,3 +194,251 @@ class TestSessionManagement:
 
             # Verify the session was closed despite the exception
             mock_session.close.assert_awaited_once()
+
+
+class TestSessionConsistency:
+    """Tests to verify all HTTP methods use _get_session() consistently.
+
+    Previously, set_value(), get_device_language() and reboot_device() created
+    their own aiohttp.ClientSession instead of using _get_session(). This meant
+    externally provided sessions (e.g. from Home Assistant) were bypassed.
+    """
+
+    @pytest.mark.asyncio
+    async def test_set_value_uses_get_session_with_external(self):
+        """Test that set_value() uses the external session via _get_session()."""
+        external_session = MagicMock()
+        external_session.close = AsyncMock()
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+
+        handler = RequestHandler("192.168.1.1", websession=external_session)
+
+        with patch.object(handler, '_get_session', return_value=(external_session, False)) as mock_get_session:
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            external_session.post = MagicMock(return_value=async_cm)
+
+            result = await handler.set_value("DEVICE_1", "w_123", 7.0, "NUMBER")
+
+            mock_get_session.assert_called_once()
+            external_session.post.assert_called_once()
+            assert result is True
+            external_session.close.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_set_value_closes_internal_session(self):
+        """Test that set_value() creates and closes an internal session when no external session is provided."""
+        handler = RequestHandler("192.168.1.1")
+
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+
+        with patch.object(handler, '_get_session', return_value=(mock_session, True)):
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            mock_session.post = MagicMock(return_value=async_cm)
+
+            result = await handler.set_value("DEVICE_1", "w_123", 7.0, "NUMBER")
+
+            assert result is True
+            mock_session.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_set_value_closes_session_on_error(self):
+        """Test that set_value() closes the internal session even on error."""
+        handler = RequestHandler("192.168.1.1")
+
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+
+        with patch.object(handler, '_get_session', return_value=(mock_session, True)):
+            async_cm = AsyncMock()
+            async_cm.__aenter__.side_effect = aiohttp.ClientError("Connection refused")
+            mock_session.post = MagicMock(return_value=async_cm)
+
+            result = await handler.set_value("DEVICE_1", "w_123", 7.0, "NUMBER")
+
+            assert result is False
+            mock_session.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_get_device_language_uses_get_session_with_external(self):
+        """Test that get_device_language() uses the external session via _get_session()."""
+        external_session = MagicMock()
+        external_session.close = AsyncMock()
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json = AsyncMock(return_value={"LABEL_test": "Test Label"})
+
+        handler = RequestHandler("192.168.1.1", websession=external_session)
+
+        with patch.object(handler, '_get_session', return_value=(external_session, False)) as mock_get_session:
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            external_session.post = MagicMock(return_value=async_cm)
+
+            status, data = await handler.get_device_language("TEST_DEVICE")
+
+            mock_get_session.assert_called_once()
+            external_session.post.assert_called_once()
+            assert status == RequestStatus.SUCCESS
+            assert data == {"LABEL_test": "Test Label"}
+            external_session.close.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_get_device_language_closes_internal_session(self):
+        """Test that get_device_language() closes an internal session after use."""
+        handler = RequestHandler("192.168.1.1")
+
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json = AsyncMock(return_value={"LABEL_test": "Test Label"})
+
+        with patch.object(handler, '_get_session', return_value=(mock_session, True)):
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            mock_session.post = MagicMock(return_value=async_cm)
+
+            status, data = await handler.get_device_language("TEST_DEVICE")
+
+            assert status == RequestStatus.SUCCESS
+            mock_session.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_reboot_device_uses_get_session_with_external(self):
+        """Test that reboot_device() uses the external session via _get_session()."""
+        external_session = MagicMock()
+        external_session.close = AsyncMock()
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+
+        handler = RequestHandler("192.168.1.1", websession=external_session)
+
+        with patch.object(handler, '_get_session', return_value=(external_session, False)) as mock_get_session:
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            external_session.post = MagicMock(return_value=async_cm)
+
+            status, result = await handler.reboot_device()
+
+            mock_get_session.assert_called_once()
+            external_session.post.assert_called_once()
+            assert status == RequestStatus.SUCCESS
+            assert result is True
+            external_session.close.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_reboot_device_closes_internal_session(self):
+        """Test that reboot_device() closes an internal session after use."""
+        handler = RequestHandler("192.168.1.1")
+
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+
+        with patch.object(handler, '_get_session', return_value=(mock_session, True)):
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            mock_session.post = MagicMock(return_value=async_cm)
+
+            status, result = await handler.reboot_device()
+
+            assert status == RequestStatus.SUCCESS
+            assert result is True
+            mock_session.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_reboot_device_closes_session_on_error(self):
+        """Test that reboot_device() closes the internal session even on error."""
+        handler = RequestHandler("192.168.1.1")
+
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+
+        with patch.object(handler, '_get_session', return_value=(mock_session, True)):
+            async_cm = AsyncMock()
+            async_cm.__aenter__.side_effect = aiohttp.ClientError("Connection refused")
+            mock_session.post = MagicMock(return_value=async_cm)
+
+            status, result = await handler.reboot_device()
+
+            assert status == RequestStatus.UNKNOWN_ERROR
+            assert result is False
+            mock_session.close.assert_awaited_once()
+
+
+class TestAccessPointParsing:
+    """Test for the get_access_point() response parsing fix."""
+
+    @pytest.mark.asyncio
+    async def test_get_access_point_parses_text_response(self):
+        """Test that get_access_point() correctly parses JSON from text response.
+
+        Previously, get_access_point() called both resp.text() and resp.json()
+        on the same response, which could fail because the body can only be
+        consumed once. Now it uses json.loads() on the already-read text.
+        """
+        handler = RequestHandler("192.168.1.1")
+
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+
+        json_body = '{"SSID": "KOMMSPOT-TEST", "KEY": "secret123"}'
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.text = AsyncMock(return_value=json_body)
+
+        with patch.object(handler, '_get_session', return_value=(mock_session, True)):
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            mock_session.post = MagicMock(return_value=async_cm)
+
+            status, data = await handler.get_access_point()
+
+            assert status == RequestStatus.SUCCESS
+            assert data == {"SSID": "KOMMSPOT-TEST", "KEY": "secret123"}
+            # Verify resp.json() was NOT called (only resp.text() + json.loads)
+            mock_response.json.assert_not_called()
+            mock_session.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_get_access_point_handles_non_json_response(self):
+        """Test that get_access_point() handles responses without valid JSON."""
+        handler = RequestHandler("192.168.1.1")
+
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.text = AsyncMock(return_value="not json at all")
+
+        with patch.object(handler, '_get_session', return_value=(mock_session, True)):
+            async_cm = AsyncMock()
+            async_cm.__aenter__.return_value = mock_response
+            mock_session.post = MagicMock(return_value=async_cm)
+
+            status, data = await handler.get_access_point()
+
+            assert status == RequestStatus.NO_DATA
+            assert data is None
