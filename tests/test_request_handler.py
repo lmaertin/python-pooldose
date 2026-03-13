@@ -312,7 +312,7 @@ class TestSessionConsistency:
             async_cm.__aenter__.return_value = mock_response
             mock_session.post = MagicMock(return_value=async_cm)
 
-            status, data = await handler.get_device_language("TEST_DEVICE")
+            status, _ = await handler.get_device_language("TEST_DEVICE")
 
             assert status == RequestStatus.SUCCESS
             mock_session.close.assert_awaited_once()

@@ -883,9 +883,13 @@ The `instant_values_structured()` method returns data organized by type:
 
 This client has been tested with:
 
-- **SEKO PoolDose Double** (Model: PDPR1H1HAW100, FW: 539187)
-- **VÁGNER POOL VA DOS BASIC** (Model: PDHC1H1HAR1V0, FW: 539224)
-- **VÁGNER POOL VA DOS EXACT** (Model: PDHC1H1HAR1V1, FW: 539224)
+| Device | PRODUCT_CODE | FW Code | Notes |
+|---|---|---|---|
+| SEKO PoolDose Double | PDPR1H1HAW100 | 539187 | Extended mapping (54 entities) |
+| SEKO POOLDOSE pH+ORP CF Group Wi-Fi | PDPR1H1HAW102 | 539187 | Alias for PDPR1H1HAW100 mapping |
+| SEKO PoolDose pH | PDPH1H1HAW100 | 539176 | pH-only device |
+| VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | |
+| VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Alias for PDHC1H1HAR1V0 mapping |
 
 Other SEKO or VÁGNER POOL models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
 
@@ -967,6 +971,9 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.8.2)
+### Latest Release (0.8.5)
 
-- **Type Constants**: centralized runtime constants for platform types
+- Added support for **SEKO POOLDOSE pH+ORP CF Group Wi-Fi** (`PDPR1H1HAW102`) and **SEKO PoolDose pH** (`PDPH1H1HAW100`) devices
+- Extended `PDPR1H1HAW100` mapping from 32 to 54 entities
+- Improved session consistency in `RequestHandler`
+- Thanks to [@ronaldvdmeer](https://github.com/ronaldvdmeer) and [@pwntester](https://github.com/pwntester)
