@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5] - 2026-03-13
+
+### Added
+
+- **Model Aliases**: Introduced `MODEL_ALIASES` to support devices whose `PRODUCT_CODE` differs from the model ID used in data keys and mappings
+  - Replaces the former hardcoded workaround for `PDHC1H1HAR1V1`
+  - New device supported: **SEKO POOLDOSE pH+ORP CF Group Wi-Fi** (`PDPR1H1HAW102`, FW `539187`) — resolves to `PDPR1H1HAW100` mapping
+- **New Device Mapping**: Added `model_PDPH1H1HAW100_FW539176.json` for pH-only devices
+  - New device supported: **SEKO PoolDose pH** (`PDPH1H1HAW100`, FW `539176`)
+- **Extended Mapping**: `model_PDPR1H1HAW100_FW539187.json` extended from 32 to 54 entities
+  - 11 new binary sensor alarms (secondary overfeed, temperature, pH/chlorine concentration, system standby)
+  - 6 new sensors with conversions (circulation pump, CL dosing mode, device config, temperature unit, delay statuses)
+  - 5 new number entities (dosing off-timers, delay timers)
+
+### Fixed
+
+- **Session Consistency**: All functions in `RequestHandler` now use the shared `_get_session()` method, enabling correct session hand-over from Home Assistant
+- **Response Parsing**: Fixed double-read bug in `get_access_point()`
+
+### Enhanced
+
+- **Test Coverage**: Added tests for alias resolution, session consistency, and access point parsing
+- **Code Quality**: All tests pass (143 total), pylint score 10.00/10
+
+### Contributors
+
+Thanks to [@ronaldvdmeer](https://github.com/ronaldvdmeer) and [@pwntester](https://github.com/pwntester) for their contributions to this release.
+
 ## [0.8.2] - 2026-01-12
 
 ### Changed
