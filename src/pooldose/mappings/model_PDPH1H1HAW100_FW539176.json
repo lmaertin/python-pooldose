@@ -1,0 +1,128 @@
+{
+  "temperature": {
+    "key": "w_1eomiide3",
+    "type": "sensor"
+  },
+  "ph": {
+    "key": "w_1ekeigkin",
+    "type": "sensor"
+  },
+  "orp": {
+    "key": "w_1eklenb23",
+    "type": "sensor"
+  },
+  "ph_type_dosing": {
+    "key": "w_1eklg44ro",
+    "type": "sensor",
+    "conversion": {
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklg44ro_ALCALYNE|": "alcalyne",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklg44ro_ACID|": "acid"
+    }
+  },
+  "peristaltic_ph_dosing": {
+    "key": "w_1eklj6euj",
+    "type": "sensor",
+    "conversion": {
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj6euj_OFF|": "off",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj6euj_PROPORTIONAL|": "proportional",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj6euj_ON_OFF|": "on / off",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj6euj_TIMED|": "timed"
+    }
+  },
+  "orp_type_dosing": {
+    "key": "w_1eklgnolb",
+    "type": "sensor",
+    "conversion": {
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklgnolb_LOW|": "low",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklgnolb_HIGH|": "high"
+    }
+  },
+  "peristaltic_orp_dosing": {
+    "key": "w_1eklj12vv",
+    "type": "sensor",
+    "conversion": {
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj12vv_OFF|": "off",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj12vv_PROPORTIONAL|": "proportional",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj12vv_ON_OFF|": "on / off",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklj12vv_TIMED|": "timed"
+    }
+  },
+  "ph_calibration_type": {
+    "key": "w_1eklh8gb7",
+    "type": "sensor",
+    "conversion": {
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklh8gb7_OFF|": "off",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklh8gb7_REFERENCE|": "reference",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklh8gb7_1_POINT|": "1_point",
+      "|PDPH1H1HAW100_FW539176_LABEL_w_1eklh8gb7_2_POINTS|": "2_points"
+    }
+  },
+  "ph_calibration_offset": {
+    "key": "w_1eklhs3b4",
+    "type": "sensor"
+  },
+  "ph_calibration_slope": {
+    "key": "w_1eklhs65u",
+    "type": "sensor"
+  },
+  "orp_calibration_slope": {
+    "key": "w_1eklhsase",
+    "type": "sensor"
+  },
+  "ofa_value": {
+    "key": "w_1eklhj58e",
+    "type": "sensor"
+  },
+  "pump_alarm": {
+    "key": "w_1ekga097n",
+    "type": "binary_sensor"
+  },
+  "ph_level_alarm": {
+    "key": "w_1eklf77pm",
+    "type": "binary_sensor"
+  },
+  "relay_alarm": {
+    "key": "w_1eklffdl0",
+    "type": "binary_sensor"
+  },
+  "relay_aux": {
+    "key": "w_1eklfgs1t",
+    "type": "binary_sensor"
+  },
+  "alarm_ofa_ph": {
+    "key": "w_1eklfb73r",
+    "type": "binary_sensor"
+  },
+  "alarm_ofa_orp": {
+    "key": "w_1eklfb8ob",
+    "type": "binary_sensor"
+  },
+  "ph_target": {
+    "key": "w_1ekeiqfat",
+    "type": "number"
+  },
+  "pause_dosing": {
+    "key": "w_1emtltkel",
+    "type": "switch"
+  },
+  "pump_monitoring": {
+    "key": "w_1eklft47q",
+    "type": "switch"
+  },
+  "frequency_input": {
+    "key": "w_1eklft5qt",
+    "type": "switch"
+  },
+  "water_meter_unit": {
+    "key": "w_1eklinki6",
+    "type": "select",
+    "options": {
+      "0": "PDPH1H1HAW100_FW539176_COMBO_w_1eklinki6_M_",
+      "1": "PDPH1H1HAW100_FW539176_COMBO_w_1eklinki6_LITER"
+    },
+    "conversion": {
+      "PDPH1H1HAW100_FW539176_COMBO_w_1eklinki6_M_": "m3",
+      "PDPH1H1HAW100_FW539176_COMBO_w_1eklinki6_LITER": "L"
+    }
+  }
+}

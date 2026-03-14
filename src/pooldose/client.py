@@ -10,7 +10,7 @@ import aiohttp
 from getmac import get_mac_address
 
 
-from pooldose.constants import get_default_device_info
+from pooldose.constants import MODEL_ALIASES, get_default_device_info
 from pooldose.type_definitions import DeviceInfoDict, StructuredValuesDict, APIVersionResponse
 from pooldose.mappings.mapping_info import MappingInfo
 from pooldose.request_handler import RequestHandler
@@ -170,7 +170,8 @@ class PooldoseClient:
         model_id = self.device_info.get("MODEL_ID")
         fw_code = self.device_info.get("FW_CODE")
         if model_id and fw_code:
-            self._mapping_info = await MappingInfo.load(str(model_id), str(fw_code))
+            resolved_model = MODEL_ALIASES.get(str(model_id), str(model_id))
+            self._mapping_info = await MappingInfo.load(resolved_model, str(fw_code))
         else:
             _LOGGER.warning("Missing MODEL_ID or FW_CODE, cannot load mapping")
             self._mapping_info = MappingInfo(mapping=None, status=RequestStatus.NO_DATA)
@@ -262,9 +263,9 @@ class PooldoseClient:
             device_raw_data = raw_data.get("devicedata", {}).get(device_id, {})
             model_id = str(self.device_info.get("MODEL_ID", ""))
             fw_code = str(self.device_info.get("FW_CODE", ""))
-            if model_id == 'PDHC1H1HAR1V1' and fw_code == '539224':
-                #due to identifier issue in device firmware, use mapping prefix of PDPR1H1HAR1V0
-                model_id = 'PDPR1H1HAR1V0'
+            # Resolve model alias for devices that report a different
+            # PRODUCT_CODE than the model used in their data keys.
+            model_id = MODEL_ALIASES.get(model_id, model_id)
             prefix = f"{model_id}_FW{fw_code}_"
             return RequestStatus.SUCCESS, InstantValues(device_raw_data, mapping, prefix, device_id, self._request_handler)
         except (KeyError, TypeError, ValueError) as err:

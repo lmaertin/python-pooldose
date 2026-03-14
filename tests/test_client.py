@@ -270,3 +270,82 @@ class TestPooldoseClient:
         # pylint: disable=protected-access
         client._connected = True
         assert client.is_connected is True
+
+
+class TestModelAliases:
+    """Test MODEL_ALIASES resolution for devices that report a different PRODUCT_CODE."""
+
+    @pytest.mark.asyncio
+    async def test_connect_resolves_model_alias(
+        self, mock_request_handler, mock_debug_config_aliased_model, mock_mapping_info
+    ):
+        """Test that connect() resolves PDPR1H1HAW102 to PDPR1H1HAW100 for mapping loading."""
+        client = PooldoseClient(host="192.168.3.158")
+
+        mock_request_handler.get_debug_config.return_value = (
+            RequestStatus.SUCCESS, mock_debug_config_aliased_model
+        )
+        mock_request_handler.get_wifi_station.return_value = (
+            RequestStatus.SUCCESS, {"IP": "192.168.3.158", "SSID": "IoT Wi-Fi"}
+        )
+        mock_request_handler.get_access_point.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_network_info.return_value = (RequestStatus.SUCCESS, {})
+
+        with patch('pooldose.client.RequestHandler', return_value=mock_request_handler):
+            with patch(
+                'pooldose.mappings.mapping_info.MappingInfo.load',
+                return_value=mock_mapping_info
+            ) as mock_load:
+                status = await client.connect()
+
+        assert status == RequestStatus.SUCCESS
+        # Verify MappingInfo.load was called with the resolved alias model ID
+        mock_load.assert_called_once_with("PDPR1H1HAW100", "539187")
+        # The original MODEL_ID should still reflect what the device reported
+        assert client.device_info["MODEL_ID"] == "PDPR1H1HAW102"
+
+    @pytest.mark.asyncio
+    async def test_instant_values_uses_resolved_prefix(
+        self, mock_request_handler, mock_device_info_aliased,
+        mock_mapping_info, mock_raw_data_aliased
+    ):
+        """Test that instant_values() uses the resolved model alias for the data prefix."""
+        client = PooldoseClient(host="192.168.3.158")
+        # pylint: disable=protected-access
+        client._request_handler = mock_request_handler
+        client.device_info.update(mock_device_info_aliased)
+        client._mapping_info = mock_mapping_info
+
+        mock_request_handler.get_values_raw.return_value = (
+            RequestStatus.SUCCESS, mock_raw_data_aliased
+        )
+
+        status, instant_values = await client.instant_values()
+
+        assert status == RequestStatus.SUCCESS
+        assert isinstance(instant_values, InstantValues)
+
+    @pytest.mark.asyncio
+    async def test_existing_alias_pdhc1h1har1v1(
+        self, mock_request_handler, mock_mapping_info
+    ):
+        """Test that the existing PDHC1H1HAR1V1 alias still works via MODEL_ALIASES."""
+        client = PooldoseClient(host="192.168.1.100")
+        # pylint: disable=protected-access
+        client._request_handler = mock_request_handler
+        client.device_info.update({
+            "DEVICE_ID": "TEST_DEVICE",
+            "MODEL_ID": "PDHC1H1HAR1V1",
+            "FW_CODE": "539224",
+        })
+        client._mapping_info = mock_mapping_info
+
+        mock_request_handler.get_values_raw.return_value = (
+            RequestStatus.SUCCESS,
+            {"devicedata": {"TEST_DEVICE": {}}}
+        )
+
+        status, instant_values = await client.instant_values()
+
+        assert status == RequestStatus.SUCCESS
+        assert isinstance(instant_values, InstantValues)

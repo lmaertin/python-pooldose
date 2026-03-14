@@ -2,6 +2,14 @@
 
 from pooldose.type_definitions import DeviceInfoDict
 
+# Model alias mapping: PRODUCT_CODE reported by device → model ID used in data keys/mappings.
+# Some devices report a different PRODUCT_CODE than the model ID actually used
+# in their data keys and mapping files.
+MODEL_ALIASES: dict[str, str] = {
+    "PDHC1H1HAR1V1": "PDPR1H1HAR1V0",
+    "PDPR1H1HAW102": "PDPR1H1HAW100",
+}
+
 # Default device info structure
 DEFAULT_DEVICE_INFO: DeviceInfoDict = {
     "NAME": None,           # Device name

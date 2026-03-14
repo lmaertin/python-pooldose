@@ -311,7 +311,7 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                     json_end = text.rfind("}") + 1
                     data = None
                     if json_start != -1 and json_end != -1:
-                        data = await resp.json()
+                        data = json.loads(text[json_start:json_end])
                     if not data:
                         _LOGGER.error("No data found for access point info")
                         return RequestStatus.NO_DATA, None
@@ -403,10 +403,13 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
             _LOGGER.info("Sending payload: %s", self._last_payload)
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
+            finally:
+                if close_session:
+                    await session.close()
         except aiohttp.ClientError as e:
             _LOGGER.warning("Client error setting value: %s", e)
             return False
@@ -473,8 +476,8 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
 
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, json=payload, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     data = await resp.json()
@@ -482,6 +485,9 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.error("No data found for device language")
                         return RequestStatus.NO_DATA, None
                     return RequestStatus.SUCCESS, data
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Failed to fetch device language: %s", err)
             return RequestStatus.UNKNOWN_ERROR, None
@@ -496,11 +502,14 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         url = self._build_url("/api/v1/system/reboot")
         try:
             timeout_obj = aiohttp.ClientTimeout(total=self.timeout)
-            connector = self._get_ssl_connector()
-            async with aiohttp.ClientSession(connector=connector) as session:
+            session, close_session = await self._get_session()
+            try:
                 async with session.post(url, headers=self._headers, timeout=timeout_obj) as resp:
                     resp.raise_for_status()
                     return RequestStatus.SUCCESS, True
+            finally:
+                if close_session:
+                    await session.close()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.warning("Error sending reboot command: %s", err)
             return RequestStatus.UNKNOWN_ERROR, False
