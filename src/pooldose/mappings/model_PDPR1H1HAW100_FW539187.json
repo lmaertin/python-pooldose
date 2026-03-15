@@ -212,10 +212,10 @@
   },
   "circulation_pump_status": {
     "key": "w_1eo2fpohe",
-    "type": "sensor",
+    "type": "binary_sensor",
     "conversion": {
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eo2fpohe_DISABLED_|": "disabled",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1eo2fpohe_ENABLED|": "enabled"
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eo2fpohe_DISABLED_|": false,
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1eo2fpohe_ENABLED|": true
     }
   },
   "peristaltic_cl_dosing": {
@@ -247,18 +247,18 @@
   },
   "power_on_delay_status": {
     "key": "w_1fhb0hqu2",
-    "type": "sensor",
+    "type": "binary_sensor",
     "conversion": {
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0hqu2_DISABLE|": "disabled",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0hqu2_ENABLE|": "enabled"
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0hqu2_DISABLE|": false,
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0hqu2_ENABLE|": true
     }
   },
   "flow_delay_status": {
     "key": "w_1fhb0ht7t",
-    "type": "sensor",
+    "type": "binary_sensor",
     "conversion": {
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0ht7t_DISABLE|": "disabled",
-      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0ht7t_ENABLE|": "enabled"
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0ht7t_DISABLE|": false,
+      "|PDPR1H1HAW100_FW539187_LABEL_w_1fhb0ht7t_ENABLE|": true
     }
   },
   "time_off_ph_dosing": {

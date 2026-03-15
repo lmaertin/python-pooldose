@@ -136,6 +136,9 @@ class TestDoubleSpaMapping:
             "alarm_cl_too_low_orp", "alarm_cl_too_high_orp",
             "alarm_cl_too_low", "alarm_cl_too_high",
             "alarm_system_standby",
+            "circulation_pump_status",
+            "power_on_delay_status",
+            "flow_delay_status",
         ]
         for name in double_spa_alarms:
             assert name in binary_sensors, f"Missing DOUBLE SPA binary_sensor: {name}"
