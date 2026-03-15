@@ -86,10 +86,8 @@ class TestDoubleSpaMapping:
             "ph_calibration_type", "ph_calibration_offset", "ph_calibration_slope",
             "orp_calibration_type", "orp_calibration_offset", "orp_calibration_slope",
             "cl_calibration_type", "cl_calibration_offset", "cl_calibration_slope",
-            "circulation_pump_status",
             "ofa_ph_time", "ofa_orp_time", "ofa_cl_time",
             "device_config", "temperature_unit",
-            "power_on_delay_status", "flow_delay_status",
         ]
         for name in expected_sensors:
             assert name in sensors, f"Missing sensor: {name}"
@@ -189,8 +187,8 @@ class TestDoubleSpaMapping:
         mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
         types = mapping_info.available_types()
 
-        assert len(types.get("sensor", [])) == 26
-        assert len(types.get("binary_sensor", [])) == 23
+        assert len(types.get("sensor", [])) == 23
+        assert len(types.get("binary_sensor", [])) == 26
         assert len(types.get("number", [])) == 11
         assert len(types.get("switch", [])) == 3
         assert len(types.get("select", [])) == 1
