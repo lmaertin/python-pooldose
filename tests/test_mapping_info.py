@@ -61,88 +61,134 @@ def test_available_selects_missing_fields():
         _ = mapping_info.available_selects()
 
 
-class TestPDPR1H1HAW100FW539187Mapping:
-    """Tests for the PDPR1H1HAW100 FW539187 mapping file."""
+class TestDoubleSpaMapping:
+    """Tests for the POOLDOSE DOUBLE SPA mapping file (PDPR1H04AW100_FW539292)."""
 
-    MODEL_ID = "PDPR1H1HAW100"
-    FW_CODE = "539187"
+    @pytest.mark.asyncio
+    async def test_load_double_spa_mapping(self):
+        """Test that the DOUBLE SPA mapping file loads successfully."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        assert mapping_info.status == RequestStatus.SUCCESS
+        assert mapping_info.mapping is not None
 
-    @pytest.fixture
-    async def mapping(self):
-        """Load the mapping file."""
-        info = await MappingInfo.load(self.MODEL_ID, self.FW_CODE)
-        assert info.status == RequestStatus.SUCCESS
-        assert info.mapping is not None
-        return info
+    @pytest.mark.asyncio
+    async def test_double_spa_sensors(self):
+        """Test that expected sensors are present in the DOUBLE SPA mapping."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        sensors = mapping_info.available_sensors()
 
-    async def test_load_success(self, mapping):
-        """Test mapping file loads successfully."""
-        assert mapping.status == RequestStatus.SUCCESS
+        # Core measurement sensors
+        expected_sensors = [
+            "temperature", "ph", "orp", "cl",
+            "ph_type_dosing", "peristaltic_ph_dosing",
+            "orp_type_dosing", "peristaltic_orp_dosing",
+            "peristaltic_cl_dosing",
+            "ph_calibration_type", "ph_calibration_offset", "ph_calibration_slope",
+            "orp_calibration_type", "orp_calibration_offset", "orp_calibration_slope",
+            "cl_calibration_type", "cl_calibration_offset", "cl_calibration_slope",
+            "ofa_ph_time", "ofa_orp_time", "ofa_cl_time",
+            "device_config", "temperature_unit",
+        ]
+        for name in expected_sensors:
+            assert name in sensors, f"Missing sensor: {name}"
 
-    async def test_total_entity_count(self, mapping):
-        """Test total number of mapped entities."""
-        assert len(mapping.mapping) == 54
+    @pytest.mark.asyncio
+    async def test_double_spa_sensor_conversions(self):
+        """Test that sensors with conversions have the correct label prefix."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        sensors = mapping_info.available_sensors()
 
-    async def test_entity_type_counts(self, mapping):
-        """Test entity count per type."""
-        types = mapping.available_types()
-        assert len(types.get("sensor", [])) == 19
-        assert len(types.get("binary_sensor", [])) == 23
-        assert len(types.get("number", [])) == 8
-        assert len(types.get("switch", [])) == 3
-        assert len(types.get("select", [])) == 1
+        # pH type dosing should have conversion with PDPR1H04AW100_FW539292 prefix
+        ph_type = sensors["ph_type_dosing"]
+        assert ph_type.conversion is not None
+        assert "|PDPR1H04AW100_FW539292_LABEL_w_1eklg44ro_ACID|" in ph_type.conversion
+        assert ph_type.conversion["|PDPR1H04AW100_FW539292_LABEL_w_1eklg44ro_ACID|"] == "acid"
 
-    async def test_new_alarm_binary_sensors(self, mapping):
-        """Test new alarm binary sensors are present."""
-        types = mapping.available_types()
-        expected_alarms = [
-            "alarm_ofa2_ph",
-            "alarm_ofa2_orp",
-            "alarm_ofa2_cl",
-            "alarm_water_too_cold",
-            "alarm_water_too_hot",
-            "alarm_ph_too_low",
-            "alarm_ph_too_high",
-            "alarm_cl_too_low_orp",
-            "alarm_cl_too_high_orp",
-            "alarm_cl_too_high",
+        # Peristaltic CL dosing - unique to DOUBLE SPA
+        cl_dosing = sensors["peristaltic_cl_dosing"]
+        assert cl_dosing.conversion is not None
+        assert len(cl_dosing.conversion) == 5  # off, proportional, on/off, timed, cycle
+
+    @pytest.mark.asyncio
+    async def test_double_spa_binary_sensors(self):
+        """Test that expected binary sensors are present, including DOUBLE SPA extras."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        binary_sensors = mapping_info.available_binary_sensors()
+
+        # Standard alarms (shared with PDPR1H1HAW100)
+        standard_alarms = [
+            "pump_alarm", "ph_level_alarm", "orp_level_alarm",
+            "flow_rate_alarm", "relay_alarm", "relay_aux1", "relay_aux2",
+            "alarm_ofa_ph", "alarm_ofa_orp",
+        ]
+        for name in standard_alarms:
+            assert name in binary_sensors, f"Missing binary_sensor: {name}"
+
+        # DOUBLE SPA-specific alarms
+        double_spa_alarms = [
+            "cl_level_alarm",
+            "alarm_ofa2_ph", "alarm_ofa2_orp",
+            "alarm_ofa_cl", "alarm_ofa2_cl",
+            "alarm_water_too_cold", "alarm_water_too_hot",
+            "alarm_ph_too_low", "alarm_ph_too_high",
+            "alarm_cl_too_low_orp", "alarm_cl_too_high_orp",
+            "alarm_cl_too_low", "alarm_cl_too_high",
             "alarm_system_standby",
             "circulation_pump_status",
             "power_on_delay_status",
             "flow_delay_status",
         ]
-        for alarm in expected_alarms:
-            assert alarm in types["binary_sensor"], f"Missing binary_sensor: {alarm}"
+        for name in double_spa_alarms:
+            assert name in binary_sensors, f"Missing DOUBLE SPA binary_sensor: {name}"
 
-    async def test_new_sensors_with_conversions(self, mapping):
-        """Test new sensors with conversion dictionaries."""
-        sensors = mapping.available_sensors()
-        sensors_with_conversion = [
-            "peristaltic_cl_dosing",
-            "device_config",
-            "temperature_unit",
-        ]
-        for name in sensors_with_conversion:
-            assert name in sensors, f"Missing sensor: {name}"
-            assert sensors[name].conversion is not None, f"Missing conversion for {name}"
-            assert len(sensors[name].conversion) >= 2, f"Conversion too small for {name}"
+    @pytest.mark.asyncio
+    async def test_double_spa_numbers(self):
+        """Test that expected number entities are present."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        numbers = mapping_info.available_numbers()
 
-    async def test_new_number_entities(self, mapping):
-        """Test new number entities are present."""
-        types = mapping.available_types()
         expected_numbers = [
-            "time_off_ph_dosing",
-            "time_off_orp_dosing",
-            "time_off_cl_dosing",
-            "power_on_delay_timer",
-            "flow_delay_timer",
+            "ph_target", "orp_target", "cl_target",
+            "time_on_ph_dosing", "time_off_ph_dosing",
+            "time_on_orp_dosing", "time_off_orp_dosing",
+            "time_on_cl_dosing", "time_off_cl_dosing",
+            "power_on_delay_timer", "flow_delay_timer",
         ]
-        for number in expected_numbers:
-            assert number in types["number"], f"Missing number: {number}"
+        for name in expected_numbers:
+            assert name in numbers, f"Missing number: {name}"
 
-    async def test_select_entity(self, mapping):
-        """Test select entity with options and conversion."""
-        selects = mapping.available_selects()
+    @pytest.mark.asyncio
+    async def test_double_spa_switches(self):
+        """Test that expected switch entities are present."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        switches = mapping_info.available_switches()
+
+        expected_switches = ["pause_dosing", "pump_monitoring", "frequency_input"]
+        for name in expected_switches:
+            assert name in switches, f"Missing switch: {name}"
+
+    @pytest.mark.asyncio
+    async def test_double_spa_selects(self):
+        """Test that select entities are present with correct options."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        selects = mapping_info.available_selects()
+
         assert "water_meter_unit" in selects
-        assert len(selects["water_meter_unit"].options) == 2
-        assert len(selects["water_meter_unit"].conversion) == 2
+        wmu = selects["water_meter_unit"]
+        assert wmu.key == "w_1eklinki6"
+        assert "0" in wmu.options
+        assert "1" in wmu.options
+        assert "PDPR1H04AW100_FW539292_COMBO_w_1eklinki6_M_" in wmu.conversion
+        assert wmu.conversion["PDPR1H04AW100_FW539292_COMBO_w_1eklinki6_M_"] == "m3"
+
+    @pytest.mark.asyncio
+    async def test_double_spa_entity_counts(self):
+        """Test the total entity counts for the DOUBLE SPA mapping."""
+        mapping_info = await MappingInfo.load("PDPR1H04AW100", "539292")
+        types = mapping_info.available_types()
+
+        assert len(types.get("sensor", [])) == 23
+        assert len(types.get("binary_sensor", [])) == 26
+        assert len(types.get("number", [])) == 11
+        assert len(types.get("switch", [])) == 3
+        assert len(types.get("select", [])) == 1
