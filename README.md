@@ -885,7 +885,8 @@ This client has been tested with:
 
 | Device | PRODUCT_CODE | FW Code | Notes |
 |---|---|---|---|
-| SEKO PoolDose Double | PDPR1H1HAW100 | 539187 | Extended mapping (54 entities) |
+| SEKO PoolDose Double | PDPR1H1HAW100 | 539187 | |
+| SEKO PoolDose Double Spa | PDPR1H04AW100 | 539292 | |
 | SEKO POOLDOSE pH+ORP CF Group Wi-Fi | PDPR1H1HAW102 | 539187 | Alias for PDPR1H1HAW100 mapping |
 | SEKO PoolDose pH | PDPH1H1HAW100 | 539176 | pH-only device |
 | VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | |
@@ -971,9 +972,8 @@ Data Classification:
 
 For detailed release notes and version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-### Latest Release (0.8.5)
+### Latest Release (0.8.6)
 
-- Added support for **SEKO POOLDOSE pH+ORP CF Group Wi-Fi** (`PDPR1H1HAW102`) and **SEKO PoolDose pH** (`PDPH1H1HAW100`) devices
-- Extended `PDPR1H1HAW100` mapping from 32 to 54 entities
-- Improved session consistency in `RequestHandler`
-- Thanks to [@ronaldvdmeer](https://github.com/ronaldvdmeer) and [@pwntester](https://github.com/pwntester)
+- Added support for **SEKO POOLDOSE Double SPA** (`PDPR1H04AW100`) device
+- Changed sensors with Disable/Enable values to binary sensors (mapping values to binary states)
+- Thanks to [@ronaldvdmeer](https://github.com/ronaldvdmeer) for contributing again

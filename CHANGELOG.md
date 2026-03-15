@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.6] - 2026-03-15
+
+### Added
+
+- **New Device Support**: Added mapping for **SEKO POOLDOSE Double SPA** (`PDPR1H04AW100`, FW `539292`)
+
+### Changed
+
+- **Sensor Type Refinement**: Sensors with Disable/Enable values converted to binary sensors
+  - Improved consistency by mapping these values to proper binary states
+  - Better alignment with Home Assistant binary sensor entity types
+
+### Contributors
+
+Thanks to [@ronaldvdmeer](https://github.com/ronaldvdmeer) for contributing to this release.
+
 ## [0.8.5] - 2026-03-13
 
 ### Added
