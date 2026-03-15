@@ -86,8 +86,8 @@ class TestPDPR1H1HAW100FW539187Mapping:
     async def test_entity_type_counts(self, mapping):
         """Test entity count per type."""
         types = mapping.available_types()
-        assert len(types.get("sensor", [])) == 22
-        assert len(types.get("binary_sensor", [])) == 20
+        assert len(types.get("sensor", [])) == 19
+        assert len(types.get("binary_sensor", [])) == 23
         assert len(types.get("number", [])) == 8
         assert len(types.get("switch", [])) == 3
         assert len(types.get("select", [])) == 1
@@ -107,6 +107,9 @@ class TestPDPR1H1HAW100FW539187Mapping:
             "alarm_cl_too_high_orp",
             "alarm_cl_too_high",
             "alarm_system_standby",
+            "circulation_pump_status",
+            "power_on_delay_status",
+            "flow_delay_status",
         ]
         for alarm in expected_alarms:
             assert alarm in types["binary_sensor"], f"Missing binary_sensor: {alarm}"
@@ -115,12 +118,9 @@ class TestPDPR1H1HAW100FW539187Mapping:
         """Test new sensors with conversion dictionaries."""
         sensors = mapping.available_sensors()
         sensors_with_conversion = [
-            "circulation_pump_status",
             "peristaltic_cl_dosing",
             "device_config",
             "temperature_unit",
-            "power_on_delay_status",
-            "flow_delay_status",
         ]
         for name in sensors_with_conversion:
             assert name in sensors, f"Missing sensor: {name}"
