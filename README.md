@@ -27,10 +27,10 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 1. Create PooldoseClient
    ├── Connect to Device
    │   ├── Fetch Device Info (Debug Config)
+   │   ├── Load mapping JSON (based on model_id + fw_code)
    │   ├── WiFi Station Info (optional)
    │   ├── Access Point Info (optional)
    │   └── Network Info
-        └── Load mapping JSON (based on model_id + fw_code)
 
 2. Get Static Values
    └── Device information and configuration
