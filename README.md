@@ -55,13 +55,16 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │
          │                       ▼
-         │              ┌─────────────────┐
-         │              │ API Endpoints   │
-         │              │ • get_debug     │
-         │              │ • get_wifi      │
-         │              │ • get_values    │
-         │              │ • set_value     │
-         │              └─────────────────┘
+         │              ┌───────────────────────┐
+         │              │ API Endpoints         │
+         │              │ • get_debug_config    │
+         │              │ • get_wifi_station    │
+         │              │ • get_access_point    │
+         │              │ • get_network_info    │
+         │              │ • get_values_raw      │
+         │              │ • get_device_language │
+         │              │ • set_value           │
+         │              └───────────────────────┘
          │
          ▼
 ┌─────────────────┐    ┌─────────────────┐
