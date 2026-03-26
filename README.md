@@ -796,18 +796,21 @@ Mapping Discovery Process:
 #### Constructor
 
 ```python
-PooldoseClient(host, timeout=30, include_sensitive_data=False, include_mac_lookup=False, use_ssl=False, port=None, ssl_verify=True)
+PooldoseClient(host, timeout=30, *, websession=None, include_sensitive_data=False, include_mac_lookup=False, use_ssl=False, port=None, ssl_verify=True, debug_payload=False, retry_delay=0.1)
 ```
 
 **Parameters:**
 
 - `host` (str): The hostname or IP address of the device
 - `timeout` (int): Request timeout in seconds (default: 30)
+- `websession` (Optional[aiohttp.ClientSession]): Optional external ClientSession for HTTP requests. If provided, will be used for all API calls (mainly for Home Assistant integration) (default: None)
 - `include_sensitive_data` (bool): Whether to include sensitive data like WiFi passwords (default: False)
 - `include_mac_lookup` (bool): Whether to include MAC lookup via ARP (default: False)
 - `use_ssl` (bool): Whether to use HTTPS instead of HTTP (default: False)
 - `port` (Optional[int]): Custom port for connections. Defaults to 80 for HTTP, 443 for HTTPS (default: None)
 - `ssl_verify` (bool): Whether to verify SSL certificates when using HTTPS (default: True)
+- `debug_payload` (bool): If True, log and store payloads sent to device for debugging (default: False)
+- `retry_delay` (float): Delay in seconds between consecutive API requests during connect. Prevents overwhelming the embedded device (default: 0.1)
 
 #### Methods
 
