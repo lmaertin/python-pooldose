@@ -162,7 +162,10 @@ pip install python-pooldose
 
 ## Command Line Usage
 
-After installation, you can use python-pooldose directly from the command line:
+After installation, you can use python-pooldose directly from the command line.
+
+> **Note:** `--host` and `--mock` are mutually exclusive — you must specify exactly one.
+> `--analyze` and `--analyze-all` require `--host` (they cannot be used in mock mode).
 
 ### Connect to Real Device
 
@@ -181,6 +184,9 @@ pooldose --host 192.168.1.100 --analyze
 
 # Show all widgets including hidden ones
 pooldose --host 192.168.1.100 --analyze-all
+
+# Show version
+pooldose --version
 ```
 
 ### Mock Mode with JSON Files
@@ -206,6 +212,9 @@ python -m pooldose --mock data.json
 
 # Show help
 python -m pooldose --help
+
+# Show version
+python -m pooldose --version
 ```
 
 ## Device Analysis for Unsupported Devices
@@ -417,7 +426,7 @@ You can use the mock client with custom JSON files via the command line:
 pooldose --mock path/to/your/data.json
 
 
-# Use mock client with model and firmware code (Beispiel mit Fantasiewerten)
+# Use mock client with model and firmware code (example with fictional values)
 pooldose --mock path/to/your/data.json --model-id PDZZ1H1HATEST1V1 --fw-code 654321
 
 # Or as Python module
@@ -905,7 +914,7 @@ This client has been tested with:
 | SEKO POOLDOSE pH+ORP CF Group Wi-Fi | PDPR1H1HAW102 | 539187 | Alias for PDPR1H1HAW100 mapping |
 | SEKO PoolDose pH | PDPH1H1HAW100 | 539176 | pH-only device |
 | VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | |
-| VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Alias for PDHC1H1HAR1V0 mapping |
+| VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Alias for PDPR1H1HAR1V0 mapping |
 
 Other SEKO or VÁGNER POOL models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
 
