@@ -819,6 +819,9 @@ PooldoseClient(host, timeout=30, *, websession=None, include_sensitive_data=Fals
 - `async instant_values()` → `tuple[RequestStatus, InstantValues | None]` - Get current sensor readings and device state
 - `async instant_values_structured()` → `tuple[RequestStatus, dict[str, Any]]` - Get structured data organized by type
 - `check_apiversion_supported()` → `tuple[RequestStatus, dict]` - Check API version compatibility
+- `async set_switch(key, value)` → `bool` - Set a mapped switch value (convenience wrapper)
+- `async set_number(key, value)` → `bool` - Set a mapped numeric value (convenience wrapper)
+- `async set_select(key, value)` → `bool` - Set a mapped select option (convenience wrapper)
 
 #### Properties
 
