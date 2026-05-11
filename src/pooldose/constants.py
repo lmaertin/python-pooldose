@@ -7,6 +7,7 @@ from pooldose.type_definitions import DeviceInfoDict
 # in their data keys and mapping files.
 MODEL_ALIASES: dict[str, str] = {
     "PDHC1H1HAR1V1": "PDPR1H1HAR1V0",
+    "PDHC1H1HAR1V0": "PDPR1H1HAR1V0",  # VÁGNER POOL VA DOS BASIC (listed in device-support.md, see #41)
     "PDPR1H1HAW102": "PDPR1H1HAW100",
 }
 
