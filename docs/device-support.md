@@ -38,6 +38,8 @@ If your device is not yet supported, please help us by creating a GitHub issue a
       ```bash
       curl --location http://<YOUR_DEVICE_IP>/api/v1/DWI/getDeviceLanguage --data-raw '{"DeviceId":"YOUR_DEVICE_ID","LANG":"en"}' -o strings.json
       ```
+      Note: When you device is configred to another language then English, please adapt the variable to your needs, e.g. "LANG":"fr".
+      
 2. **Optional: Run the analyzer and share the output:**
     - Run this command if you set up python-pooldose already:
       ```bash
