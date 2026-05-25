@@ -192,3 +192,37 @@ class TestDoubleSpaMapping:
         assert len(types.get("number", [])) == 11
         assert len(types.get("switch", [])) == 3
         assert len(types.get("select", [])) == 1
+
+
+class TestMedoConnectMapping:
+    """Tests for the BWT MEDO CONNECT Wi-Fi mapping file (PDPH1H1HAW1B0_FW539494)."""
+
+    @pytest.mark.asyncio
+    async def test_load_medo_connect_mapping(self):
+        """Test that the MEDO CONNECT mapping file loads successfully."""
+        mapping_info = await MappingInfo.load("PDPH1H1HAW1B0", "539494")
+        assert mapping_info.status == RequestStatus.SUCCESS
+        assert mapping_info.mapping is not None
+
+    @pytest.mark.asyncio
+    async def test_medo_connect_conversion_prefixes(self):
+        """Test conversion entries use the expected model/firmware label prefix."""
+        mapping_info = await MappingInfo.load("PDPH1H1HAW1B0", "539494")
+        sensors = mapping_info.available_sensors()
+
+        ph_type = sensors["ph_type_dosing"]
+        assert ph_type.conversion is not None
+        assert "|PDPH1H1HAW1B0_FW539494_LABEL_w_1eklg44ro_ACID|" in ph_type.conversion
+        assert ph_type.conversion["|PDPH1H1HAW1B0_FW539494_LABEL_w_1eklg44ro_ACID|"] == "acid"
+
+    @pytest.mark.asyncio
+    async def test_medo_connect_entity_counts(self):
+        """Test the total entity counts for the MEDO CONNECT mapping."""
+        mapping_info = await MappingInfo.load("PDPH1H1HAW1B0", "539494")
+        types = mapping_info.available_types()
+
+        assert len(types.get("sensor", [])) == 12
+        assert len(types.get("binary_sensor", [])) == 6
+        assert len(types.get("number", [])) == 1
+        assert len(types.get("switch", [])) == 3
+        assert len(types.get("select", [])) == 1
