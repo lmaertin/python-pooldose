@@ -23,7 +23,7 @@ If your device is not yet supported, please help us by creating a GitHub issue a
 
 1. **Run low-level analysis and share the output files:**
     - Use the following curl commands. 
-    - Replace the IP address and DeviceId (get the id from the header of the instantvalues.json file, e.g., '012345679_DEVICE') as needed:
+    - Replace the IP address and DeviceId (get the id from the header of the instantvalues.json file or DID from debuginfo.json, e.g., '012345679_DEVICE') as needed. The postfix '_DEVICE' is mandatory:
     
     - Download debug config info:
       ```bash
