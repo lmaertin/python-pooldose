@@ -1,3 +1,5 @@
+#
+
 """Request Handler for async API client for SEKO Pooldose."""
 
 import asyncio
@@ -8,6 +10,8 @@ import ssl
 from typing import Any, Optional, Tuple, Union, List, Dict
 
 import aiohttp
+import websockets
+import websockets.exceptions
 
 from pooldose.type_definitions import (
     AccessPointDict,
@@ -541,3 +545,57 @@ class RequestHandler:  # pylint: disable=too-many-instance-attributes
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.warning("Error sending reboot command: %s", err)
             return RequestStatus.UNKNOWN_ERROR, False
+
+    async def _get_websocket_data(self, topic_filter: Union[str, List[str]], value_path: List[str]) -> Optional[Any]:
+        """
+        Open a WebSocket connection and extract a value from the first matching topic.
+
+        Args:
+            topic_filter: Topic name or list of topic names to match.
+            value_path: List of keys to traverse in the data dict to extract the value.
+
+        Returns:
+            The extracted value or None if not found or error.
+        """
+        url = f"ws://{self.host}:1334"
+        try:
+            async with websockets.connect(url) as ws:
+                while True:
+                    msg = await ws.recv()
+                    try:
+                        data = json.loads(msg)
+                    except json.JSONDecodeError:
+                        continue
+                    topic = data.get("topic")
+                    if (isinstance(topic_filter, str) and topic == topic_filter) or (
+                        isinstance(topic_filter, list) and topic in topic_filter
+                    ):
+                        val = data.get("data", {})
+                        for key in value_path:
+                            if isinstance(val, dict):
+                                val = val.get(key)
+                            else:
+                                return None
+                        return val
+        except (OSError, websockets.exceptions.WebSocketException) as err:
+            _LOGGER.error("WebSocket error: %s", err)
+            return None
+
+
+    async def get_cloud_status(self) -> Optional[bool]:
+        """
+        Retrieve the current cloud connection status (wdp_status) live via WebSocket.
+
+        Returns:
+            Optional[bool]: Cloud connection status (True/False/None)
+        """
+        return await self._get_websocket_data(["wdp_status", "wdp_connection"], ["connection"])
+
+    async def get_wifi_rssi(self) -> Optional[int]:
+        """
+        Retrieve the current WiFi RSSI (signal strength) live via WebSocket.
+
+        Returns:
+            Optional[int]: WiFi RSSI (int/None)
+        """
+        return await self._get_websocket_data("wifi_station", ["rssi"])
