@@ -9,6 +9,7 @@ MODEL_ALIASES: dict[str, str] = {
     "PDHC1H1HAR1V1": "PDPR1H1HAR1V0",
     "PDHC1H1HAR1V0": "PDPR1H1HAR1V0", 
     "PDPR1H1HAW102": "PDPR1H1HAW100",
+    "PDPH1H1HAW1B0": "PDPH1H1HAW100",  # Alias für Mapping-Wiederverwendung
 }
 
 # Default device info structure
