@@ -48,7 +48,15 @@ async def main() -> None:
     if client_status != RequestStatus.SUCCESS:
         print(f"Error connecting to PooldoseClient: {client_status}")
         return
+
     print("Connected to Pooldose device.")
+
+    # Fetch and display cloud status and WiFi RSSI (real client only, but mock can return fixed values if desired)
+    cloud_status = await client.request_handler.get_cloud_status()
+    print(f"\nCloud-Status (wdp_status): {cloud_status}")
+
+    wifi_rssi = await client.request_handler.get_wifi_rssi()
+    print(f"WiFi RSSI: {wifi_rssi}")
 
     # Fetch and display static values
     print("\nFetching static values...")
