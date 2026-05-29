@@ -24,6 +24,8 @@ PooldoseClient(host, timeout=30, *, websession=None, include_sensitive_data=Fals
 ### Methods
 
 - `async connect()` → `RequestStatus` - Connect to device and initialize all components
+- `async get_cloud_status()` → `Optional[bool]` — Retrieve the current cloud connection status
+- `async get_wifi_rssi()` → `Optional[int]` — Retrieve the current WiFi RSSI (signal strength)
 - `static_values()` → `tuple[RequestStatus, StaticValues | None]` - Get static device information
 - `async instant_values()` → `tuple[RequestStatus, InstantValues | None]` - Get current sensor readings and device state
 - `async instant_values_structured()` → `tuple[RequestStatus, dict[str, Any]]` - Get structured data organized by type

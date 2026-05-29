@@ -13,6 +13,7 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 
 > **Disclaimer:** Use at your own risk. No liability for damages or malfunctions.
 
+
 ## Features
 
 - **Async/await support** for non-blocking operations
@@ -24,6 +25,10 @@ This client uses an undocumented local HTTP API. It provides live readings for p
 - **Command-line interface** for direct device interaction and testing
 - **Secure by default** - WiFi passwords excluded unless explicitly requested
 - **Comprehensive error handling** with detailed logging
+- **Cloud connection** status
+- **WiFi RSSI** signal
+
+Each method queries the device live and returns the current value.
 - **SSL/HTTPS support** for secure communication
 
 ## Prerequisites

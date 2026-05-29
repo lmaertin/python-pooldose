@@ -4,3 +4,4 @@ types-aiofiles
 getmac
 pytest
 pytest-asyncio
+websockets

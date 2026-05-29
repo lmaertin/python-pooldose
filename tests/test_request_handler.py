@@ -1,6 +1,7 @@
 """Tests for RequestHandler for Async API client for SEKO Pooldose."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+import json
 import asyncio
 import aiohttp
 import pytest
@@ -576,3 +577,48 @@ class TestWifiStationParsing:
 
             assert status == RequestStatus.UNKNOWN_ERROR
             assert data is None
+
+class TestWebsocketParsing:
+    """Tests for the get_cloud_status() and get_wifi_rssi() parsing."""
+
+    @pytest.mark.asyncio
+    async def test_get_cloud_status_success(self):
+        """Test successful retrieval of cloud connection via WebSocket."""
+        handler = RequestHandler("localhost")
+        ws_mock = AsyncMock()
+        ws_instance = AsyncMock()
+        wdp_msg = json.dumps({"topic": "wdp_status", "data": {"connection": True}})
+        ws_instance.recv = AsyncMock(side_effect=[wdp_msg])
+        ws_mock.__aenter__.return_value = ws_instance
+        with patch("websockets.connect", return_value=ws_mock):
+            status = await handler.get_cloud_status()
+        assert status is True
+
+    @pytest.mark.asyncio
+    async def test_get_cloud_status_error(self):
+        """Test error case when WebSocket connection fails for cloud status."""
+        handler = RequestHandler("localhost")
+        with patch("websockets.connect", side_effect=OSError("Verbindungsfehler")):
+            status = await handler.get_cloud_status()
+        assert status is None
+
+    @pytest.mark.asyncio
+    async def test_get_wifi_rssi_success(self):
+        """Test successful retrieval of WiFi RSSI via WebSocket."""
+        handler = RequestHandler("localhost")
+        ws_mock = AsyncMock()
+        ws_instance = AsyncMock()
+        wifi_msg = json.dumps({"topic": "wifi_station", "data": {"rssi": -42}})
+        ws_instance.recv = AsyncMock(side_effect=[wifi_msg])
+        ws_mock.__aenter__.return_value = ws_instance
+        with patch("websockets.connect", return_value=ws_mock):
+            rssi = await handler.get_wifi_rssi()
+        assert rssi == -42
+
+    @pytest.mark.asyncio
+    async def test_get_wifi_rssi_error(self):
+        """Test error case when WebSocket connection fails for WiFi RSSI."""
+        handler = RequestHandler("localhost")
+        with patch("websockets.connect", side_effect=OSError("Verbindungsfehler")):
+            rssi = await handler.get_wifi_rssi()
+        assert rssi is None
