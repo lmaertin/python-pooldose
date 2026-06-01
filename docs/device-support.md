@@ -11,7 +11,7 @@ This client has been tested with:
 | SEKO POOLDOSE pH+ORP CF Group Wi-Fi | PDPR1H1HAW102 | 539187 | Alias for PDPR1H1HAW100 mapping |
 | SEKO PoolDose pH | PDPH1H1HAW100 | 539176 | pH-only device |
 | BWT MEDO CONNECT Wi-Fi | PDPH1H1HAW1B0 | 539494 | pH-only device |
-| VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | |
+| VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | Alias for PDPR1H1HAR1V0 mapping |
 | VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Alias for PDPR1H1HAR1V0 mapping |
 
 Other SEKO or VÁGNER POOL models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
