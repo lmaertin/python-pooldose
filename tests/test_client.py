@@ -1,7 +1,5 @@
 """Tests for the pooldose client module."""
 
-import json
-from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -354,36 +352,15 @@ class TestModelAliases:
 
     @pytest.mark.asyncio
     async def test_bwt_medo_uses_reference_mapping_without_alias(
-        self, mock_request_handler
+        self, mock_request_handler, mock_debug_config_bwt, mock_raw_data_bwt,
+        mock_mapping_info_bwt
     ):
-        """Test the BWT MEDO CONNECT test data using the direct mapping file."""
-        reference_dir = Path(__file__).resolve().parents[1] / "references" / "testdaten" / "laroussette974"
-
-        with (reference_dir / "debuginfo.json").open("r", encoding="utf-8") as file_handle:
-            reference_debug_config = json.load(file_handle)
-
-        debug_config = {
-            "GATEWAY": {
-                "DID": reference_debug_config["GATEWAY"]["DID"],
-                "NAME": reference_debug_config["GATEWAY"]["name"],
-                "FW_REL": reference_debug_config["GATEWAY"]["release"],
-            },
-            "DEVICES": [{
-                "DID": reference_debug_config["DEVICES"][0]["DID"],
-                "NAME": reference_debug_config["DEVICES"][0]["name"],
-                "PRODUCT_CODE": reference_debug_config["DEVICES"][0]["product_code"],
-                "FW_REL": reference_debug_config["DEVICES"][0]["release"],
-                "FW_CODE": reference_debug_config["DEVICES"][0]["fw_code"],
-            }],
-        }
-
-        with (reference_dir / "instantvalues.json").open("r", encoding="utf-8") as file_handle:
-            raw_data = json.load(file_handle)
+        """Test BWT MEDO CONNECT with fixtures only (no user data files)."""
 
         client = PooldoseClient(host="192.168.3.1", retry_delay=0)
         mock_request_handler.get_debug_config.return_value = (
             RequestStatus.SUCCESS,
-            debug_config,
+            mock_debug_config_bwt,
         )
         mock_request_handler.get_wifi_station.return_value = (
             RequestStatus.SUCCESS,
@@ -391,10 +368,17 @@ class TestModelAliases:
         )
         mock_request_handler.get_access_point.return_value = (RequestStatus.SUCCESS, {})
         mock_request_handler.get_network_info.return_value = (RequestStatus.SUCCESS, {})
-        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, raw_data)
+        mock_request_handler.get_values_raw.return_value = (
+            RequestStatus.SUCCESS,
+            mock_raw_data_bwt,
+        )
 
         with patch("pooldose.client.RequestHandler", return_value=mock_request_handler):
-            status = await client.connect()
+            with patch(
+                "pooldose.mappings.mapping_info.MappingInfo.load",
+                return_value=mock_mapping_info_bwt,
+            ):
+                status = await client.connect()
 
         assert status == RequestStatus.SUCCESS
         assert client.device_info["MODEL_ID"] == "PDPH1H1HAW1B0"

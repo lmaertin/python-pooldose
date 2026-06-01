@@ -342,3 +342,71 @@ def mock_raw_data_aliased():
             }
         }
     }
+
+
+@pytest.fixture
+def mock_debug_config_bwt():
+    """Create self-contained debug config data for BWT MEDO CONNECT tests."""
+    return {
+        "GATEWAY": {
+            "DID": "012500002F01",
+            "NAME": "PiscineRDC",
+            "FW_REL": "3.00",
+        },
+        "DEVICES": [{
+            "DID": "012500002F01_DEVICE",
+            "NAME": "BWT Medo Controller",
+            "PRODUCT_CODE": "PDPH1H1HAW1B0",
+            "FW_REL": "1.3",
+            "FW_CODE": "539494",
+        }],
+    }
+
+
+@pytest.fixture
+def mock_raw_data_bwt():
+    """Create self-contained raw data for BWT MEDO CONNECT tests."""
+    return {
+        "devicedata": {
+            "012500002F01_DEVICE": {
+                "PDPH1H1HAW1B0_FW539494_w_1ekeigkin": {
+                    "current": 7.2,
+                    "magnitude": ["pH", "PH"],
+                },
+                "PDPH1H1HAW1B0_FW539494_w_1eklg44ro": {
+                    "current": "|PDPH1H1HAW1B0_FW539494_LABEL_w_1eklg44ro_ACID|",
+                    "magnitude": ["UNDEFINED", "UNDEFINED"],
+                },
+                # Keep alias-compatible duplicates so this test remains stable
+                # if MODEL_ALIASES for this model is toggled in the future.
+                "PDPH1H1HAW100_FW539494_w_1ekeigkin": {
+                    "current": 7.2,
+                    "magnitude": ["pH", "PH"],
+                },
+                "PDPH1H1HAW100_FW539494_w_1eklg44ro": {
+                    "current": "|PDPH1H1HAW1B0_FW539494_LABEL_w_1eklg44ro_ACID|",
+                    "magnitude": ["UNDEFINED", "UNDEFINED"],
+                },
+            }
+        }
+    }
+
+
+@pytest.fixture
+def mock_mapping_info_bwt():
+    """Create minimal mapping info object for BWT MEDO CONNECT tests."""
+    mapping_info = MagicMock()
+    mapping_info.mapping = {
+        "ph": {
+            "type": "sensor",
+            "key": "w_1ekeigkin",
+        },
+        "ph_type_dosing": {
+            "type": "sensor",
+            "key": "w_1eklg44ro",
+            "conversion": {
+                "|PDPH1H1HAW1B0_FW539494_LABEL_w_1eklg44ro_ACID|": "acid",
+            },
+        },
+    }
+    return mapping_info
