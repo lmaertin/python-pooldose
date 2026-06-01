@@ -1,5 +1,7 @@
 """Tests for the pooldose client module."""
 
+import json
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -349,3 +351,57 @@ class TestModelAliases:
 
         assert status == RequestStatus.SUCCESS
         assert isinstance(instant_values, InstantValues)
+
+    @pytest.mark.asyncio
+    async def test_bwt_medo_uses_reference_mapping_without_alias(
+        self, mock_request_handler
+    ):
+        """Test the BWT MEDO CONNECT test data using the direct mapping file."""
+        reference_dir = Path(__file__).resolve().parents[1] / "references" / "testdaten" / "laroussette974"
+
+        with (reference_dir / "debuginfo.json").open("r", encoding="utf-8") as file_handle:
+            reference_debug_config = json.load(file_handle)
+
+        debug_config = {
+            "GATEWAY": {
+                "DID": reference_debug_config["GATEWAY"]["DID"],
+                "NAME": reference_debug_config["GATEWAY"]["name"],
+                "FW_REL": reference_debug_config["GATEWAY"]["release"],
+            },
+            "DEVICES": [{
+                "DID": reference_debug_config["DEVICES"][0]["DID"],
+                "NAME": reference_debug_config["DEVICES"][0]["name"],
+                "PRODUCT_CODE": reference_debug_config["DEVICES"][0]["product_code"],
+                "FW_REL": reference_debug_config["DEVICES"][0]["release"],
+                "FW_CODE": reference_debug_config["DEVICES"][0]["fw_code"],
+            }],
+        }
+
+        with (reference_dir / "instantvalues.json").open("r", encoding="utf-8") as file_handle:
+            raw_data = json.load(file_handle)
+
+        client = PooldoseClient(host="192.168.3.1", retry_delay=0)
+        mock_request_handler.get_debug_config.return_value = (
+            RequestStatus.SUCCESS,
+            debug_config,
+        )
+        mock_request_handler.get_wifi_station.return_value = (
+            RequestStatus.SUCCESS,
+            {"IP": "10.8.2.99", "SSID": "KOMMSPOT"},
+        )
+        mock_request_handler.get_access_point.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_network_info.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_values_raw.return_value = (RequestStatus.SUCCESS, raw_data)
+
+        with patch("pooldose.client.RequestHandler", return_value=mock_request_handler):
+            status = await client.connect()
+
+        assert status == RequestStatus.SUCCESS
+        assert client.device_info["MODEL_ID"] == "PDPH1H1HAW1B0"
+
+        status, instant_values = await client.instant_values()
+
+        assert status == RequestStatus.SUCCESS
+        assert instant_values is not None
+        assert instant_values["ph"][0] == 7.2
+        assert instant_values["ph_type_dosing"][0] == "acid"
