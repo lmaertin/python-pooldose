@@ -5,9 +5,9 @@ from pooldose.mappings.mapping_info import MappingInfo, SensorMapping, SelectMap
 from pooldose.request_handler import RequestStatus
 
 async def test_load_file_not_found():
-    """Test MappingInfo.load returns UNKNOWN_ERROR if file not found."""
+    """Test MappingInfo.load returns MAPPING_NOT_FOUND if mapping file is missing."""
     mapping_info = await MappingInfo.load("DOESNOTEXIST", "000000")
-    assert mapping_info.status != RequestStatus.SUCCESS
+    assert mapping_info.status == RequestStatus.MAPPING_NOT_FOUND
     assert mapping_info.mapping is None
 
 def test_available_types_and_sensors():

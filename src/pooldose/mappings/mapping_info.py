@@ -116,7 +116,15 @@ class MappingInfo:
                 content = await f.read()
                 mapping = json.loads(content)
                 return cls(mapping=mapping, status=RequestStatus.SUCCESS)
-        except (OSError, json.JSONDecodeError, ModuleNotFoundError, FileNotFoundError) as err:
+        except FileNotFoundError:
+            _LOGGER.warning(
+                "No mapping data was found for model %s (firmware %s). "
+                "Please check the supported devices documentation or request a mapping for your device.",
+                model_id,
+                fw_code,
+            )
+            return cls(mapping=None, status=RequestStatus.MAPPING_NOT_FOUND)
+        except (OSError, json.JSONDecodeError, ModuleNotFoundError) as err:
             _LOGGER.warning("Error loading model mapping: %s", err)
             return cls(mapping=None, status=RequestStatus.UNKNOWN_ERROR)
 
