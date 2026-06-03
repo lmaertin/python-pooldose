@@ -1,0 +1,51 @@
+name: Build Demo EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "examples/**"
+      - "src/**"
+      - "requirements.txt"
+      - "pyproject.toml"
+      - ".github/workflows/build-demo-exe.yml"
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build standalone EXE with PyInstaller
+        shell: bash
+        run: |
+          python -m PyInstaller \
+            --onefile \
+            --name pooldose-demo \
+            --paths src \
+            --paths examples \
+            --add-data "src/pooldose/mappings/*.json;pooldose/mappings" \
+            examples/demo.py
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pooldose-demo-windows
+          path: dist/pooldose-demo.exe
+          if-no-files-found: error
