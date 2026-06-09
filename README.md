@@ -43,9 +43,82 @@ Each method queries the device live and returns the current value.
 
 ## Installation
 
+### (i) Release Version (PyPI)
+
+Install the latest stable release from PyPI:
+
 ```bash
 pip install python-pooldose
 ```
+
+### (ii) Development Version (GitHub)
+
+Install the latest development state directly from the main branch:
+
+```bash
+pip install "git+https://github.com/lmaertin/python-pooldose.git@main"
+```
+
+If you want to work on the code locally (editable install):
+
+```bash
+git clone https://github.com/lmaertin/python-pooldose.git
+cd python-pooldose
+pip install -e .
+```
+
+### macOS/Linux Quick Installer
+
+For convenience, the repository also provides a bootstrap script that
+downloads the latest source archive from GitHub, installs it into a local
+virtual environment, and creates a launcher on the Desktop.
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/lmaertin/python-pooldose/main/install-unix.sh
+bash install-unix.sh
+```
+
+The installer creates:
+
+- macOS: `~/Library/Application Support/python-pooldose` and `~/Desktop/PoolDose.command`
+- Linux: `~/.local/share/python-pooldose` and `~/Desktop/PoolDose.sh`
+
+Network access hint:
+
+- macOS: If prompted, allow Local Network access for Terminal/iTerm/Python.
+- Linux: If a firewall is enabled, allow local network access for Terminal/Python.
+
+Run the same installer again later to update to the latest source from GitHub.
+The generated launcher can also forward normal CLI arguments:
+
+```bash
+~/Desktop/PoolDose.command --host 192.168.1.100
+~/Desktop/PoolDose.command --help
+```
+
+On Linux, use `~/Desktop/PoolDose.sh` instead of `~/Desktop/PoolDose.command`.
+
+### Windows Quick Installer
+
+Use the PowerShell installer to download and install the latest source into a
+local virtual environment and create a Desktop launcher.
+
+```powershell
+Invoke-WebRequest https://raw.githubusercontent.com/lmaertin/python-pooldose/main/install-windows.ps1 -OutFile install-windows.ps1
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
+```
+
+The installer creates:
+
+- `%LOCALAPPDATA%\python-pooldose` for source and virtual environment
+- `%USERPROFILE%\Desktop\PoolDose.cmd` as a launcher
+
+If Python is not installed yet, the script stops and shows instructions to
+install Python first (python.org installer or `winget`).
+
+Network access hint:
+
+- If Windows Firewall prompts for Python/Terminal network access, click Allow.
 
 ## Quick Start
 

@@ -18,6 +18,12 @@ Other SEKO or VÁGNER POOL models may work but are untested. The client uses JSO
 
 > **Note:** The JSON files in the mappings directory define the device-specific data keys and their human-readable names for different PoolDose models and firmware versions.
 
+## New Here? Install First
+
+If you are new to this project, please start with the installation instructions
+in [README.md](../README.md#installation). That section includes release,
+development, and quick installer options for macOS, Linux, and Windows.
+
 ## How to Request Support for a New Device
 
 If your device is not yet supported, please help us by creating a GitHub issue and providing the following information:

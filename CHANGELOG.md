@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.6] - 2026-06-09
+
+### Added
+
+- Added cross-platform quick installer scripts:
+  - `install-unix.sh` for macOS and Linux
+  - `install-windows.ps1` for Windows with Python prerequisite checks and setup hints
+
+### Changed
+
+- Updated installation documentation in `README.md`:
+  - Added separate instructions for release and development installations
+  - Documented quick installer usage for macOS, Linux, and Windows
+  - Added network access hints for each platform
+- Added an installation reference in `docs/device-support.md` for new users.
+
 ## [0.9.5] - 2026-06-01
 
 ### Changed
