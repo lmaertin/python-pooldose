@@ -93,7 +93,7 @@
     "key": "w_1eklfb73r",
     "type": "binary_sensor"
   },
-  "alarm_ofa_orp": {
+  "alarm_ofa2_ph": {
     "key": "w_1eklfb8ob",
     "type": "binary_sensor"
   },
