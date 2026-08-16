@@ -195,7 +195,7 @@ class TestDoubleSpaMapping:
         assert len(types.get("select", [])) == 1
 
 
-class TestBwtManagerConnectDuoMapping:
+class TestBwtManagerConnectDuoMapping:  # pylint: disable=too-few-public-methods
     """Tests for the BWT Manager Connect Duo mapping file."""
 
     @pytest.mark.asyncio
