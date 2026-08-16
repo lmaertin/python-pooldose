@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.7] - 2026-08-16
+
+### Added
+
+- Added support for BWT Manager Connect Duo (`PDPR1H1HAW1B0_I`, firmware `539472`).
+  - Resolves the reported product code to the model used by the device data keys.
+  - Added mapping coverage for temperature, pH, ORP, chlorine, alarms, setpoints,
+    dosing timers, and dosing configuration values.
+- Added regression tests for the BWT Manager Connect Duo model alias and mapping.
+
 ## [0.9.6] - 2026-06-09
 
 ### Added

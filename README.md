@@ -180,6 +180,7 @@ See [docs/cli.md](docs/cli.md) for full CLI documentation and device analysis de
 | SEKO POOLDOSE pH+ORP CF Group Wi-Fi | PDPR1H1HAW102 | 539187 | Alias for PDPR1H1HAW100 mapping |
 | SEKO PoolDose pH | PDPH1H1HAW100 | 539176 | pH-only device |
 | BWT MEDO CONNECT Wi-Fi | PDPH1H1HAW1B0 | 539494 | Based on SEKO PoolDose pH mapping |
+| BWT Manager Connect Duo | PDPR1H1HAW1B0_I | 539472 | Uses PDPR1H1HAW1B0 data-key mapping |
 | VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | |
 | VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Alias for PDPR1H1HAR1V0 mapping |
 

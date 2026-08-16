@@ -71,6 +71,7 @@ class TestDoubleSpaMapping:
         assert mapping_info.status == RequestStatus.SUCCESS
         assert mapping_info.mapping is not None
 
+
     @pytest.mark.asyncio
     async def test_double_spa_sensors(self):
         """Test that expected sensors are present in the DOUBLE SPA mapping."""
@@ -192,3 +193,39 @@ class TestDoubleSpaMapping:
         assert len(types.get("number", [])) == 11
         assert len(types.get("switch", [])) == 3
         assert len(types.get("select", [])) == 1
+
+
+class TestBwtManagerConnectDuoMapping:
+    """Tests for the BWT Manager Connect Duo mapping file."""
+
+    @pytest.mark.asyncio
+    async def test_load_bwt_manager_connect_duo_mapping(self):
+        """Test that the conservative read-only mapping loads successfully."""
+        mapping_info = await MappingInfo.load("PDPR1H1HAW1B0", "539472")
+
+        assert mapping_info.status == RequestStatus.SUCCESS
+        assert mapping_info.mapping is not None
+        assert set(mapping_info.available_sensors()) >= {
+            "temperature",
+            "ph",
+            "orp",
+            "cl",
+            "ph_type_dosing",
+            "peristaltic_ph_dosing",
+            "orp_type_dosing",
+            "peristaltic_orp_dosing",
+        }
+        assert set(mapping_info.available_numbers()) >= {
+            "ph_target",
+            "orp_target",
+            "time_off_ph_dosing",
+            "time_off_orp_dosing",
+            "power_on_delay_timer",
+            "flow_delay_timer",
+        }
+        assert set(mapping_info.available_selects()) >= {
+            "ph_type_dosing_set",
+            "ph_type_dosing_method",
+            "orp_type_dosing_set",
+            "orp_type_dosing_method",
+        }
