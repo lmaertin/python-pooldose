@@ -1,5 +1,6 @@
 """Mapping Parser for async API client for SEKO Pooldose."""
 
+import functools
 import importlib.resources
 import json
 import logging
@@ -20,6 +21,21 @@ from pooldose.type_definitions import (
 # pylint: disable=line-too-long
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@functools.cache
+def _has_dedicated_mapping_file(model_id: str, fw_code: str) -> bool:
+    """
+    Check whether a dedicated mapping file exists for this model/firmware.
+
+    Cached per (model_id, fw_code) pair, so this only hits the filesystem
+    once for each combination actually queried (in practice at most the
+    number of entries in MODEL_ALIASES, since this is only called for
+    aliased models - see MappingInfo.load).
+    """
+    filename = f"model_{model_id}_FW{fw_code}.json"
+    return importlib.resources.files("pooldose.mappings").joinpath(filename).is_file()
+
 
 @dataclass
 class SensorMapping:
@@ -95,23 +111,43 @@ class MappingInfo:
     status: Optional[RequestStatus] = None
 
     @classmethod
-    async def load(cls, model_id: str, fw_code: str) -> "MappingInfo":
+    async def load(
+        cls,
+        model_id: str,
+        fw_code: str,
+        fallback_model_id: Optional[str] = None,
+    ) -> "MappingInfo":
         """
         Asynchronously load the model-specific mapping configuration from a JSON file.
 
+        Uses ``model_id`` if a dedicated mapping file exists for it. Otherwise,
+        if ``fallback_model_id`` (e.g. from MODEL_ALIASES) is given, uses that
+        model's mapping file instead. Which model has its own dedicated file is
+        determined by checking for the file's actual existence in the mappings
+        package (see ``_has_dedicated_mapping_file``), not from a hand-maintained
+        list, and is cached per (model_id, fw_code) pair so repeated calls for
+        the same model don't repeatedly hit the filesystem.
+
         Args:
-            model_id (str): The model ID.
+            model_id (str): The model ID as reported by the device.
             fw_code (str): The firmware code.
+            fallback_model_id (Optional[str]): Alias model ID to use if no
+                dedicated mapping file exists for ``model_id``.
 
         Returns:
             MappingInfo: The loaded mapping info object.
         """
+        if not model_id or not fw_code:
+            _LOGGER.error("MODEL_ID or FW_CODE not set!")
+            return cls(mapping=None, status=RequestStatus.NO_DATA)
+
+        resolved_model_id = model_id
+        if fallback_model_id and not _has_dedicated_mapping_file(model_id, fw_code):
+            resolved_model_id = fallback_model_id
+
+        filename = f"model_{resolved_model_id}_FW{fw_code}.json"
+        path = importlib.resources.files("pooldose.mappings").joinpath(filename)
         try:
-            if not model_id or not fw_code:
-                _LOGGER.error("MODEL_ID or FW_CODE not set!")
-                return cls(mapping=None, status=RequestStatus.NO_DATA)
-            filename = f"model_{model_id}_FW{fw_code}.json"
-            path = importlib.resources.files("pooldose.mappings").joinpath(filename)
             async with aiofiles.open(str(path), "r", encoding="utf-8") as f:
                 content = await f.read()
                 mapping = json.loads(content)

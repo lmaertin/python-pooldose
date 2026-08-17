@@ -1,7 +1,12 @@
 """Tests for MappingInfo for async API client for SEKO Pooldose."""
 
 import pytest
-from pooldose.mappings.mapping_info import MappingInfo, SensorMapping, SelectMapping
+from pooldose.mappings.mapping_info import (
+    MappingInfo,
+    SensorMapping,
+    SelectMapping,
+    _has_dedicated_mapping_file,
+)
 from pooldose.request_handler import RequestStatus
 
 async def test_load_file_not_found():
@@ -229,3 +234,74 @@ class TestBwtManagerConnectDuoMapping:  # pylint: disable=too-few-public-methods
             "orp_type_dosing_set",
             "orp_type_dosing_method",
         }
+
+
+class TestMappingFallbackResolution:
+    """Regression tests for GitHub issue #51: chlorine sensor missing for VA DOS EXACT.
+
+    These tests cover MappingInfo.load()'s dedicated-file-first / alias-fallback
+    resolution logic, which is separate from (and independent of) the raw
+    instant-value data key prefix aliasing done via MODEL_ALIASES in client.py.
+    """
+
+    def test_has_dedicated_mapping_file_detects_exact_file(self):
+        """PDHC1H1HAR1V1 (VA DOS EXACT) has its own dedicated mapping file."""
+        assert _has_dedicated_mapping_file("PDHC1H1HAR1V1", "539224") is True
+
+    def test_has_dedicated_mapping_file_excludes_alias_only_models(self):
+        """Models that only exist as MODEL_ALIASES entries (no dedicated
+        mapping file of their own) must not be reported as having one."""
+        assert _has_dedicated_mapping_file("PDHC1H1HAR1V0", "539224") is False
+        assert _has_dedicated_mapping_file("PDPR1H1HAW102", "539187") is False
+        assert _has_dedicated_mapping_file("PDPR1H1HAW1B0_I", "539472") is False
+
+    @pytest.mark.asyncio
+    async def test_load_prefers_dedicated_file_over_fallback(self):
+        """MappingInfo.load() must load the dedicated PDHC1H1HAR1V1 (EXACT)
+        mapping file, not the aliased PDPR1H1HAR1V0 (BASIC) one, even though
+        a fallback_model_id is provided. The BASIC mapping has no 'cl' entry;
+        the EXACT one does."""
+        mapping_info = await MappingInfo.load(
+            "PDHC1H1HAR1V1", "539224", fallback_model_id="PDPR1H1HAR1V0"
+        )
+
+        assert mapping_info.status == RequestStatus.SUCCESS
+        assert mapping_info.mapping is not None
+        assert "cl" in mapping_info.mapping
+        assert mapping_info.mapping["cl"]["key"] == "w_1gribhndo"
+        assert mapping_info.mapping["cl"]["type"] == "sensor"
+
+    @pytest.mark.asyncio
+    async def test_load_uses_fallback_when_no_dedicated_file(self):
+        """PDHC1H1HAR1V0 (VA DOS BASIC) has no dedicated mapping file, so
+        MappingInfo.load() must fall back to the aliased PDPR1H1HAR1V0
+        mapping, which correctly has no 'cl' entry (BASIC has no chlorine)."""
+        mapping_info = await MappingInfo.load(
+            "PDHC1H1HAR1V0", "539224", fallback_model_id="PDPR1H1HAR1V0"
+        )
+
+        assert mapping_info.status == RequestStatus.SUCCESS
+        assert mapping_info.mapping is not None
+        assert "cl" not in mapping_info.mapping
+        assert "ph" in mapping_info.mapping
+        assert "temperature" in mapping_info.mapping
+
+    @pytest.mark.asyncio
+    async def test_load_without_fallback_and_no_dedicated_file_not_found(self):
+        """Without a fallback_model_id, an unknown model must still return
+        MAPPING_NOT_FOUND (no accidental fallback behavior)."""
+        mapping_info = await MappingInfo.load("PDHC1H1HAR1V0", "539224")
+
+        assert mapping_info.status == RequestStatus.MAPPING_NOT_FOUND
+        assert mapping_info.mapping is None
+
+    @pytest.mark.asyncio
+    async def test_load_unknown_model_and_fallback_both_missing(self):
+        """If neither the model nor its fallback have a mapping file, loading
+        must fail cleanly with MAPPING_NOT_FOUND."""
+        mapping_info = await MappingInfo.load(
+            "DOESNOTEXIST", "000000", fallback_model_id="ALSODOESNOTEXIST"
+        )
+
+        assert mapping_info.status == RequestStatus.MAPPING_NOT_FOUND
+        assert mapping_info.mapping is None

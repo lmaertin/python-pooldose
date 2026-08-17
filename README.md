@@ -182,7 +182,7 @@ See [docs/cli.md](docs/cli.md) for full CLI documentation and device analysis de
 | BWT MEDO CONNECT Wi-Fi | PDPH1H1HAW1B0 | 539494 | Based on SEKO PoolDose pH mapping |
 | BWT Manager Connect Duo | PDPR1H1HAW1B0_I | 539472 | Uses PDPR1H1HAW1B0 data-key mapping |
 | VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | |
-| VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Alias for PDPR1H1HAR1V0 mapping |
+| VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Own dedicated mapping (incl. chlorine); raw data keys use PDPR1H1HAR1V0 prefix |
 
 Other models may work but are untested. See [docs/device-support.md](docs/device-support.md) for how to request support for new devices.
 

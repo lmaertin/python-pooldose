@@ -214,3 +214,30 @@ def test_set_number_lower_upper_pairing() -> None:
         assert entries[0]["type"] == "NUMBER"
     finally:
         json_path.unlink()
+
+
+def test_instant_values_does_not_mutate_reported_model_id() -> None:
+    """Regression test for GitHub issue #51 fix: resolving the aliased data-key
+    prefix for PDHC1H1HAR1V1 must not mutate device_info['MODEL_ID'] in place,
+    since that would misreport the device's actual model to callers."""
+    json_path = create_temp_json_file(TEST_DATA)
+    try:
+        client = MockPooldoseClient(json_path, model_id="PDHC1H1HAR1V1", fw_code="539224")
+        connect_status = asyncio.run(client.connect())
+        assert connect_status == RequestStatus.SUCCESS
+        assert client.device_info["MODEL_ID"] == "PDHC1H1HAR1V1"
+
+        status, instant_values = asyncio.run(client.instant_values())
+        assert status == RequestStatus.SUCCESS
+        assert instant_values is not None
+
+        # MODEL_ID must still reflect the actually reported model, not the
+        # aliased model used internally for the raw data key prefix.
+        assert client.device_info["MODEL_ID"] == "PDHC1H1HAR1V1"
+
+        # The aliased PDPR1H1HAR1V0 raw key prefix must still be used to find
+        # the pause_dosing switch value (raw key "w_1f2jpqa6e" in the fixture,
+        # mapped from the dedicated EXACT mapping file).
+        assert instant_values["pause_dosing"] is False
+    finally:
+        json_path.unlink()

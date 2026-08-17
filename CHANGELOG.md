@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.8] - 2026-08-17
+
+### Fixed
+
+- Fixed missing chlorine sensor on VÁGNER POOL VA DOS EXACT (`PDHC1H1HAR1V1`,
+  firmware `539224`), reported in
+  [#51](https://github.com/lmaertin/python-pooldose/issues/51).
+  - `MODEL_ALIASES` was being applied unconditionally when selecting the
+    mapping file, causing the client to always load the VA DOS BASIC mapping
+    (`model_PDPR1H1HAR1V0_FW539224.json`, no chlorine sensor) instead of the
+    existing dedicated EXACT mapping
+    (`model_PDHC1H1HAR1V1_FW539224.json`, which defines `cl`).
+  - `MappingInfo.load()` now prefers a model's own dedicated mapping file
+    over the alias, and only falls back to the aliased model's mapping file
+    if no dedicated one exists. Whether a model has a dedicated file is
+    determined by checking for the file's actual existence (cached per
+    model/firmware pair), not from a hand-maintained list.
+  - The raw instant-value data key prefix resolution (also driven by
+    `MODEL_ALIASES`) is unaffected and continues to always alias
+    `PDHC1H1HAR1V1` to `PDPR1H1HAR1V0`, since that reflects a real firmware
+    quirk in how the device names its raw data keys.
+  - `MockPooldoseClient` no longer mutates `device_info["MODEL_ID"]` in
+    place when resolving the aliased data-key prefix, so it keeps reporting
+    the actual configured model.
+  - Added regression tests covering mapping-file resolution
+    (`tests/test_mapping_info.py`), the end-to-end `connect()`/
+    `instant_values()` flow (`tests/test_client.py`), and the mock client fix
+    (`tests/test_mock_client_set_value.py`).
+- Thanks to @geraldnolan for the detailed diagnosis and reproduction steps.
+
 ## [0.9.7] - 2026-08-16
 
 ### Added

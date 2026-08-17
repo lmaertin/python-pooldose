@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from pooldose.constants import get_default_device_info
+from pooldose.constants import MODEL_ALIASES, get_default_device_info
 from pooldose.type_definitions import StructuredValuesDict
 from pooldose.mappings.mapping_info import MappingInfo
 from pooldose.request_status import RequestStatus
@@ -152,11 +152,15 @@ class MockPooldoseClient:
             RequestStatus: SUCCESS if mock data is available
         """
         if self._mock_data and self._device_key:
-            # Load mapping info
+            # Load mapping info. Prefer a dedicated mapping file for the
+            # configured MODEL_ID; only fall back to the MODEL_ALIASES entry
+            # if no dedicated mapping file exists for this model.
             try:
+                alias_model = MODEL_ALIASES.get(str(self.device_info["MODEL_ID"]))
                 self._mapping_info = await MappingInfo.load(
                     self.device_info["MODEL_ID"],
-                    self.device_info["FW_CODE"]
+                    self.device_info["FW_CODE"],
+                    fallback_model_id=alias_model,
                 )
                 _LOGGER.info("Mock client connected successfully")
                 return RequestStatus.SUCCESS
@@ -198,21 +202,25 @@ class MockPooldoseClient:
 
             device_data = self._mock_data['devicedata'][self._device_key]
 
-            if self.device_info["MODEL_ID"] == 'PDHC1H1HAR1V1' and self.device_info["FW_CODE"] == '539224':
-                # due to identifier issue in device firmware, use mapping prefix of PDPR1H1HAR1V0
-                self.device_info["MODEL_ID"] = 'PDPR1H1HAR1V0'
+            # Resolve the model ID used for the raw data key prefix. Some
+            # devices report a different MODEL_ID than the one used in their
+            # raw data keys (see MODEL_ALIASES). Use a local variable instead
+            # of mutating device_info so the reported MODEL_ID stays accurate.
+            data_key_model_id = MODEL_ALIASES.get(
+                str(self.device_info["MODEL_ID"]), self.device_info["MODEL_ID"]
+            )
 
             # Filter out non-sensor data
             filtered_data = {
                 k: v for k, v in device_data.items()
-                if k.startswith(self.device_info["MODEL_ID"]) and isinstance(v, (dict, bool))
+                if k.startswith(data_key_model_id) and isinstance(v, (dict, bool))
             }
 
             instant_values = InstantValues(
                 device_data=filtered_data,
                 mapping=self._mapping_info.mapping,
                 prefix=(
-                    f"{self.device_info['MODEL_ID']}_FW"
+                    f"{data_key_model_id}_FW"
                     f"{self.device_info['FW_CODE']}_"
                 ),
                 device_id=self._device_key,

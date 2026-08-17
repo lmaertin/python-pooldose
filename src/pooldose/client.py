@@ -184,12 +184,17 @@ class PooldoseClient:
                 self.device_info["FW_CODE"] = device.get("FW_CODE")
         await asyncio.sleep(self._retry_delay)
 
-        # Load mapping information
+        # Load mapping information. Prefer a dedicated mapping file for the
+        # reported MODEL_ID; only fall back to the MODEL_ALIASES entry (used
+        # for devices whose raw data keys use a different model's prefix) if
+        # no dedicated mapping file exists for this model.
         model_id = self.device_info.get("MODEL_ID")
         fw_code = self.device_info.get("FW_CODE")
         if model_id and fw_code:
-            resolved_model = MODEL_ALIASES.get(str(model_id), str(model_id))
-            self._mapping_info = await MappingInfo.load(resolved_model, str(fw_code))
+            alias_model = MODEL_ALIASES.get(str(model_id))
+            self._mapping_info = await MappingInfo.load(
+                str(model_id), str(fw_code), fallback_model_id=alias_model
+            )
         else:
             _LOGGER.warning("Missing MODEL_ID or FW_CODE, cannot load mapping")
             self._mapping_info = MappingInfo(mapping=None, status=RequestStatus.NO_DATA)

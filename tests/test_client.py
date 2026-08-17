@@ -4,6 +4,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from pooldose.client import PooldoseClient
+from pooldose.constants import MODEL_ALIASES
+from pooldose.mappings.mapping_info import MappingInfo
 from pooldose.request_status import RequestStatus
 from pooldose.values.instant_values import InstantValues
 from pooldose.values.static_values import StaticValues
@@ -299,8 +301,11 @@ class TestModelAliases:
                 status = await client.connect()
 
         assert status == RequestStatus.SUCCESS
-        # Verify MappingInfo.load was called with the resolved alias model ID
-        mock_load.assert_called_once_with("PDPR1H1HAW100", "539187")
+        # Verify MappingInfo.load was called with the reported model ID and
+        # the resolved alias as fallback (dedicated file is tried first).
+        mock_load.assert_called_once_with(
+            "PDPR1H1HAW102", "539187", fallback_model_id="PDPR1H1HAW100"
+        )
         # The original MODEL_ID should still reflect what the device reported
         assert client.device_info["MODEL_ID"] == "PDPR1H1HAW102"
 
@@ -338,7 +343,9 @@ class TestModelAliases:
                 status = await client.connect()
 
         assert status == RequestStatus.SUCCESS
-        mock_load.assert_called_once_with("PDPR1H1HAW1B0", "539472")
+        mock_load.assert_called_once_with(
+            "PDPR1H1HAW1B0_I", "539472", fallback_model_id="PDPR1H1HAW1B0"
+        )
         assert client.device_info["MODEL_ID"] == "PDPR1H1HAW1B0_I"
 
     @pytest.mark.asyncio
@@ -426,3 +433,96 @@ class TestModelAliases:
         assert instant_values is not None
         assert instant_values["ph"][0] == 7.2
         assert instant_values["ph_type_dosing"][0] == "acid"
+
+
+class TestChlorineRegressionIssue51:
+    """Regression tests for GitHub issue #51: chlorine sensor missing on the
+    VÁGNER POOL VA DOS EXACT (PDHC1H1HAR1V1, firmware 539224).
+
+    Unlike TestModelAliases above, these tests do NOT patch MappingInfo.load,
+    so they exercise the real mapping-file resolution against the actual
+    files in src/pooldose/mappings/. This guards against silently loading the
+    VA DOS BASIC mapping (no chlorine sensor) instead of the dedicated EXACT
+    mapping (which defines 'cl').
+    """
+
+    @pytest.mark.asyncio
+    async def test_connect_loads_dedicated_exact_mapping_not_basic(
+        self, mock_request_handler
+    ):
+        """connect() must load the dedicated PDHC1H1HAR1V1 mapping file
+        (which defines 'cl'), not the aliased PDPR1H1HAR1V0 BASIC mapping
+        (which has no chlorine sensor at all)."""
+        client = PooldoseClient(host="192.168.1.50", retry_delay=0)
+        mock_request_handler.get_debug_config.return_value = (
+            RequestStatus.SUCCESS,
+            {
+                "GATEWAY": {"DID": "TESTEXACT", "NAME": "VA DOS EXACT"},
+                "DEVICES": [{
+                    "DID": "TESTEXACT_DEVICE",
+                    "NAME": "VA DOS EXACT",
+                    "PRODUCT_CODE": "PDHC1H1HAR1V1",
+                    "FW_REL": "2.11",
+                    "FW_CODE": "539224",
+                }],
+            },
+        )
+        mock_request_handler.get_wifi_station.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_access_point.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_network_info.return_value = (RequestStatus.SUCCESS, {})
+
+        with patch("pooldose.client.RequestHandler", return_value=mock_request_handler):
+            status = await client.connect()
+
+        assert status == RequestStatus.SUCCESS
+        # pylint: disable=protected-access
+        mapping = client._mapping_info.mapping
+        assert mapping is not None
+        assert "cl" in mapping, (
+            "Chlorine sensor missing: the BASIC mapping was loaded instead "
+            "of the dedicated EXACT mapping (issue #51 regression)"
+        )
+        assert mapping["cl"] == {"key": "w_1gribhndo", "type": "sensor"}
+
+    @pytest.mark.asyncio
+    async def test_chlorine_value_resolved_from_aliased_raw_key(
+        self, mock_request_handler
+    ):
+        """The chlorine value must be resolved from the raw data key using
+        the aliased PDPR1H1HAR1V0 prefix (a real firmware quirk of this
+        device), even though the dedicated EXACT mapping is loaded."""
+        client = PooldoseClient(host="192.168.1.50", retry_delay=0)
+        # pylint: disable=protected-access
+        client._request_handler = mock_request_handler
+        client.device_info.update({
+            "DEVICE_ID": "TESTEXACT_DEVICE",
+            "MODEL_ID": "PDHC1H1HAR1V1",
+            "FW_CODE": "539224",
+        })
+        alias_model = MODEL_ALIASES.get("PDHC1H1HAR1V1")
+        client._mapping_info = await MappingInfo.load(
+            "PDHC1H1HAR1V1", "539224", fallback_model_id=alias_model
+        )
+        assert client._mapping_info.status == RequestStatus.SUCCESS
+
+        mock_request_handler.get_values_raw.return_value = (
+            RequestStatus.SUCCESS,
+            {
+                "devicedata": {
+                    "TESTEXACT_DEVICE": {
+                        "PDPR1H1HAR1V0_FW539224_w_1gribhndo": {
+                            "current": 0.6,
+                            "magnitude": ["CL2"],
+                        },
+                    }
+                }
+            },
+        )
+
+        status, structured = await client.instant_values_structured()
+
+        assert status == RequestStatus.SUCCESS
+        assert "sensor" in structured
+        assert "cl" in structured["sensor"]
+        assert structured["sensor"]["cl"]["value"] == 0.6
+        assert structured["sensor"]["cl"]["unit"] == "ppm"
