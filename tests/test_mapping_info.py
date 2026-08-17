@@ -305,3 +305,64 @@ class TestMappingFallbackResolution:
 
         assert mapping_info.status == RequestStatus.MAPPING_NOT_FOUND
         assert mapping_info.mapping is None
+
+
+class TestKemiDoseAquavivaMapping:  # pylint: disable=too-few-public-methods
+    """Tests for the KEMI DOSE AQUAVIVA pH-ORP-CL mapping file."""
+
+    @pytest.mark.asyncio
+    async def test_load_kemi_dose_aquaviva_mapping(self):
+        """Test that the KEMI DOSE AQUAVIVA mapping loads with expected entities."""
+        mapping_info = await MappingInfo.load("KDPR5050AWH00", "539191")
+
+        assert mapping_info.status == RequestStatus.SUCCESS
+        assert mapping_info.mapping is not None
+        assert set(mapping_info.available_sensors()) >= {
+            "temperature",
+            "ph",
+            "orp",
+            "cl",
+            "ph_type_dosing",
+            "peristaltic_ph_dosing",
+            "orp_type_dosing",
+            "peristaltic_orp_dosing",
+            "cl_type_dosing",
+            "peristaltic_cl_dosing",
+            "ph_calibration_type",
+            "orp_calibration_type",
+        }
+        assert set(mapping_info.available_binary_sensors()) >= {
+            "ph_level_alarm",
+            "flow_rate_alarm",
+            "alarm_ofa_cl",
+            "circulation_pump_status",
+            "power_on_delay_status",
+            "flow_delay_status",
+        }
+        assert set(mapping_info.available_numbers()) >= {
+            "ph_target",
+            "orp_target",
+            "cl_target",
+            "power_on_delay_timer",
+            "flow_delay_timer",
+        }
+        assert set(mapping_info.available_switches()) >= {
+            "pause_dosing",
+            "pump_monitoring",
+            "frequency_input",
+        }
+        assert set(mapping_info.available_selects()) >= {
+            "water_meter_unit",
+        }
+
+    @pytest.mark.asyncio
+    async def test_kemi_dose_aquaviva_entity_counts(self):
+        """Test the total entity counts for the KEMI DOSE AQUAVIVA mapping."""
+        mapping_info = await MappingInfo.load("KDPR5050AWH00", "539191")
+        types = mapping_info.available_types()
+
+        assert len(types.get("sensor", [])) == 20
+        assert len(types.get("binary_sensor", [])) == 22
+        assert len(types.get("number", [])) == 5
+        assert len(types.get("switch", [])) == 3
+        assert len(types.get("select", [])) == 1

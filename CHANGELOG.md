@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.9] - 2026-08-17
+
+### Added
+
+- Added support for KEMI DOSE AQUAVIVA pH-ORP-CL (`KDHC5050AWH01`, firmware `539191`).
+  - Resolves the reported product code to the `KDPR5050AWH00` model used by the
+    device data keys.
+  - Added mapping coverage for temperature, pH, ORP, and chlorine measurements,
+    dosing type and mode, pH/ORP calibration, OFA timers, level and threshold
+    alarms, relay and status flags, setpoints, dosing timers, switches, and the
+    water meter unit.
+- Added regression tests for the KEMI DOSE AQUAVIVA model alias and mapping.
+
 ## [0.9.8] - 2026-08-17
 
 ### Fixed
