@@ -349,6 +349,45 @@ class TestModelAliases:
         assert client.device_info["MODEL_ID"] == "PDPR1H1HAW1B0_I"
 
     @pytest.mark.asyncio
+    async def test_connect_resolves_kemi_dose_aquaviva_alias(
+        self, mock_request_handler, mock_mapping_info
+    ):
+        """Test mapping resolution for KEMI DOSE AQUAVIVA pH-ORP-CL."""
+        client = PooldoseClient(host="192.168.3.158", retry_delay=0)
+        mock_request_handler.get_debug_config.return_value = (
+            RequestStatus.SUCCESS,
+            {
+                "GATEWAY": {"DID": "TEST551", "NAME": "ESP32 GATEWAY"},
+                "DEVICES": [{
+                    "DID": "TEST551_DEVICE",
+                    "NAME": "KEMI DOSE AQUAVIVA pH-ORP-CL",
+                    "PRODUCT_CODE": "KDHC5050AWH01",
+                    "FW_REL": "1.6",
+                    "FW_CODE": "539191",
+                }],
+            },
+        )
+        mock_request_handler.get_wifi_station.return_value = (
+            RequestStatus.SUCCESS,
+            {},
+        )
+        mock_request_handler.get_access_point.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_network_info.return_value = (RequestStatus.SUCCESS, {})
+
+        with patch("pooldose.client.RequestHandler", return_value=mock_request_handler):
+            with patch(
+                "pooldose.mappings.mapping_info.MappingInfo.load",
+                return_value=mock_mapping_info,
+            ) as mock_load:
+                status = await client.connect()
+
+        assert status == RequestStatus.SUCCESS
+        mock_load.assert_called_once_with(
+            "KDHC5050AWH01", "539191", fallback_model_id="KDPR5050AWH00"
+        )
+        assert client.device_info["MODEL_ID"] == "KDHC5050AWH01"
+
+    @pytest.mark.asyncio
     async def test_instant_values_uses_resolved_prefix(
         self, mock_request_handler, mock_device_info_aliased,
         mock_mapping_info, mock_raw_data_aliased

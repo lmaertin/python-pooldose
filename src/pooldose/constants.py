@@ -18,6 +18,7 @@ MODEL_ALIASES: dict[str, str] = {
     "PDHC1H1HAR1V0": "PDPR1H1HAR1V0",
     "PDPR1H1HAW102": "PDPR1H1HAW100",
     "PDPR1H1HAW1B0_I": "PDPR1H1HAW1B0",
+    "KDHC5050AWH01": "KDPR5050AWH00",
 }
 
 # Default device info structure

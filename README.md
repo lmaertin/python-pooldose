@@ -183,6 +183,8 @@ See [docs/cli.md](docs/cli.md) for full CLI documentation and device analysis de
 | BWT Manager Connect Duo | PDPR1H1HAW1B0_I | 539472 | Uses PDPR1H1HAW1B0 data-key mapping |
 | VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | |
 | VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Own dedicated mapping (incl. chlorine); raw data keys use PDPR1H1HAR1V0 prefix |
+| KEMI DOSE AQUAVIVA pH-ORP | KDPR5050AWH00 | 539191 | pH/ORP device (no chlorine); untested |
+| KEMI DOSE AQUAVIVA pH-ORP-CL | KDHC5050AWH01 | 539191 | pH/ORP/chlorine device; resolves to KDPR5050AWH00 data-key mapping |
 
 Other models may work but are untested. See [docs/device-support.md](docs/device-support.md) for how to request support for new devices.
 
