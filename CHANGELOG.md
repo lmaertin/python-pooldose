@@ -16,7 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     dosing type and mode, pH/ORP calibration, OFA timers, level and threshold
     alarms, relay and status flags, setpoints, dosing timers, switches, and the
     water meter unit.
+  - This mapping also covers KEMI DOSE AQUAVIVA pH-ORP (`KDPR5050AWH00`,
+    firmware `539191`), the chlorine-less variant of the device that reports
+    its raw product code directly (untested).
 - Added regression tests for the KEMI DOSE AQUAVIVA model alias and mapping.
+
+### Contributors
+
+Thanks to [@vitalii-ch](https://github.com/vitalii-ch) for contributing to this release.
 
 ## [0.9.8] - 2026-08-17
 

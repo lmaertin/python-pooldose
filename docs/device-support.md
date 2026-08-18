@@ -13,6 +13,7 @@ This client has been tested with:
 | BWT MEDO CONNECT Wi-Fi | PDPH1H1HAW1B0 | 539494 | pH-only device |
 | VÁGNER POOL VA DOS BASIC | PDHC1H1HAR1V0 | 539224 | Alias for PDPR1H1HAR1V0 mapping |
 | VÁGNER POOL VA DOS EXACT | PDHC1H1HAR1V1 | 539224 | Own dedicated mapping (incl. chlorine); raw data keys use PDPR1H1HAR1V0 prefix |
+| KEMI DOSE AQUAVIVA pH-ORP | KDPR5050AWH00 | 539191 | pH/ORP device (no chlorine); untested |
 | KEMI DOSE AQUAVIVA pH-ORP-CL | KDHC5050AWH01 | 539191 | pH/ORP/chlorine device; resolves to KDPR5050AWH00 mapping |
 
 Other SEKO or VÁGNER POOL models may work but are untested. The client uses JSON mapping files to adapt to different device models and firmware versions (see e.g. `src/pooldose/mappings/model_PDPR1H1HAW100_FW539187.json`).
