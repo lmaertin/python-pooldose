@@ -1,5 +1,6 @@
 """Mapping Parser for async API client for SEKO Pooldose."""
 
+import asyncio
 import functools
 import importlib.resources
 import json
@@ -142,7 +143,9 @@ class MappingInfo:
             return cls(mapping=None, status=RequestStatus.NO_DATA)
 
         resolved_model_id = model_id
-        if fallback_model_id and not _has_dedicated_mapping_file(model_id, fw_code):
+        if fallback_model_id and not await asyncio.to_thread(
+            _has_dedicated_mapping_file, model_id, fw_code
+        ):
             resolved_model_id = fallback_model_id
 
         filename = f"model_{resolved_model_id}_FW{fw_code}.json"
