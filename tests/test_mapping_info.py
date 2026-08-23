@@ -1,5 +1,7 @@
 """Tests for MappingInfo for async API client for SEKO Pooldose."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from pooldose.mappings.mapping_info import (
     MappingInfo,
@@ -254,6 +256,23 @@ class TestMappingFallbackResolution:
         assert _has_dedicated_mapping_file("PDHC1H1HAR1V0", "539224") is False
         assert _has_dedicated_mapping_file("PDPR1H1HAW102", "539187") is False
         assert _has_dedicated_mapping_file("PDPR1H1HAW1B0_I", "539472") is False
+
+    @pytest.mark.asyncio
+    async def test_load_checks_dedicated_file_off_event_loop(self):
+        """The dedicated mapping file check must not block the event loop."""
+        with patch(
+            "pooldose.mappings.mapping_info.asyncio.to_thread",
+            new_callable=AsyncMock,
+            return_value=True,
+        ) as to_thread:
+            mapping_info = await MappingInfo.load(
+                "PDHC1H1HAR1V1", "539224", fallback_model_id="PDPR1H1HAR1V0"
+            )
+
+        assert mapping_info.status == RequestStatus.SUCCESS
+        to_thread.assert_awaited_once_with(
+            _has_dedicated_mapping_file, "PDHC1H1HAR1V1", "539224"
+        )
 
     @pytest.mark.asyncio
     async def test_load_prefers_dedicated_file_over_fallback(self):
