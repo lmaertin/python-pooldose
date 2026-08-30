@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.11] - 2026-08-30
+
+### Added
+
+- Added support for the SEKO PoolDose ORP-only device (`PDRX1H1HAW100`, firmware `539176`).
+  - Resolves the reported product code to the `PDPH1H1HAW100` model used by the
+    device data keys and mapping.
+  - This covers the ORP-only variant that exposes the existing pH-model prefix in
+    its raw values while keeping the pH entry hidden in the UI.
+- Added the corresponding alias entry in `MODEL_ALIASES` so the device falls back
+  to the existing pH mapping without a dedicated per-model mapping file.
+
 ## [0.9.10] - 2026-08-23
 
 ### Fixed
