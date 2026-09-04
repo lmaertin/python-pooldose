@@ -388,6 +388,45 @@ class TestModelAliases:
         assert client.device_info["MODEL_ID"] == "KDHC5050AWH01"
 
     @pytest.mark.asyncio
+    async def test_connect_resolves_pdrx_to_pdph_alias(
+        self, mock_request_handler, mock_mapping_info
+    ):
+        """Test mapping resolution for PDRX1H1HAW100 devices via PDPH fallback."""
+        client = PooldoseClient(host="192.168.3.158", retry_delay=0)
+        mock_request_handler.get_debug_config.return_value = (
+            RequestStatus.SUCCESS,
+            {
+                "GATEWAY": {"DID": "TEST901", "NAME": "Pool Dose ORP"},
+                "DEVICES": [{
+                    "DID": "TEST901_DEVICE",
+                    "NAME": "POOL DOSE",
+                    "PRODUCT_CODE": "PDRX1H1HAW100",
+                    "FW_REL": "1.72",
+                    "FW_CODE": "539176",
+                }],
+            },
+        )
+        mock_request_handler.get_wifi_station.return_value = (
+            RequestStatus.SUCCESS,
+            {},
+        )
+        mock_request_handler.get_access_point.return_value = (RequestStatus.SUCCESS, {})
+        mock_request_handler.get_network_info.return_value = (RequestStatus.SUCCESS, {})
+
+        with patch("pooldose.client.RequestHandler", return_value=mock_request_handler):
+            with patch(
+                "pooldose.mappings.mapping_info.MappingInfo.load",
+                return_value=mock_mapping_info,
+            ) as mock_load:
+                status = await client.connect()
+
+        assert status == RequestStatus.SUCCESS
+        mock_load.assert_called_once_with(
+            "PDRX1H1HAW100", "539176", fallback_model_id="PDPH1H1HAW100"
+        )
+        assert client.device_info["MODEL_ID"] == "PDRX1H1HAW100"
+
+    @pytest.mark.asyncio
     async def test_instant_values_uses_resolved_prefix(
         self, mock_request_handler, mock_device_info_aliased,
         mock_mapping_info, mock_raw_data_aliased

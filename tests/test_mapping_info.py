@@ -385,3 +385,65 @@ class TestKemiDoseAquavivaMapping:  # pylint: disable=too-few-public-methods
         assert len(types.get("number", [])) == 5
         assert len(types.get("switch", [])) == 3
         assert len(types.get("select", [])) == 1
+
+
+class TestPdphMapping539176:  # pylint: disable=too-few-public-methods
+    """Tests for the PDPH1H1HAW100 FW539176 mapping file."""
+
+    @pytest.mark.asyncio
+    async def test_load_pdph_mapping_539176(self):
+        """Test that the FW539176 mapping exposes the expected pH-only entities."""
+        mapping_info = await MappingInfo.load("PDPH1H1HAW100", "539176")
+
+        assert mapping_info.status == RequestStatus.SUCCESS
+        assert mapping_info.mapping is not None
+        assert set(mapping_info.available_sensors()) >= {
+            "temperature",
+            "ph",
+            "ph_type_dosing",
+            "peristaltic_ph_dosing",
+            "ph_calibration_type",
+            "ph_calibration_offset",
+            "ph_calibration_slope",
+            "flowrate_unit",
+            "ofa_value",
+            "device_status",
+            "temperature_unit",
+        }
+        assert "orp" not in mapping_info.available_sensors()
+        assert "cl" not in mapping_info.available_sensors()
+        assert "orp_target" not in mapping_info.available_numbers()
+
+        assert set(mapping_info.available_binary_sensors()) >= {
+            "pump_alarm",
+            "ph_level_alarm",
+            "relay_alarm",
+            "relay_aux",
+            "alarm_ofa_ph",
+            "alarm_ofa2_ph",
+            "power_on_delay_status",
+            "flow_delay_status",
+        }
+        assert set(mapping_info.available_numbers()) >= {
+            "ph_target",
+            "time_off_ph_dosing",
+            "power_on_delay_timer",
+            "flow_delay_timer",
+        }
+        assert set(mapping_info.available_switches()) >= {
+            "pause_dosing",
+            "pump_monitoring",
+            "frequency_input",
+        }
+        assert set(mapping_info.available_selects()) >= {"water_meter_unit"}
+
+    @pytest.mark.asyncio
+    async def test_pdph_mapping_539176_uses_debug_keys(self):
+        """Regression: FW539176 mapping must use keys present in shared debug data."""
+        mapping_info = await MappingInfo.load("PDPH1H1HAW100", "539176")
+        assert mapping_info.mapping is not None
+
+        assert mapping_info.mapping["power_on_delay_timer"]["key"] == "w_1ffnkkn14"
+        assert mapping_info.mapping["flow_delay_timer"]["key"] == "w_1ffnkkp29"
+        assert mapping_info.mapping["power_on_delay_status"]["key"] == "w_1firp5nhn"
+        assert mapping_info.mapping["flow_delay_status"]["key"] == "w_1firp5pji"
