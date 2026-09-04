@@ -9,13 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added support for the SEKO PoolDose ORP-only device (`PDRX1H1HAW100`, firmware `539176`).
-  - Resolves the reported product code to the `PDPH1H1HAW100` model used by the
-    device data keys and mapping.
-  - This covers the ORP-only variant that exposes the existing pH-model prefix in
-    its raw values while keeping the pH entry hidden in the UI.
-- Added the corresponding alias entry in `MODEL_ALIASES` so the device falls back
-  to the existing pH mapping without a dedicated per-model mapping file.
+- Added support for the SEKO PoolDose model `PDRX1H1HAW100` (firmware `539176`)
+  via alias resolution to `PDPH1H1HAW100`.
+- Updated `model_PDPH1H1HAW100_FW539176.json` to match the shared debug payloads
+  with a pH-only entity set (no chlorine/ORP attributes), including delay timers
+  and status flags, relay/alarm states, device status/config, and unit mappings.
 
 ## [0.9.10] - 2026-08-23
 
