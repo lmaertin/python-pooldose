@@ -408,7 +408,6 @@ class TestPdphMapping539176:  # pylint: disable=too-few-public-methods
             "flowrate_unit",
             "ofa_value",
             "device_status",
-            "device_config",
             "temperature_unit",
         }
         assert "orp" not in mapping_info.available_sensors()

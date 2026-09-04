@@ -59,14 +59,6 @@
     "key": "w_1ekmflhad",
     "type": "sensor"
   },
-  "device_config": {
-    "key": "w_1eu5qsd0q",
-    "type": "sensor",
-    "conversion": {
-      "|PDPH1H1HAW100_FW539176_LABEL_w_1eu5qsd0q_PH|": "ph",
-      "|PDPH1H1HAW100_FW539176_LABEL_w_1eu5qsd0q_ORP|": "orp"
-    }
-  },
   "temperature_unit": {
     "key": "w_1fkmoh82m",
     "type": "sensor",

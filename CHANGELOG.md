@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   via alias resolution to `PDPH1H1HAW100`.
 - Updated `model_PDPH1H1HAW100_FW539176.json` to match the shared debug payloads
   with a pH-only entity set (no chlorine/ORP attributes), including delay timers
-  and status flags, relay/alarm states, device status/config, and unit mappings.
+  and status flags, relay/alarm states, device status, and unit mappings.
 
 ## [0.9.10] - 2026-08-23
 
