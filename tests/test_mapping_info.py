@@ -392,41 +392,40 @@ class TestPdphMapping539176:  # pylint: disable=too-few-public-methods
 
     @pytest.mark.asyncio
     async def test_load_pdph_mapping_539176(self):
-        """Test that FW539176 exposes the expected pH-only entities."""
+        """Test that FW539176 exposes the expected ORP-only entities."""
         mapping_info = await MappingInfo.load("PDPH1H1HAW100", "539176")
 
         assert mapping_info.status == RequestStatus.SUCCESS
         assert mapping_info.mapping is not None
         assert set(mapping_info.available_sensors()) >= {
             "temperature",
-            "ph",
-            "ph_type_dosing",
-            "peristaltic_ph_dosing",
-            "ph_calibration_type",
-            "ph_calibration_offset",
-            "ph_calibration_slope",
+            "orp",
+            "orp_type_dosing",
+            "peristaltic_orp_dosing",
+            "orp_calibration_type",
+            "orp_calibration_offset",
+            "orp_calibration_slope",
             "flowrate_unit",
             "ofa_value",
             "device_status",
             "temperature_unit",
         }
-        assert "orp" not in mapping_info.available_sensors()
+        assert "ph" not in mapping_info.available_sensors()
         assert "cl" not in mapping_info.available_sensors()
-        assert "orp_target" not in mapping_info.available_numbers()
 
         assert set(mapping_info.available_binary_sensors()) >= {
             "pump_alarm",
-            "ph_level_alarm",
+            "orp_level_alarm",
             "relay_alarm",
             "relay_aux",
-            "alarm_ofa_ph",
-            "alarm_ofa2_ph",
+            "alarm_ofa_orp",
+            "alarm_ofa2_orp",
             "power_on_delay_status",
             "flow_delay_status",
         }
         assert set(mapping_info.available_numbers()) >= {
-            "ph_target",
-            "time_off_ph_dosing",
+            "orp_target",
+            "time_off_orp_dosing",
             "power_on_delay_timer",
             "flow_delay_timer",
         }
@@ -443,6 +442,13 @@ class TestPdphMapping539176:  # pylint: disable=too-few-public-methods
         mapping_info = await MappingInfo.load("PDPH1H1HAW100", "539176")
         assert mapping_info.mapping is not None
 
+        assert mapping_info.mapping["orp"]["key"] == "w_1eklenb23"
+        assert mapping_info.mapping["orp_target"]["key"] == "w_1eklgnjk2"
+        assert mapping_info.mapping["orp_type_dosing"]["key"] == "w_1eklgnolb"
+        assert mapping_info.mapping["peristaltic_orp_dosing"]["key"] == "w_1eklj12vv"
+        assert mapping_info.mapping["orp_calibration_type"]["key"] == "w_1eklh8i5t"
+        assert mapping_info.mapping["orp_calibration_offset"]["key"] == "w_1eklhs8r3"
+        assert mapping_info.mapping["orp_calibration_slope"]["key"] == "w_1eklhsase"
         assert mapping_info.mapping["power_on_delay_timer"]["key"] == "w_1ffnkkn14"
         assert mapping_info.mapping["flow_delay_timer"]["key"] == "w_1ffnkkp29"
         assert mapping_info.mapping["power_on_delay_status"]["key"] == "w_1firp5nhn"
