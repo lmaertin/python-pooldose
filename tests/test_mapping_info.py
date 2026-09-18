@@ -291,24 +291,26 @@ class TestMappingFallbackResolution:
         assert mapping_info.mapping["cl"]["type"] == "sensor"
 
     @pytest.mark.asyncio
-    async def test_load_uses_fallback_when_no_dedicated_file(self):
-        """PDHC1H1HAR1V0 (VA DOS BASIC) has no dedicated mapping file, so
-        MappingInfo.load() must fall back to the aliased PDPR1H1HAR1V0
-        mapping, which correctly has no 'cl' entry (BASIC has no chlorine)."""
+    async def test_load_uses_alias_mapping_with_ofa_ranges(self):
+        """PDHC1H1HAR1V0 must load OFA ranges through its alias mapping."""
         mapping_info = await MappingInfo.load(
             "PDHC1H1HAR1V0", "539224", fallback_model_id="PDPR1H1HAR1V0"
         )
 
         assert mapping_info.status == RequestStatus.SUCCESS
         assert mapping_info.mapping is not None
-        assert "cl" not in mapping_info.mapping
-        assert "ph" in mapping_info.mapping
-        assert "temperature" in mapping_info.mapping
+        assert mapping_info.mapping["ofa_ph_lower"] == {
+            "key": "w_1g1kvba4g",
+            "type": "number",
+            "field": "minT",
+        }
+        assert mapping_info.mapping["ofa_ph_upper"]["field"] == "maxT"
+        assert mapping_info.mapping["ofa_orp_lower"]["key"] == "w_1g1kvclje"
+        assert mapping_info.mapping["ofa_orp_upper"]["field"] == "maxT"
 
     @pytest.mark.asyncio
     async def test_load_without_fallback_and_no_dedicated_file_not_found(self):
-        """Without a fallback_model_id, an unknown model must still return
-        MAPPING_NOT_FOUND (no accidental fallback behavior)."""
+        """Without an alias, the model-only lookup must still fail cleanly."""
         mapping_info = await MappingInfo.load("PDHC1H1HAR1V0", "539224")
 
         assert mapping_info.status == RequestStatus.MAPPING_NOT_FOUND

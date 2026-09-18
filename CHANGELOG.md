@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.14] - 2026-09-18
+
+### Fixed
+
+- Fixed #56 by adding the missing OFA pH and ORP lower/upper alarm thresholds
+  to the `PDPR1H1HAR1V0` firmware `539224` mapping used by
+  `PDHC1H1HAR1V0` through alias resolution.
+
 ## [0.9.13] - 2026-09-18
 
 ### Fixed
@@ -121,6 +129,13 @@ Thanks to [@vitalii-ch](https://github.com/vitalii-ch) for contributing to this 
   - Documented quick installer usage for macOS, Linux, and Windows
   - Added network access hints for each platform
 - Added an installation reference in `docs/device-support.md` for new users.
+
+
+### Fixed
+
+- Fixed #56 by adding the missing OFA pH and ORP lower/upper alarm thresholds
+  to the `PDPR1H1HAR1V0` firmware `539224` mapping used by
+  `PDHC1H1HAR1V0` through alias resolution.
 
 ## [0.9.5] - 2026-06-01
 
