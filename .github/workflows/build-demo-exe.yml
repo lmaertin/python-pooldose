@@ -2,15 +2,6 @@ name: Build Demo EXE
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "examples/**"
-      - "src/**"
-      - "requirements.txt"
-      - "pyproject.toml"
-      - ".github/workflows/build-demo-exe.yml"
 
 jobs:
   build-windows-exe:
