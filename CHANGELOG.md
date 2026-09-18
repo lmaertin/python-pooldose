@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Updated `PDRX1H1HAW100` firmware `539176` support via alias resolution to
+- Fixed #54: updated `PDRX1H1HAW100` firmware `539176` support via alias resolution to
   `PDPH1H1HAW100` with a pH-only entity set.
 - Aligned the FW539176 mapping with shared debug payload keys, including delay
   timers and status flags, relay/alarm states, device status, and unit mappings.
