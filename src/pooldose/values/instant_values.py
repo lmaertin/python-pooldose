@@ -319,12 +319,6 @@ class InstantValues:
         abs_max = raw_entry.get("absMax")
         resolution = raw_entry.get("resolution")
 
-        # Special handling for minT/maxT fields: split abs_min/abs_max range
-        if value_key == "minT" and isinstance(abs_max, (int, float)):
-            abs_max = abs_max / 2
-        elif value_key == "maxT" and isinstance(abs_max, (int, float)) and isinstance(resolution, (int, float)):
-            abs_min = abs_max / 2 + resolution
-
         # Get unit
         units = raw_entry.get("magnitude", [""])
         unit = units[0] if isinstance(units, (list, tuple)) and units and str(units[0]).lower() not in ("undefined", "ph") else None
@@ -397,6 +391,14 @@ class InstantValues:
                 if min_val_set is None or max_val_set is None:
                     _LOGGER.warning("Cannot set both minT and maxT: missing value for one corresponding field.")
                     return False
+                if min_val_set >= max_val_set:
+                    _LOGGER.warning(
+                        "Invalid threshold range for %s: minT=%s must be less than maxT=%s",
+                        key,
+                        min_val_set,
+                        max_val_set,
+                    )
+                    return False
                 result = await self._request_handler.set_value(self._device_id, full_key, [min_val_set, max_val_set], "NUMBER")
             else:
                 if not isinstance(value, (int, float)):
@@ -405,6 +407,10 @@ class InstantValues:
                 result = await self._request_handler.set_value(self._device_id, full_key, value, "NUMBER")
             if result:
                 self._cache.pop(key, None)
+                if field in ("minT", "maxT"):
+                    corresponding_key = self._get_corresponding_key(field, attributes)
+                    if corresponding_key is not None:
+                        self._cache.pop(corresponding_key, None)
             return result
         except (TypeError, ValueError, IndexError, KeyError, AttributeError) as err:
             _LOGGER.warning("Error setting number '%s': %s", key, err)
@@ -468,16 +474,28 @@ class InstantValues:
             _LOGGER.warning("Error setting select '%s': %s", key, err)
             return False
 
+    def _get_corresponding_key(self, field: str, attributes: Dict[str, Any]) -> Union[str, None]:
+        """Return the mapped key for the corresponding minT/maxT field."""
+        corresponding_field = "maxT" if field == "minT" else "minT"
+        for key, mapping_entry in self._mapping.items():
+            if (
+                mapping_entry.get("type") == VALUE_TYPE_NUMBER
+                and mapping_entry.get("field") == corresponding_field
+                and mapping_entry.get("key") == attributes.get("key")
+            ):
+                return key
+        return None
+
     def _get_corresponding_value(self, name: str, field: str, attributes: Dict[str, Any]) -> Any:
         """
         Returns the value of the corresponding field (minT/maxT) for the given mapping.
         """
         corresponding_field = "maxT" if field == "minT" else "minT"
         # Search for the mapping entry with the corresponding field
-        for k, v in self._mapping.items():
-            if v.get("type") == VALUE_TYPE_NUMBER and v.get("field") == corresponding_field and v.get("key") == attributes.get("key"):
-                val = self[k]
-                return val[0] if isinstance(val, tuple) else val
+        corresponding_key = self._get_corresponding_key(field, attributes)
+        if corresponding_key is not None:
+            val = self[corresponding_key]
+            return val[0] if isinstance(val, tuple) else val
         # Fallback: get from raw device entry if not found in mapping
         raw_entry = self._find_device_entry(name)
         if raw_entry is None:

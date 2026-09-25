@@ -554,7 +554,9 @@ class TestChlorineRegressionIssue51:
 
         assert status == RequestStatus.SUCCESS
         # pylint: disable=protected-access
-        mapping = client._mapping_info.mapping
+        mapping_info = client._mapping_info
+        assert mapping_info is not None
+        mapping = mapping_info.mapping
         assert mapping is not None
         assert "cl" in mapping, (
             "Chlorine sensor missing: the BASIC mapping was loaded instead "
