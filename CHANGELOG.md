@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.15] - 2026-09-25
+
+### Fixed
+
+- Fixed #59 by exposing the full device range for OFA min/max thresholds,
+  validating that `minT` remains below `maxT` before writing, and invalidating
+  both threshold caches after a successful update.
+
 ## [0.9.14] - 2026-09-18
 
 ### Fixed

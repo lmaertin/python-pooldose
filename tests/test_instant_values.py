@@ -125,6 +125,87 @@ class TestInstantValues:  # pylint: disable=too-many-public-methods
         assert result is False
 
     @pytest.mark.asyncio
+    async def test_set_threshold_accepts_full_absolute_range(self, instant_values_fixture, mock_request_handler):
+        """Test threshold writes use both values without an artificial split."""
+        # pylint: disable=protected-access
+        instant_values_fixture._request_handler = mock_request_handler
+
+        result = await instant_values_fixture.set_number("ofa_ph_lower", 7.5)
+
+        assert result is True
+        mock_request_handler.set_value.assert_awaited_once_with(
+            "TEST123_DEVICE",
+            "PDPR1H1HAW100_FW539187_w_ofa_ph",
+            [7.5, 7.8],
+            "NUMBER",
+        )
+
+    @pytest.mark.asyncio
+    async def test_set_threshold_rejects_inverted_range(self, instant_values_fixture, mock_request_handler):
+        """Test threshold writes reject minT values at or above maxT."""
+        # pylint: disable=protected-access
+        instant_values_fixture._request_handler = mock_request_handler
+
+        result = await instant_values_fixture.set_number("ofa_ph_lower", 7.8)
+
+        assert result is False
+        mock_request_handler.set_value.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_set_threshold_clears_both_caches(self, instant_values_fixture, mock_request_handler):
+        """Test a threshold write invalidates both paired cache entries."""
+        # pylint: disable=protected-access
+        instant_values_fixture._request_handler = mock_request_handler
+        assert instant_values_fixture["ofa_ph_lower"] is not None
+        assert instant_values_fixture["ofa_ph_upper"] is not None
+        assert "ofa_ph_lower" in instant_values_fixture._cache
+        assert "ofa_ph_upper" in instant_values_fixture._cache
+
+        result = await instant_values_fixture.set_number("ofa_ph_lower", 7.0)
+
+        assert result is True
+        assert "ofa_ph_lower" not in instant_values_fixture._cache
+        assert "ofa_ph_upper" not in instant_values_fixture._cache
+
+    @pytest.mark.asyncio
+    async def test_set_orp_lower_threshold_accepts_realistic_value(self, instant_values_fixture, mock_request_handler):
+        """Test an ORP lower threshold above the old artificial limit is accepted."""
+        # pylint: disable=protected-access
+        instant_values_fixture._request_handler = mock_request_handler
+
+        result = await instant_values_fixture.set_number("ofa_orp_lower", 650)
+
+        assert result is True
+        mock_request_handler.set_value.assert_awaited_once_with(
+            "TEST123_DEVICE",
+            "PDPR1H1HAW100_FW539187_w_ofa_orp",
+            [650, 800],
+            "NUMBER",
+        )
+
+    @pytest.mark.asyncio
+    async def test_set_orp_lower_threshold_rejects_inverted_pair(self, instant_values_fixture, mock_request_handler):
+        """Test an ORP lower threshold above maxT is rejected."""
+        # pylint: disable=protected-access
+        instant_values_fixture._request_handler = mock_request_handler
+
+        result = await instant_values_fixture.set_number("ofa_orp_lower", 850)
+
+        assert result is False
+        mock_request_handler.set_value.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_set_orp_upper_threshold_rejects_inverted_pair(self, instant_values_fixture, mock_request_handler):
+        """Test an ORP upper threshold below minT is rejected."""
+        # pylint: disable=protected-access
+        instant_values_fixture._request_handler = mock_request_handler
+
+        result = await instant_values_fixture.set_number("ofa_orp_upper", 500)
+
+        assert result is False
+        mock_request_handler.set_value.assert_not_awaited()
+
+    @pytest.mark.asyncio
     async def test_set_number_invalid_key(self, instant_values_fixture):
         """Test setting number with invalid key."""
         result = await instant_values_fixture.set_number("nonexistent", 7.0)
@@ -224,22 +305,20 @@ class TestInstantValues:  # pylint: disable=too-many-public-methods
     # --- minT/maxT number processing tests ---
 
     def test_number_min_t_field(self, instant_values_fixture):
-        """Test that minT field splits abs_max range correctly (abs_max / 2)."""
+        """Test that minT field exposes the device's absolute range."""
         result = instant_values_fixture["ofa_ph_lower"]
         value, _, min_val, max_val, step = result
         assert value == 6.5
         assert min_val == 0.0
-        # abs_max (14.0) should be halved for minT
-        assert max_val == 7.0
+        assert max_val == 14.0
         assert step == 0.1
 
     def test_number_max_t_field(self, instant_values_fixture):
-        """Test that maxT field splits abs_min range correctly (abs_max / 2 + resolution)."""
+        """Test that maxT field exposes the device's absolute range."""
         result = instant_values_fixture["ofa_ph_upper"]
         value, _, min_val, max_val, step = result
         assert value == 7.8
-        # abs_min should be abs_max / 2 + resolution for maxT
-        assert min_val == 7.1
+        assert min_val == 0.0
         assert max_val == 14.0
         assert step == 0.1
 
@@ -248,10 +327,10 @@ class TestInstantValues:  # pylint: disable=too-many-public-methods
         structured = instant_values_fixture.to_structured_dict()
         assert "ofa_ph_lower" in structured["number"]
         assert structured["number"]["ofa_ph_lower"]["value"] == 6.5
-        assert structured["number"]["ofa_ph_lower"]["max"] == 7.0
+        assert structured["number"]["ofa_ph_lower"]["max"] == 14.0
         assert "ofa_ph_upper" in structured["number"]
         assert structured["number"]["ofa_ph_upper"]["value"] == 7.8
-        assert structured["number"]["ofa_ph_upper"]["min"] == 7.1
+        assert structured["number"]["ofa_ph_upper"]["min"] == 0.0
 
     # --- _get_corresponding_value tests ---
 

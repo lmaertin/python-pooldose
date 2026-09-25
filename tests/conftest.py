@@ -91,6 +91,15 @@ def mock_device_data():
             "resolution": 0.1,
             "magnitude": ["ph"]
         },
+        "PDPR1H1HAW100_FW539187_w_ofa_orp": {
+            "current": 650,
+            "minT": 600,
+            "maxT": 800,
+            "absMin": 0,
+            "absMax": 999,
+            "resolution": 1,
+            "magnitude": ["mV"]
+        },
         "PDPR1H1HAW100_FW539187_w_binary_conv": {
             "current": "|PDPR1H1HAW100_FW539187_LABEL_w_binary_conv_DISABLE|"
         }
@@ -156,6 +165,16 @@ def mock_mapping():
         "ofa_ph_upper": {
             "type": "number",
             "key": "w_ofa_ph",
+            "field": "maxT"
+        },
+        "ofa_orp_lower": {
+            "type": "number",
+            "key": "w_ofa_orp",
+            "field": "minT"
+        },
+        "ofa_orp_upper": {
+            "type": "number",
+            "key": "w_ofa_orp",
             "field": "maxT"
         },
         "binary_conv_sensor": {
